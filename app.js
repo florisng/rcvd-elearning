@@ -5,6 +5,7 @@ import cors from 'cors';
 import { Pool } from 'pg';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import jwt from 'jsonwebtoken';
 
 dotenv.config();
 
@@ -34,6 +35,51 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
+// Routes
+app.get('/login', (req, res) => {
+    res.render('login', { error: null }); // always pass 'error'
+});
+
+const authenticateToken = (req, res, next) => {
+  const token = req.cookies?.token; // using cookie named 'token'
+  
+  if (!token) {
+    // Redirect to login page if not logged in
+    return res.redirect('/login');
+  }
+
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = payload; // attach user info to request
+    next();
+  } catch (err) {
+    return res.redirect('/login'); // invalid token → redirect to login
+  }
+};
+
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+    const user = result.rows[0];
+    if (!user) return res.render('login', { error: 'User not found' });
+
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.render('login', { error: 'Invalid password' });
+
+    const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET, {
+      expiresIn: '1h'
+    });
+
+    // Set token in HTTP-only cookie
+    res.cookie('token', token, { httpOnly: true });
+    res.redirect('/courses');
+  } catch (err) {
+    console.error(err.message);
+    res.render('login', { error: 'Database error' });
+  }
+});
+
 // =====================
 // CRUD Routes for Courses
 // =====================
@@ -54,7 +100,7 @@ app.post('/courses', async (req, res) => {
 });
 
 // Read all courses
-app.get('/courses', async (req, res) => {
+app.get('/courses', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM courses ORDER BY id ASC');
     res.json(result.rows);

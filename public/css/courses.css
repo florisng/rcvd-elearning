@@ -1,0 +1,57 @@
+.header, .footer {
+    background-color: #007bff;
+    padding: 20px;
+}
+
+.courses {
+    display: flex;
+    flex-wrap: wrap; /* Allow courses to wrap to next line on smaller screens */
+    gap: 20px;       /* Space between courses */
+    justify-content: center; /* Center courses on small screens */
+}
+
+.course-image {
+    width: 100%;
+}
+
+.one-course {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 300px; /* Grow/shrink with min width 300px */
+    max-width: 400px; /* Prevent too wide on large screens */
+    box-sizing: border-box;
+    transition: 1s;
+}
+
+
+.one-course:hover {
+    scale: 1.1;
+    cursor: pointer;
+    background-color: #007bff;
+    color: #fff;
+}
+
+.container {
+    margin-left: 15%;
+    margin-right: 15%;
+}
+
+.course-title {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        margin-left: 5%;
+        margin-right: 5%;
+    }
+    
+    .one-course {
+        flex: 1 1 100%; /* Make courses full-width on smaller screens */
+        max-width: none;
+    }
+}

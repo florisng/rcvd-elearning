@@ -5,26 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Courses - RCVD E-learning</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/courses.css">
 </head>
 <body>
   <%- include('partials/header') %>
 
-  <h1>Courses</h1>
+    <div class="container">
+        <img src="images/img1.jpg" alt="" class="course-image">
+        <h1>Courses</h1>
 
   <% if (error) { %>
     <p style="color: red;"><%= error %></p>
   <% } %>
 
   <% if (courses.length > 0) { %>
-    <ul>
+    <div class="courses">
       <% courses.forEach(course => { %>
-        <li><%= course.title %> by <%= course.author %></li>
+       <div class="one-course">
+  <span class="course-title"><%= course.title %></span>
+  <hr>
+  <em>By <%= course.author %></em>
+  <p>
+    <%= course.description %>
+  </p>
+  
+  <span class="small-text">
+    <em>Posted on <%= new Date(course.created_at).toLocaleDateString('en-GB') %></em>
+  </span>
+</div>
+
       <% }) %>
-    </ul>
+      </div>
   <% } else { %>
     <p>No courses found.</p>
   <% } %>
-
+    </div>
   <%- include('partials/footer') %>
 </body>
 </html>

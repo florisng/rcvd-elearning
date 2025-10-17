@@ -1,10 +1,15 @@
 <div class="header">
-  <h1>Welcome to RCVD E-learning</h1>
+  <h1>RCVD E-learning</h1>
   <a href="/courses">Courses</a>
   <% if (user) { %>
     <p>Welcome, <%= user.firstname %>!</p>
+
+    <% if (user.type === 'Instructor') { %>
+      <a href="/create-course">Create a course</a>
+    <% } %>
+
     <a href="/logout">Logout</a>
   <% } else { %>
     <a href="/login">Login</a>
   <% } %>
-  </div>
+</div>

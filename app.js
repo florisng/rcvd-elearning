@@ -1,3 +1,6 @@
+// =====================
+// Imports
+// =====================
 import express from 'express';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
@@ -9,6 +12,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import jwt from 'jsonwebtoken';
 
+// =====================
+// Config
+// =====================
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -29,11 +35,6 @@ const pool = new Pool({
 });
 
 // =====================
-// Global Variables
-// =====================
-const blacklistedTokens = new Set();
-
-// =====================
 // Middleware
 // =====================
 app.use(cors());
@@ -42,14 +43,17 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Set EJS
+// View Engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Middleware to make user info available in templates
+// =====================
+// Authentication Helpers
+// =====================
+
+// Attach user info to EJS templates (so <%= user %> works)
 const checkAuth = (req, res, next) => {
   const token = req.cookies?.token;
-
   if (!token) {
     res.locals.user = null;
     return next();
@@ -57,26 +61,28 @@ const checkAuth = (req, res, next) => {
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    res.locals.user = payload; // available in EJS templates as 'user'
+    res.locals.user = payload; // available in templates
+    req.user = payload;        // available in routes
   } catch (err) {
     res.locals.user = null;
+    req.user = null;
   }
   next();
 };
-
-// Apply globally
 app.use(checkAuth);
 
-// Middleware to protect routes
+// Protect routes (redirect if not logged in)
 const authenticateToken = (req, res, next) => {
-    const token = req.cookies.token;
+  const token = req.cookies?.token;
   if (!token) return res.redirect('/login');
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.redirect('/login');
-    req.user = user; // includes id, username, firstname
+  try {
+    const user = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = user;
     next();
-  });
+  } catch (err) {
+    res.redirect('/login');
+  }
 };
 
 // =====================
@@ -88,7 +94,7 @@ app.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
 
-// Login handler
+// Handle login
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -101,9 +107,14 @@ app.post('/login', async (req, res) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.render('login', { error: 'Invalid password' });
 
-    // Include firstname in the JWT payload
+    // Include firstname + type in JWT payload
     const token = jwt.sign(
-      { id: user.id, username: user.username, firstname: user.firstname },
+      {
+        id: user.id,
+        username: user.username,
+        firstname: user.firstname,
+        type: user.type, // ✅ Make type available to EJS
+      },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
@@ -116,25 +127,20 @@ app.post('/login', async (req, res) => {
   }
 });
 
-
 // Logout
 app.get('/logout', (req, res) => {
-  const token = req.cookies?.token;
-  if (token) blacklistedTokens.add(token);
-
   res.clearCookie('token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
   });
-
   res.redirect('/login');
 });
 
 // =====================
-// Courses Routes
+// Course Routes
 // =====================
 
-// Courses page (protected)
+// View all courses
 app.get('/courses', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM courses ORDER BY id ASC');
@@ -145,8 +151,12 @@ app.get('/courses', authenticateToken, async (req, res) => {
   }
 });
 
-// Create a course
+// Create a new course (only for instructors)
 app.post('/courses', authenticateToken, async (req, res) => {
+  if (req.user.type !== 'Instructor') {
+    return res.status(403).json({ error: 'Access denied: Instructors only' });
+  }
+
   const { title, description } = req.body;
   try {
     const result = await pool.query(
@@ -160,20 +170,67 @@ app.post('/courses', authenticateToken, async (req, res) => {
   }
 });
 
-// Read a single course
-app.get('/courses/:id', authenticateToken, async (req, res) => {
+// View one course page with lessons
+app.get('/course/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
+
   try {
-    const result = await pool.query('SELECT * FROM courses WHERE id = $1', [id]);
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Course not found' });
-    res.json(result.rows[0]);
+    // Get the course
+    const courseResult = await pool.query('SELECT * FROM courses WHERE id = $1', [id]);
+    const course = courseResult.rows[0];
+
+    if (!course) {
+      return res.status(404).render('404', { message: 'Course not found' });
+    }
+
+    // Get all lessons for this course
+    const lessonsResult = await pool.query(
+      'SELECT * FROM lessons WHERE course_id = $1 ORDER BY id ASC',
+      [id]
+    );
+    const lessons = lessonsResult.rows;
+
+    // Render EJS page
+    res.render('course', { user: req.user, course, lessons });
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({ error: 'Database error' });
+    res.status(500).render('500', { message: 'Database error' });
   }
 });
 
-// Update a course
+// Create a new lesson for a course
+app.post('/course/:courseId/lessons', authenticateToken, async (req, res) => {
+  const { courseId } = req.params;
+  const { title, content } = req.body;
+
+  // Only instructors can create lessons
+  if (req.user.type !== 'Instructor') {
+    return res.status(403).render('403', { message: 'Access denied: Instructors only' });
+  }
+
+  try {
+    // Check if course exists
+    const courseResult = await pool.query('SELECT * FROM courses WHERE id = $1', [courseId]);
+    if (courseResult.rows.length === 0) {
+      return res.status(404).render('404', { message: 'Course not found' });
+    }
+
+    // Insert the lesson
+    const result = await pool.query(
+      'INSERT INTO lessons (course_id, title, content, created_at) VALUES ($1, $2, $3, NOW()) RETURNING *',
+      [courseId, title, content]
+    );
+
+    // Redirect back to the course page
+    res.redirect(`/course/${courseId}`);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).render('500', { message: 'Database error' });
+  }
+});
+
+
+// Update course
 app.put('/courses/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { title, description } = req.body;
@@ -190,7 +247,7 @@ app.put('/courses/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Delete a course
+// Delete course
 app.delete('/courses/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   try {
@@ -204,15 +261,18 @@ app.delete('/courses/:id', authenticateToken, async (req, res) => {
 });
 
 // =====================
-// Home Route
+// Home + 404
 // =====================
-app.get('/', (req, res) => {
-  res.render('index');
+app.get('/', (req, res) => res.render('index'));
+
+// 404 page
+app.use((req, res) => {
+  res.status(404).render('404', { title: 'Page Not Found' });
 });
 
 // =====================
 // Start Server
 // =====================
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });

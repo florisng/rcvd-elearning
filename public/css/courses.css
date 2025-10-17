@@ -3,6 +3,14 @@
     padding: 20px;
 }
 
+a {
+    background-color: #fff;
+    color: #007bff;
+    padding: 10px;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
 .courses {
     display: flex;
     flex-wrap: wrap; /* Allow courses to wrap to next line on smaller screens */
@@ -15,6 +23,8 @@
 }
 
 .one-course {
+    text-decoration: none;
+    color: rgb(83, 81, 81);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 20px;
     display: flex;
@@ -27,10 +37,9 @@
 
 
 .one-course:hover {
-    scale: 1.1;
+    scale: 1.05;
     cursor: pointer;
-    background-color: #007bff;
-    color: #fff;
+    background-color: #a8d2ff;
 }
 
 .container {
@@ -42,6 +51,95 @@
     font-size: 20px;
     font-weight: bold;
 }
+
+.course-lessons h2 {
+  margin-top: 20px;
+  font-size: 1.8rem;
+}
+
+.course-lessons ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.course-lessons li {
+  padding: 15px;
+  margin-bottom: 10px;
+  border-left: 4px solid #007bff;
+  background: #f9f9f9;
+  border-radius: 5px;
+}
+
+
+.lesson-form {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 25px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.lesson-form label {
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.lesson-form input,
+.lesson-form textarea {
+  padding: 12px 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  resize: vertical;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.lesson-form input:focus,
+.lesson-form textarea:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0,123,255,0.3);
+  outline: none;
+}
+
+.lesson-form textarea {
+  min-height: 150px;
+  line-height: 1.5;
+}
+
+.lesson-form button {
+  align-self: flex-start;
+  padding: 12px 25px;
+  background-color: #007bff;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.lesson-form button:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .lesson-form {
+    padding: 20px;
+  }
+
+  .lesson-form button {
+    width: 100%;
+    text-align: center;
+  }
+}
+
 
 /* Responsive adjustments */
 @media (max-width: 768px) {

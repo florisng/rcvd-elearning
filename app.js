@@ -1,14 +1,15 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import bcrypt from 'bcryptjs';
 import { Pool } from 'pg';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import jwt from 'jsonwebtoken';
 
 dotenv.config();
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -16,17 +17,9 @@ const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middleware
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Set EJS
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-
-// PostgreSQL connection
+// =====================
+// PostgreSQL Connection
+// =====================
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -35,43 +28,88 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-// Routes
-app.get('/login', (req, res) => {
-    res.render('login', { error: null }); // always pass 'error'
-});
+// =====================
+// Global Variables
+// =====================
+const blacklistedTokens = new Set();
 
-const authenticateToken = (req, res, next) => {
-  const token = req.cookies?.token; // using cookie named 'token'
-  
+// =====================
+// Middleware
+// =====================
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Set EJS
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// Middleware to make user info available in templates
+const checkAuth = (req, res, next) => {
+  const token = req.cookies?.token;
+
   if (!token) {
-    // Redirect to login page if not logged in
+    res.locals.user = null;
+    return next();
+  }
+
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    res.locals.user = payload; // available in EJS templates as 'user'
+  } catch (err) {
+    res.locals.user = null;
+  }
+  next();
+};
+
+// Apply globally
+app.use(checkAuth);
+
+// Middleware to protect routes
+const authenticateToken = (req, res, next) => {
+  const token = req.cookies?.token;
+
+  if (!token || blacklistedTokens.has(token)) {
     return res.redirect('/login');
   }
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = payload; // attach user info to request
+    req.user = payload;
     next();
   } catch (err) {
-    return res.redirect('/login'); // invalid token → redirect to login
+    return res.redirect('/login');
   }
 };
 
+// =====================
+// Auth Routes
+// =====================
+
+// Login page
+app.get('/login', (req, res) => {
+  res.render('login', { error: null });
+});
+
+// Login handler
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
+
   try {
     const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
     const user = result.rows[0];
+
     if (!user) return res.render('login', { error: 'User not found' });
 
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.render('login', { error: 'Invalid password' });
 
     const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET, {
-      expiresIn: '1h'
+      expiresIn: '1h',
     });
 
-    // Set token in HTTP-only cookie
     res.cookie('token', token, { httpOnly: true });
     res.redirect('/courses');
   } catch (err) {
@@ -80,12 +118,36 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// Logout
+app.get('/logout', (req, res) => {
+  const token = req.cookies?.token;
+  if (token) blacklistedTokens.add(token);
+
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+  });
+
+  res.redirect('/login');
+});
+
 // =====================
-// CRUD Routes for Courses
+// Courses Routes
 // =====================
 
-// Create a new course
-app.post('/courses', async (req, res) => {
+// Courses page (protected)
+app.get('/courses', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM courses ORDER BY id ASC');
+    res.render('courses', { user: req.user, courses: result.rows, error: null });
+  } catch (err) {
+    console.error(err.message);
+    res.render('courses', { user: req.user, courses: [], error: 'Database error' });
+  }
+});
+
+// Create a course
+app.post('/courses', authenticateToken, async (req, res) => {
   const { title, description } = req.body;
   try {
     const result = await pool.query(
@@ -99,19 +161,8 @@ app.post('/courses', async (req, res) => {
   }
 });
 
-// Read all courses
-app.get('/courses', authenticateToken, async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM courses ORDER BY id ASC');
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: 'Database error' });
-  }
-});
-
 // Read a single course
-app.get('/courses/:id', async (req, res) => {
+app.get('/courses/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   try {
     const result = await pool.query('SELECT * FROM courses WHERE id = $1', [id]);
@@ -124,7 +175,7 @@ app.get('/courses/:id', async (req, res) => {
 });
 
 // Update a course
-app.put('/courses/:id', async (req, res) => {
+app.put('/courses/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { title, description } = req.body;
   try {
@@ -141,7 +192,7 @@ app.put('/courses/:id', async (req, res) => {
 });
 
 // Delete a course
-app.delete('/courses/:id', async (req, res) => {
+app.delete('/courses/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   try {
     const result = await pool.query('DELETE FROM courses WHERE id = $1 RETURNING *', [id]);
@@ -153,12 +204,16 @@ app.delete('/courses/:id', async (req, res) => {
   }
 });
 
-// Home route
+// =====================
+// Home Route
+// =====================
 app.get('/', (req, res) => {
   res.render('index');
 });
 
-// Start server
+// =====================
+// Start Server
+// =====================
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

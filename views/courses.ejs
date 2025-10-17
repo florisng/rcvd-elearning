@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - RCVD E-learning</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/login.css">
+</head>
+<body>
+  <%- include('partials/header') %>
+  <script>
+    // Fetch courses from the server
+    fetch('/courses', {
+      headers: {
+        'Authorization': 'Bearer YOUR_JWT_TOKEN_HERE' // if using JWT
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        const list = document.getElementById('courses-list');
+        data.forEach(course => {
+          const li = document.createElement('li');
+          li.textContent = `${course.id}: ${course.name}`;
+          list.appendChild(li);
+        });
+      })
+      .catch(err => console.error('Error fetching courses:', err));
+  </script>
+  <%- include('partials/footer') %>
+</body>
+</html>

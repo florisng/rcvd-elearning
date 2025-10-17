@@ -34,10 +34,12 @@
     <p>
       <span class="small-text">Published on: <%= new Date(course.created_at).toLocaleDateString('en-GB') %></span>
     </p>
+    <p>
+      <a href="/quiz/<%= course.id %>">Start Quiz</a>
+    </p>
     
     <!-- Add a lesson form -->
      <% if (user && user.type === 'Instructor') { %>
-      <h3>Add a New Lesson</h3>
       <form class="lesson-form" action="/course/<%= course.id %>/lessons" method="POST">
         <input type="text" id="lesson-title" name="title" placeholder="Enter lesson title" required>
 

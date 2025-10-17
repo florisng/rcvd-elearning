@@ -69,19 +69,14 @@ app.use(checkAuth);
 
 // Middleware to protect routes
 const authenticateToken = (req, res, next) => {
-  const token = req.cookies?.token;
+    const token = req.cookies.token;
+  if (!token) return res.redirect('/login');
 
-  if (!token || blacklistedTokens.has(token)) {
-    return res.redirect('/login');
-  }
-
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = payload;
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.redirect('/login');
+    req.user = user; // includes id, username, firstname
     next();
-  } catch (err) {
-    return res.redirect('/login');
-  }
+  });
 };
 
 // =====================
@@ -106,9 +101,12 @@ app.post('/login', async (req, res) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.render('login', { error: 'Invalid password' });
 
-    const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET, {
-      expiresIn: '1h',
-    });
+    // Include firstname in the JWT payload
+    const token = jwt.sign(
+      { id: user.id, username: user.username, firstname: user.firstname },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
 
     res.cookie('token', token, { httpOnly: true });
     res.redirect('/courses');
@@ -117,6 +115,7 @@ app.post('/login', async (req, res) => {
     res.render('login', { error: 'Database error' });
   }
 });
+
 
 // Logout
 app.get('/logout', (req, res) => {

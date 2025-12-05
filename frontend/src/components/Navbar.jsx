@@ -4,13 +4,13 @@ const Navbar = () => {
   return (
     <nav style={{
       backgroundColor: "#2c3e50",
-      padding: "20px",
+      padding: "16px",
       color: "#fff",
       display: "flex",
       justifyContent: "space-between",
       alignItems: "center"
     }}>
-      <h3 style={{ margin: 0 }}>RCVD - E-learning</h3>
+      <h1 style={{ margin: 0 }}>eLearning</h1>
       <div>
         <a href="/" style={{ color: "#fff", marginRight: "16px", textDecoration: "none" }}>Courses</a>
         <a href="/about" style={{ color: "#fff", textDecoration: "none" }}>About</a>

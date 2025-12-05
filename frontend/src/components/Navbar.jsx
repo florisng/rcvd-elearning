@@ -1,22 +1,20 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import "./css/NavBar.css";
 
-const Navbar = () => {
+const NavBar = () => {
   return (
-    <nav style={{
-      backgroundColor: "#2c3e50",
-      padding: "16px",
-      color: "#fff",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center"
-    }}>
-      <h1 style={{ margin: 0 }}>eLearning</h1>
-      <div>
-        <a href="/" style={{ color: "#fff", marginRight: "16px", textDecoration: "none" }}>Courses</a>
-        <a href="/about" style={{ color: "#fff", textDecoration: "none" }}>About</a>
+    <nav className="navbar">
+      <div className="navbar-left">
+        <Link to="/courses" className="nav-link">Courses</Link>
+        <Link to="/instructors" className="nav-link">Instructors</Link>
+        <Link to="/about" className="nav-link">About</Link>
+      </div>
+      <div className="navbar-right">
+        <Link to="/login" className="login-btn">Login</Link>
       </div>
     </nav>
   );
 };
 
-export default Navbar;
+export default NavBar;

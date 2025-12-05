@@ -1,3 +1,17 @@
+/* Reset margins and padding */
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background-color: #f3f4f6; /* matches Courses background */
+  font-family: 'Inter', sans-serif;
+}
+
+/* Remove any extra scrollbars or unwanted bars */
+* {
+  box-sizing: border-box;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

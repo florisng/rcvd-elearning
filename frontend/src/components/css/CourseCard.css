@@ -1,0 +1,23 @@
+.course-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 16px;
+  width: 250px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  transition: transform 0.2s ease;
+  margin: 8px;
+  color: #0b987e;
+}
+
+.course-card:hover {
+  transform: translateY(-5px);
+  cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .course-card {
+    width: 90%; /* almost full width on mobile */
+  }
+}

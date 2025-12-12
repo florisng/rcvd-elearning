@@ -25,11 +25,19 @@ const Header = () => {
             alt="Burger icon"
           />
         </div>
+        {/* ✅ Only this part changed — phone-menu shows when isOn === false */}
+        <div className={`phone-menu ${isOn ? "hidden" : "show"}`}>
+          <div className="phone-navbar">
+            <Link to="/courses" className="phone-navbar-link">Courses</Link>
+            <Link to="/instructors" className="phone-navbar-link">Instructors</Link>
+            <Link to="/about" className="phone-navbar-link">About</Link>
+            <Link to="/login" className="phone-navbar-link">Login</Link>
+          </div>
+        </div>
+      {/* END OF CHANGE */}
       </div>
 
-      <div className="phone-menu">
-        {/* Menu for phone here */}
-      </div>
+      
 
       <div className="navbar">
         <div className="links">

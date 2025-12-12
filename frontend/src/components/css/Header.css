@@ -49,7 +49,6 @@
 }
   .burger-div {
    display: block;
-   border: 1px solid green;
   }
   .burger-on, .burger-off {
    width: 10%;
@@ -62,4 +61,25 @@
   .navbar {
    display: none;
   }
+}
+
+.phone-menu.hidden {
+  display: none;
+}
+
+.phone-menu.show {
+  display: block; /* or flex */
+  border-bottom: 1px solid green;
+  float: right;
+}
+
+.phone-navbar-link {
+   display: block;
+   text-decoration: none;
+   color: rgb(7, 113, 113);
+   padding: 20px;
+   transition: 1s;
+}
+.phone-navbar-link:hover {
+   border-left: 20px solid rgb(7, 113, 113);
 }

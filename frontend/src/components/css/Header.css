@@ -1,0 +1,65 @@
+.menu {
+  display: flex;
+  flex-direction: colomn;
+}
+.menu .logo {
+   width: 10%;
+}
+.menu .navbar, .menu .burger-div {
+   width: 90%;
+}
+.logo-img {
+   width: 100%;
+}
+.burger-div {
+   display: none;
+}
+.links {
+   float: right;
+   margin: 30px;
+}
+.link {
+   text-decoration: none;
+   margin: 10px;
+   color: rgb(7, 113, 113);
+   padding: 10px;
+}
+.link:hover {
+   border-bottom: 3px solid rgb(7, 113, 113);
+}
+.login {
+   background-color: rgb(7, 113, 113);
+   padding: 10px;
+   color: white;
+   border-radius: 5px;
+   border: 2px solid rgb(7, 113, 113);
+   transition: 1s;
+}
+.login:hover {
+   background-color: white;
+   color: rgb(7, 113, 113);
+}
+
+/* =======================
+   Responsive
+======================= */
+@media (max-width: 768px) {
+   .menu .logo {
+   width: 30%;
+}
+  .burger-div {
+   display: block;
+   border: 1px solid green;
+  }
+  .burger-on, .burger-off {
+   width: 10%;
+   float: right;
+   margin: 20px;
+  }
+  .burger-off {
+   display: none;
+  }
+  .navbar {
+   display: none;
+  }
+}

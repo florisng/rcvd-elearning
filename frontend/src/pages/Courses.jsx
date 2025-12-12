@@ -9,7 +9,7 @@ const Courses = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await fetch("http://localhost:4000/api/courses");
+        const res = await fetch("http://localhost:4000/courses");
         const data = await res.json();
         setCourses(data);
       } catch (err) {
@@ -24,14 +24,19 @@ const Courses = () => {
   if (loading) return <p className="loading-text">Loading courses...</p>;
 
   return (
-    <div className="courses-container">
-      <h1 className="courses-title">Available Courses</h1>
-      <div className="courses-grid">
-        {courses.map(course => (
-          <CourseCard key={course.id} course={course} />
-        ))}
+    <>
+      <h1 className="">Courses</h1>
+      <div>
+        Meet our expert facilitators who create and guide courses for RCVD eLearning. Our instructors bring their veterinary expertise to help you learn and succeed."
       </div>
-    </div>
+      <div className="courses-container">
+        <div className="courses-grid">
+          {courses.map(course => (
+            <CourseCard key={course.id} course={course} />
+          ))}
+        </div>
+      </div>
+    </>
   );
 };
 

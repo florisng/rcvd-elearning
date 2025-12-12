@@ -2,14 +2,12 @@
   padding: 60px 20px;
   max-width: 1300px;
   margin: 0 auto;
-  background-color: #f3f4f6;
 }
 
 .courses-title {
   text-align: center;
   font-size: 2.2rem;
   font-weight: 700;
-  color: #111827;
   margin-bottom: 40px;
 }
 
@@ -23,7 +21,6 @@
 .loading-text {
   text-align: center;
   font-size: 1.2rem;
-  color: #4b5563;
 }
 
 @media (max-width: 1024px) {

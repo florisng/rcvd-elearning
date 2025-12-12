@@ -9,7 +9,7 @@ const Courses = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await fetch("http://localhost:4000/courses");
+        const res = await fetch("http://localhost:4000/api/courses");
         const data = await res.json();
         setCourses(data);
       } catch (err) {
@@ -31,13 +31,12 @@ const Courses = () => {
       </div>
       <hr />
       <div className="courses-container">
-  <div className="courses-grid">
-    {courses.map(course => (
-      <CourseCard key={course.id} course={course} />
-    ))}
-  </div>
-</div>
-
+        <div className="courses-grid">
+          {courses.map(course => (
+            <CourseCard key={course.id} course={course} />
+          ))}
+        </div>
+      </div>
     </>
   );
 };

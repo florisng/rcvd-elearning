@@ -1,52 +1,81 @@
-.course-detail-container {
+.course-page-container {
   max-width: 900px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 20px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .course-title {
-  font-size: 2.5rem;
-  margin-bottom: 20px;
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.course-instructor,
+.course-price,
+.course-duration {
+  text-align: center;
+  color: #555;
+  margin-bottom: 10px;
+  font-weight: 600;
 }
 
 .course-description {
-  font-size: 1.2rem;
-  color: #374151;
   margin-bottom: 30px;
-}
-
-.course-meta p {
-  font-size: 1rem;
-  margin-bottom: 8px;
-  color: #111827;
-}
-
-.course-content {
-  margin-top: 40px;
-}
-
-.chapter {
-  margin-bottom: 20px;
-}
-
-.chapter h3 {
-  font-size: 1.5rem;
-  color: #1e40af;
-  margin-bottom: 10px;
-}
-
-.chapter ul {
-  padding-left: 20px;
-}
-
-.chapter ul li {
-  font-size: 1rem;
-  margin-bottom: 5px;
-  color: #374151;
+  line-height: 1.6;
 }
 
 .loading-text {
   text-align: center;
-  font-size: 1.2rem;
   margin-top: 50px;
+  font-size: 1.2rem;
+  color: #4b5563;
+}
+
+/* Chapters styling */
+.chapter-card {
+  margin-bottom: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.chapter-header {
+  background-color: rgb(17, 113, 113);
+  color: #fff;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.subchapter-list {
+  list-style-type: none;
+  margin: 0;
+  padding: 15px 20px;
+  background-color: #f9fafb;
+}
+
+.subchapter-item {
+  margin-bottom: 10px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .course-page-container {
+    padding: 15px;
+  }
+
+  .course-title {
+    font-size: 1.8rem;
+  }
+
+  .chapter-header {
+    font-size: 1rem;
+    padding: 10px 15px;
+  }
+
+  .subchapter-list {
+    padding: 10px 15px;
+  }
 }

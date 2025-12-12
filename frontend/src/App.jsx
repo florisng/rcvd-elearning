@@ -18,10 +18,10 @@ function App() {
           <Routes>
             <Route path="/" element={<Courses />} />
             <Route path="/courses" element={<Courses />} />
+            <Route path="/course/:id" element={<CourseDetail />} />
             <Route path="/about" element={<About />} />
             <Route path="/instructors" element={<Instructors />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/courses/:id" element={<CourseDetail />} />
           </Routes>
         </main>
         <Footer />

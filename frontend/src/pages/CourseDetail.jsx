@@ -1,78 +1,76 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import "./css/CourseDetail.css";
+import "./css/CourseDetail.css"; // import separate CSS
 
-const CourseDetail = () => {
-  const { id } = useParams(); // get course ID from URL
+const CoursePage = () => {
+  const { id } = useParams();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [expandedChapters, setExpandedChapters] = useState({});
 
   useEffect(() => {
-    // Replace with API call to fetch course by ID
-    // Example mock data
-    const mockCourse = {
-      id,
-      title: "React Basics",
-      description: "Learn the fundamentals of React.js",
-      instructor: "Alice Johnson",
-      price: 45000,
-      duration: 7200, // in seconds
-      content: [
-        {
-          chapter: "Introduction",
-          subchapters: ["What is React?", "Setting up the environment"]
-        },
-        {
-          chapter: "Components",
-          subchapters: ["Functional Components", "Class Components", "Props & State"]
-        },
-        {
-          chapter: "Routing",
-          subchapters: ["React Router Basics", "Nested Routes"]
-        }
-      ]
-    };
-
-    setCourse(mockCourse);
-    setLoading(false);
+    fetch(`http://localhost:4000/api/course/${id}`)
+      .then(res => res.json())
+      .then(data => {
+        setCourse(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
   }, [id]);
 
   if (loading) return <p className="loading-text">Loading course...</p>;
   if (!course) return <p className="loading-text">Course not found</p>;
 
-  // Format price
-  const formattedPrice = course.price.toLocaleString() + " RWF";
+  const toggleChapter = (chapterId) => {
+    setExpandedChapters(prev => ({
+      ...prev,
+      [chapterId]: !prev[chapterId],
+    }));
+  };
 
-  // Format duration to H:M
-  const hours = Math.floor(course.duration / 3600);
-  const minutes = Math.floor((course.duration % 3600) / 60);
+  const chapters = course.chapters || [];
 
   return (
-    <div className="course-detail-container">
+    <div className="course-page-container">
       <h1 className="course-title">{course.title}</h1>
-      <p className="course-description">{course.description}</p>
+      {course.instructor_name && <p className="course-instructor">Instructor: {course.instructor_name}</p>}
+      <p className="course-price">
+        Price: {course.price ? Number(course.price).toLocaleString() : "0"} RWF - Duration: {course.duration ? Math.floor(course.duration / 3600) : 0}h {course.duration ? Math.floor((course.duration % 3600) / 60) : 0}m
+      </p>
+      <p className="course-description">{course.description || "No description available"}</p>
 
-      <div className="course-meta">
-        <p><strong>Instructor:</strong> {course.instructor}</p>
-        <p><strong>Price:</strong> {formattedPrice}</p>
-        <p><strong>Duration:</strong> {hours}h {minutes}m</p>
-      </div>
+      <h2>Chapters</h2>
+      {chapters.length === 0 && <p>No chapters available</p>}
 
-      <div className="course-content">
-        <h2>Course Content</h2>
-        {course.content.map((chapter, idx) => (
-          <div key={idx} className="chapter">
-            <h3>{chapter.chapter}</h3>
-            <ul>
-              {chapter.subchapters.map((sub, sIdx) => (
-                <li key={sIdx}>{sub}</li>
-              ))}
-            </ul>
+      {chapters.map(chapter => {
+        const subchapters = chapter.subchapters || [];
+        return (
+          <div key={chapter.id} className="chapter-card">
+            <div
+              className="chapter-header"
+              onClick={() => toggleChapter(chapter.id)}
+            >
+              {chapter.title}
+            </div>
+
+            {expandedChapters[chapter.id] && (
+              <ul className="subchapter-list">
+                {subchapters.length === 0 && <li>No subchapters available</li>}
+                {subchapters.map(sub => (
+                  <li key={sub.id} className="subchapter-item">
+                    <strong>{sub.title}</strong>: {sub.content || "No content available"}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 };
 
-export default CourseDetail;
+export default CoursePage;

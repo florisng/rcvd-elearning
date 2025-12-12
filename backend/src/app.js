@@ -8,7 +8,7 @@ const app = express();
 app.use(cors()); // Allow frontend requests
 app.use(express.json());
 
-app.use("/courses", coursesRoutes);
+app.use("/api", coursesRoutes);
 app.use("/instructors", instructorsRoutes);
 
 export default app;

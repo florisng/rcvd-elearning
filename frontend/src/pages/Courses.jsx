@@ -27,15 +27,17 @@ const Courses = () => {
     <>
       <h1 className="">Courses</h1>
       <div>
-        Meet our expert facilitators who create and guide courses for RCVD eLearning. Our instructors bring their veterinary expertise to help you learn and succeed."
+        <i>Meet our expert facilitators who create and guide courses for RCVD eLearning. Our instructors bring their veterinary expertise to help you learn and succeed."</i>
       </div>
+      <hr />
       <div className="courses-container">
-        <div className="courses-grid">
-          {courses.map(course => (
-            <CourseCard key={course.id} course={course} />
-          ))}
-        </div>
-      </div>
+  <div className="courses-grid">
+    {courses.map(course => (
+      <CourseCard key={course.id} course={course} />
+    ))}
+  </div>
+</div>
+
     </>
   );
 };

@@ -16,7 +16,10 @@ const CourseCard = ({ course }) => {
         <span className="course-instructor">Instructor: {course.instructor_name}</span>
         <span className="course-duration">Duration: {durationStr}</span>
       </div>
-      <p className="course-price">{formattedPrice}</p>
+      <p className="course-price">Price: {formattedPrice}</p>
+      <p>
+        <a href={`/course/${course.id}`} id={`course-${course.id}`} className="button">Enroll</a>
+      </p>
     </div>
   );
 };

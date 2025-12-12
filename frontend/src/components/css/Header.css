@@ -1,9 +1,11 @@
 .menu {
   display: flex;
   flex-direction: colomn;
+  border-bottom: 10px solid rgb(7, 113, 113);
 }
 .menu .logo {
    width: 10%;
+   margin: 15px;
 }
 .menu .navbar, .menu .burger-div {
    width: 90%;

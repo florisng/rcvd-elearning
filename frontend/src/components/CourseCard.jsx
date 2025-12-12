@@ -10,16 +10,17 @@ const CourseCard = ({ course }) => {
 
   return (
     <div className="course-card">
+      <p>
+        <a href={`/course/${course.id}`} id={`course-${course.id}`} className="link right">Enroll</a>
+      </p>
       <h2 className="course-title">{course.title}</h2>
+      <hr />
       <p className="course-description">{course.description}</p>
       <div className="course-info">
         <span className="course-instructor">Instructor: {course.instructor_name}</span>
         <span className="course-duration">Duration: {durationStr}</span>
       </div>
       <p className="course-price">Price: {formattedPrice}</p>
-      <p>
-        <a href={`/course/${course.id}`} id={`course-${course.id}`} className="button">Enroll</a>
-      </p>
     </div>
   );
 };

@@ -35,14 +35,16 @@ const CoursePage = () => {
 
   return (
     <div className="course-page-container">
-      <h1 className="course-title">{course.title}</h1>
+      <h1>{course.title}</h1>
       {course.instructor_name && <p className="course-instructor">Instructor: {course.instructor_name}</p>}
+      
       <p className="course-price">
-        Price: {course.price ? Number(course.price).toLocaleString() : "0"} RWF - Duration: {course.duration ? Math.floor(course.duration / 3600) : 0}h {course.duration ? Math.floor((course.duration % 3600) / 60) : 0}m
+        <i><b>Price:</b> {course.price ? Number(course.price).toLocaleString() : "0"} RWF - <b>Duration:</b> {course.duration ? Math.floor(course.duration / 3600) : 0}h {course.duration ? Math.floor((course.duration % 3600) / 60) : 0}m</i>
       </p>
+      
       <p className="course-description">{course.description || "No description available"}</p>
 
-      <h2>Chapters</h2>
+      <h3>Chapters</h3>
       {chapters.length === 0 && <p>No chapters available</p>}
 
       {chapters.map(chapter => {

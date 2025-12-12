@@ -29,7 +29,6 @@ const Courses = () => {
       <div>
         <i>Meet our expert facilitators who create and guide courses for RCVD eLearning. Our instructors bring their veterinary expertise to help you learn and succeed."</i>
       </div>
-      <hr />
       <div className="courses-container">
         <div className="courses-grid">
           {courses.map(course => (

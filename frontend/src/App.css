@@ -19,6 +19,13 @@ h1, h2, h3, h4 {
   color: rgb(7, 113, 113); /* professional blue */
 }
 
+.right {
+  float: right;
+}
+.left {
+  float: left;
+}
+
 /* App container */
 .app-container {
   /* border: 3px solid green; */

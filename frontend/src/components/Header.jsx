@@ -9,22 +9,30 @@ import "./css/Header.css";
 
 const Header = () => {
   const [isOn, setIsOn] = useState(true);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
   const navigate = useNavigate();
 
-  // Check logged-in user from localStorage
   const user = JSON.parse(localStorage.getItem("user"));
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    navigate("/login");
+    setShowLogoutModal(false);        // ✅ close modal first
+    localStorage.removeItem("user"); // ✅ logout
+
+    // ✅ force navigation after state update
+    setTimeout(() => {
+      navigate("/login");
+    }, 0);
   };
 
   return (
     <div className="menu">
+      {/* Logo */}
       <div className="logo">
         <img src={logo} className="logo-img" alt="Logo" />
       </div>
 
+      {/* Burger & Phone Menu */}
       <div className="burger-div">
         <div onClick={() => setIsOn(!isOn)} className="burger-wrapper">
           <img
@@ -43,7 +51,12 @@ const Header = () => {
             {user ? (
               <>
                 <span className="phone-navbar-link">Hi, {user.firstname}</span>
-                <button className="phone-navbar-link logout-btn" onClick={handleLogout}>Logout</button>
+                <button
+                  className="btn logout-confirm-btn"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
               </>
             ) : (
               <Link to="/login" className="phone-navbar-link">Login</Link>
@@ -52,6 +65,7 @@ const Header = () => {
         </div>
       </div>
 
+      {/* Desktop Navbar */}
       <div className="navbar">
         <div className="links">
           <Link to="/courses" className="link">Courses</Link>
@@ -61,13 +75,33 @@ const Header = () => {
           {user ? (
             <>
               <span className="link user-name">Hi, {user.firstname}</span>
-              <button className="link logout-btn" onClick={handleLogout}>Logout</button>
+              <button className="link logout-btn" onClick={() => setShowLogoutModal(true)}>
+                Logout
+              </button>
             </>
           ) : (
             <Link to="/login" className="link login">Login</Link>
           )}
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Confirm Logout</h3>
+            <p>Are you sure you want to log out?</p>
+            <div className="modal-buttons">
+              <button className="btn cancel-btn" onClick={() => setShowLogoutModal(false)}>
+                Cancel
+              </button>
+              <button className="btn logout-confirm-btn" onClick={handleLogout}>
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

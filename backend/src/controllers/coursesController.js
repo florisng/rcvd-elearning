@@ -13,16 +13,24 @@ export const getCourses = async (req, res) => {
   }
 };
 
-// Get course by id with chapters and subchapters
+// Get course by id with chapters, subchapters, and instructor info
 export const getCourseById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Fetch course info
-    const courseResult = await pool.query('SELECT * FROM courses WHERE id = $1', [id]);
+    // Fetch course info with instructor name
+    const courseResult = await pool.query(
+      `SELECT c.*, i.name AS instructor_name
+       FROM courses c
+       LEFT JOIN instructors i ON c.instructor_id = i.id
+       WHERE c.id = $1`,
+      [id]
+    );
+
     if (courseResult.rows.length === 0) {
       return res.status(404).json({ message: 'Course not found' });
     }
+
     const course = courseResult.rows[0];
 
     // Fetch chapters for this course
@@ -45,7 +53,7 @@ export const getCourseById = async (req, res) => {
 
     res.json(course);
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching course by ID:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

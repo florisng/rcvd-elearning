@@ -3,10 +3,7 @@ import { getInstructors, getInstructorById } from "../controllers/instructorsCon
 
 const router = express.Router();
 
-// Get all instructors
 router.get("/instructors", getInstructors);
-
-// Get instructor by ID
 router.get("/instructor/:id", getInstructorById);
 
 export default router;

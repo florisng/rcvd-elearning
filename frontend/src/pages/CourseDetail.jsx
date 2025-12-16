@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import "./css/CourseDetail.css"; // import separate CSS
+import "./css/CourseDetail.css"; // separate CSS for styling
 
 const CoursePage = () => {
   const { id } = useParams();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [expandedChapters, setExpandedChapters] = useState({});
+  const [expandedChapters, setExpandedChapters] = useState({}); // track expanded chapters
 
   useEffect(() => {
     fetch(`http://localhost:4000/api/course/${id}`)
@@ -35,15 +35,29 @@ const CoursePage = () => {
 
   return (
     <div className="course-page-container">
-      <h1>{course.title}</h1>
-      {course.instructor_name && <p className="course-instructor">Instructor: {course.instructor_name}</p>}
-      
-      <p className="course-price">
-        <i><b>Price:</b> {course.price ? Number(course.price).toLocaleString() : "0"} RWF - <b>Duration:</b> {course.duration ? Math.floor(course.duration / 3600) : 0}h {course.duration ? Math.floor((course.duration % 3600) / 60) : 0}m</i>
-      </p>
-      
-      <p className="course-description">{course.description || "No description available"}</p>
+      {/* Course Title */}
+      <h1 className="course-title">{course.title}</h1>
+      <hr />
 
+      {/* Instructor */}
+      <p className="course-instructor">
+        <b>Instructor:</b> {course.instructor_name || "N/A"}
+      </p>
+
+      {/* Description, Price, Duration */}
+      <p className="course-description">
+        <b>Description:</b> {course.description || "No description available"}
+      </p>
+      <p className="course-info">
+        <i>
+          <b>Price:</b> {course.price ? Number(course.price).toLocaleString() : "0"} RWF -{" "}
+          <b>Duration:</b>{" "}
+          {course.duration ? Math.floor(course.duration / 3600) : 0}h{" "}
+          {course.duration ? Math.floor((course.duration % 3600) / 60) : 0}m
+        </i>
+      </p>
+
+      {/* Chapters */}
       <h3>Chapters</h3>
       {chapters.length === 0 && <p>No chapters available</p>}
 

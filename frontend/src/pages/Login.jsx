@@ -1,72 +1,76 @@
 import React, { useState } from "react";
-import "./css/Login.css";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Login = () => {
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // Dummy users with roles
-  const users = [
-    { user_id: "learner1", password: "12345", role: "learner" },
-    { user_id: "instructor1", password: "abcde", role: "instructor" },
-    { user_id: "admin", password: "admin123", role: "admin" }, // only one admin
+  // Redirect to the page the user tried to access
+  const from = location.state?.from?.pathname || "/"; 
+
+  // Dummy users
+  const dummyUsers = [
+    { id: "learner1", firstname: "John", lastname: "Doe", password: "pass123", type: "learner" },
+    { id: "instructor1", firstname: "Jane", lastname: "Smith", password: "pass123", type: "instructor" },
+    { id: "admin", firstname: "Mike", lastname: "Angelo", password: "admin123", type: "admin" }
   ];
 
-  const handleSubmit = (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
-    setError("");
 
-    const user = users.find(
-      (u) => u.user_id === userId && u.password === password
+    const foundUser = dummyUsers.find(
+      (u) => u.id === userId && u.password === password
     );
 
-    if (!user) {
-      setError("Invalid User ID or Password");
-      return;
-    }
+    if (foundUser) {
+      // Save logged-in user in localStorage
+      localStorage.setItem("user", JSON.stringify(foundUser));
 
-    alert(`Login successful! Logged in as ${user.role}`);
-
-    // Example: redirect based on role
-    if (user.role === "admin") {
-      console.log("Redirect to admin dashboard...");
-    } else if (user.role === "instructor") {
-      console.log("Redirect to instructor dashboard...");
+      // Redirect based on user type
+      if (foundUser.type === "learner") {
+        navigate(from, { replace: true }); // back to requested page
+      } else if (foundUser.type === "instructor") {
+        navigate("/instructor-dashboard"); // create dashboard page later
+      } else if (foundUser.type === "admin") {
+        navigate("/admin-dashboard"); // create dashboard page later
+      }
     } else {
-      console.log("Redirect to learner dashboard...");
+      setError("Invalid user ID or password");
     }
-
-    // TODO: actual navigation using react-router
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <h2>Login</h2>
-
-        {error && <p className="login-error">{error}</p>}
-
-        <form onSubmit={handleSubmit} className="login-form">
-          <label>User ID</label>
+    <div style={{ maxWidth: "400px", margin: "50px auto", padding: "20px", border: "1px solid #ddd", borderRadius: "8px" }}>
+      <h2>Login</h2>
+      <form onSubmit={handleLogin}>
+        <div>
+          <label>User ID:</label>
           <input
             type="text"
-            placeholder="Enter your User ID"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
+            required
+            style={{ width: "100%", padding: "8px", margin: "8px 0" }}
           />
-
-          <label>Password</label>
+        </div>
+        <div>
+          <label>Password:</label>
           <input
             type="password"
-            placeholder="Enter password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
+            style={{ width: "100%", padding: "8px", margin: "8px 0" }}
           />
-
-          <button className="login-btn" type="submit">Login</button>
-        </form>
-      </div>
+        </div>
+        {error && <p style={{ color: "red" }}>{error}</p>}
+        <button type="submit" style={{ padding: "10px 20px", backgroundColor: "#3b82f6", color: "#fff", border: "none", borderRadius: "5px" }}>
+          Login
+        </button>
+      </form>
     </div>
   );
 };

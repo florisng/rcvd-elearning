@@ -8,7 +8,7 @@ const Instructors = () => {
   useEffect(() => {
     const fetchInstructors = async () => {
       try {
-        const res = await fetch("http://localhost:4000/instructors");
+        const res = await fetch("http://localhost:4000/api/instructors");
         const data = await res.json();
         setInstructors(data);
       } catch (err) {
@@ -17,6 +17,7 @@ const Instructors = () => {
         setLoading(false);
       }
     };
+
     fetchInstructors();
   }, []);
 
@@ -25,25 +26,27 @@ const Instructors = () => {
   }
 
   return (
-    <>
-      <h1 className="">Our Instructors</h1>
-      <div>
-          Meet our expert facilitators who create and guide courses for RCVD eLearning. Our instructors bring their veterinary expertise to help you learn and succeed."
-      </div>
-      <div className="courses-container">
-      <div className="courses-grid">
-        {instructors.map(inst => (
+    <div className="instructors-container">
+      <h1 className="instructors-title">Our Instructors</h1>
+
+      <p className="instructors-intro">
+        Meet our expert facilitators who design and guide RCVD e-Learning courses.
+        Our instructors bring real-world veterinary expertise to support your
+        professional growth.
+      </p>
+
+      <div className="instructors-grid">
+        {instructors.map((inst) => (
           <div key={inst.id} className="instructor-card">
             <div className="instructor-avatar">
-              {/* Optional: replace with profile image later */}
-              <span>{inst.name.charAt(0)}</span>
+                <h2 className="instructor-name">{inst.id}. {inst.name}</h2>
+                <a href={`/instructor/${inst.id}`} className="link">Details</a>
             </div>
-            <h2 className="instructor-name">{inst.name}</h2>
+            
           </div>
         ))}
       </div>
     </div>
-    </>
   );
 };
 

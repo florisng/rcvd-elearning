@@ -1,45 +1,57 @@
 import React, { useEffect, useState } from "react";
+import "./css/InstructorDashboard.css";
 
 const InstructorDashboard = () => {
   const user = JSON.parse(localStorage.getItem("user"));
   const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user) return;
+
     fetch(`http://localhost:4000/api/instructor/${user.id}/courses`)
       .then(res => res.json())
-      .then(data => setCourses(data));
-  }, [user.id]);
+      .then(data => {
+        setCourses(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error fetching instructor courses:", err);
+        setLoading(false);
+      });
+  }, [user]);
 
-  const handleDelete = async (courseId) => {
-    if (!window.confirm("Delete this course?")) return;
-
-    await fetch(`http://localhost:4000/api/courses/${courseId}`, {
-      method: "DELETE"
-    });
-
-    setCourses(courses.filter(c => c.id !== courseId));
-  };
+  if (loading) return <p className="loading-text">Loading dashboard...</p>;
 
   return (
-    <div className="dashboard-container">
+    <div className="instructor-dashboard">
       <h1>Instructor Dashboard</h1>
+      <p className="welcome-text">
+        Welcome back, <strong>{user.firstname}</strong>
+      </p>
 
-      <button className="add-course-btn">+ Add New Course</button>
+      <h2>Your Courses</h2>
 
-      {courses.map(course => (
-        <div key={course.id} className="course-card">
-          <h3>{course.title}</h3>
-          <p>{course.description}</p>
-          <p>
-            {Number(course.price).toLocaleString()} RWF • {course.duration / 3600}h
-          </p>
-
-          <div className="course-actions">
-            <button>Edit</button>
-            <button onClick={() => handleDelete(course.id)}>Delete</button>
-          </div>
+      {courses.length === 0 ? (
+        <p>You have not created any courses yet.</p>
+      ) : (
+        <div className="instructor-courses">
+          {courses.map(course => (
+            <div key={course.id} className="instructor-course-card">
+              <h3>{course.title}</h3>
+              <p>{course.description}</p>
+              <p>
+                <b>Price:</b> {Number(course.price).toLocaleString()} RWF
+              </p>
+              <p>
+                <b>Duration:</b>{" "}
+                {Math.floor(course.duration / 3600)}h{" "}
+                {Math.floor((course.duration % 3600) / 60)}m
+              </p>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 };

@@ -1,0 +1,85 @@
+/* InstructorDashboard.css */
+
+/* Container */
+.instructor-dashboard {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 30px 20px;
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
+  color: #1f2937;
+}
+
+/* Welcome Text */
+.welcome-text {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+  color: #374151;
+}
+
+/* Section Headings */
+h1, h2, h3 {
+  color: #1e40af;
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+/* Courses Grid */
+.instructor-courses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+  justify-content: flex-start;
+}
+
+/* Individual Course Card */
+.instructor-course-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  flex: 1 1 280px; /* min width 280px, grow if space */
+  max-width: 320px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.instructor-course-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Course Title */
+.instructor-course-card h3 {
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+}
+
+/* Course Description */
+.instructor-course-card p {
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  color: #4b5563;
+}
+
+/* Loading Text */
+.loading-text {
+  text-align: center;
+  font-size: 1.2rem;
+  margin-top: 80px;
+  color: #4b5563;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .instructor-dashboard {
+    padding: 20px 10px;
+  }
+
+  .instructor-courses {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .instructor-course-card {
+    max-width: 100%;
+  }
+}

@@ -33,7 +33,7 @@ const Login = () => {
       if (foundUser.type === "learner") {
         navigate(from, { replace: true }); // back to requested page
       } else if (foundUser.type === "instructor") {
-        navigate("/instructor-dashboard"); // create dashboard page later
+        navigate("/instructor/dashboard"); // create dashboard page later
       } else if (foundUser.type === "admin") {
         navigate("/admin-dashboard"); // create dashboard page later
       }

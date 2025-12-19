@@ -20,7 +20,7 @@ export const sendHelpMessage = async (req, res) => {
 
     await transporter.sendMail({
       from: `"RCVD E-learning" <${process.env.EMAIL_USER}>`,
-      to: "florisngendahayo@gmail.com",
+      to: `${process.env.EMAIL_RECEIVER}`,
       subject: "RCVD E-learning | Help Request",
       html: `
         <h3>New Help Request</h3>

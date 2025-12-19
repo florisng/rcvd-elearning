@@ -5,10 +5,12 @@ import Footer from "./components/Footer";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
 import About from "./pages/About";
+import Help from "./pages/Help";
 import Instructors from "./pages/Instructors";
 import InstructorDetail from "./pages/InstructorDetail";
 import Login from "./pages/Login";
 import PrivateRoute from "./components/PrivateRoute"; // import PrivateRoute
+import InstructorDashboard from "./pages/InstructorDashboard";
 import "./App.css";
 
 function App() {
@@ -32,9 +34,16 @@ function App() {
             />
 
             <Route path="/about" element={<About />} />
+            <Route path="/help" element={<Help />} />
             <Route path="/instructors" element={<Instructors />} />
             <Route path="/instructor/:id" element={<InstructorDetail />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/instructor/dashboard" element={
+                <PrivateRoute role="instructor">
+                  <InstructorDashboard />
+                </PrivateRoute>
+              }
+            />
           </Routes>
         </main>
         <Footer />

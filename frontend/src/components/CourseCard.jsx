@@ -17,10 +17,10 @@ const CourseCard = ({ course }) => {
       <hr />
       <p className="course-description">{course.description}</p>
       <div className="course-info">
-        <span className="course-instructor">Instructor: {course.instructor_name}</span>
-        <span className="course-duration">Duration: {durationStr}</span>
+        <span className="course-instructor"><b>Instructor: </b>{course.instructor_name}</span><br />
+        <span className="course-duration"><b>Duration: </b>{durationStr}</span>
       </div>
-      <p className="course-price">Price: {formattedPrice}</p>
+      <p className="course-price"><b>Price: </b>{formattedPrice}</p>
     </div>
   );
 };

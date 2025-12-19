@@ -33,7 +33,7 @@ const InstructorDetail = () => {
 
   return (
     <div className="instructor-detail-container">
-      <h1 className="instructor-name">{instructor.name}</h1>
+      <h1 className="instructor-name">{instructor.firstname} {instructor.lastname}</h1>
       
       <hr />
 
@@ -44,7 +44,7 @@ const InstructorDetail = () => {
 
       <h3>Courses</h3>
       {instructor.courses.length === 0 ? (
-        <p>No courses available</p>
+        <p>No courses available for this instructor.</p>
       ) : (
         <div className="instructor-courses">
   {instructor.courses.map((course, index) => (

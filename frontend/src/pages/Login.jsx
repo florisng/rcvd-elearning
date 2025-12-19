@@ -1,44 +1,59 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
+const dummyUsers = [
+  { id: "learner1", firstname: "John", lastname: "Doe", password: "pass123", phone: "0787030024" }
+];
+
 const Login = () => {
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
+  const [userType, setUserType] = useState("learner"); // default selection
   const [error, setError] = useState("");
+
   const navigate = useNavigate();
   const location = useLocation();
+  const from = location.state?.from?.pathname || (userType === "instructor" ? "/instructor/dashboard" : "/courses");
 
-  // Redirect to the page the user tried to access
-  const from = location.state?.from?.pathname || "/"; 
-
-  // Dummy users
-  const dummyUsers = [
-    { id: "learner1", firstname: "John", lastname: "Doe", password: "pass123", type: "learner" },
-    { id: "instructor1", firstname: "Jane", lastname: "Smith", password: "pass123", type: "instructor" },
-    { id: "admin", firstname: "Mike", lastname: "Angelo", password: "admin123", type: "admin" }
-  ];
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
 
-    const foundUser = dummyUsers.find(
-      (u) => u.id === userId && u.password === password
-    );
-
-    if (foundUser) {
-      // Save logged-in user in localStorage
-      localStorage.setItem("user", JSON.stringify(foundUser));
-
-      // Redirect based on user type
-      if (foundUser.type === "learner") {
-        navigate(from, { replace: true }); // back to requested page
-      } else if (foundUser.type === "instructor") {
-        navigate("/instructor/dashboard"); // create dashboard page later
-      } else if (foundUser.type === "admin") {
-        navigate("/admin-dashboard"); // create dashboard page later
+    if (userType === "learner") {
+      // Find user in dummy data
+      const foundUser = dummyUsers.find(u => u.id === userId && u.password === password);
+      if (foundUser) {
+        // Add type dynamically
+        const learnerUser = { ...foundUser, type: "learner" };
+        localStorage.setItem("user", JSON.stringify(learnerUser));
+        navigate(from, { replace: true });
+      } else {
+        setError("Invalid learner ID or password");
       }
-    } else {
-      setError("Invalid user ID or password");
+    }
+
+    if (userType === "instructor") {
+      try {
+        const res = await fetch(`http://localhost:4000/api/instructor/${userId}`);
+        if (!res.ok) throw new Error("Instructor not found");
+        const data = await res.json();
+
+        if (data.password.trim() === password.trim()) {
+          const instructorUser = { 
+            id: data.id, 
+            firstname: data.firstname, 
+            lastname: data.lastname, 
+            type: "instructor" 
+          };
+          localStorage.setItem("user", JSON.stringify(instructorUser));
+          navigate("/instructor/dashboard", { replace: true });
+        } else {
+          setError("Invalid password");
+        }
+      } catch (err) {
+        console.error(err);
+        setError("Instructor not found or invalid credentials");
+      }
     }
   };
 
@@ -51,7 +66,7 @@ const Login = () => {
           <input
             type="text"
             value={userId}
-            onChange={(e) => setUserId(e.target.value)}
+            onChange={e => setUserId(e.target.value)}
             required
             style={{ width: "100%", padding: "8px", margin: "8px 0" }}
           />
@@ -61,12 +76,21 @@ const Login = () => {
           <input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={e => setPassword(e.target.value)}
             required
             style={{ width: "100%", padding: "8px", margin: "8px 0" }}
           />
         </div>
+        <div>
+          <label>User Type:</label>
+          <select value={userType} onChange={e => setUserType(e.target.value)} style={{ width: "100%", padding: "8px", margin: "8px 0" }}>
+            <option value="learner">Learner</option>
+            <option value="instructor">Instructor</option>
+          </select>
+        </div>
+
         {error && <p style={{ color: "red" }}>{error}</p>}
+
         <button type="submit" style={{ padding: "10px 20px", backgroundColor: "#3b82f6", color: "#fff", border: "none", borderRadius: "5px" }}>
           Login
         </button>

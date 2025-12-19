@@ -39,7 +39,7 @@ const Instructors = () => {
         {instructors.map((inst) => (
           <div key={inst.id} className="instructor-card">
             <div className="instructor-avatar">
-                <h2 className="instructor-name">{inst.id}. {inst.name}</h2>
+                <h2 className="instructor-name">{inst.firstname} {inst.lastname}</h2>
                 <a href={`/instructor/${inst.id}`} className="link">Details</a>
             </div>
             

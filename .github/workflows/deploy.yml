@@ -1,0 +1,25 @@
+name: Deploy E-learning
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 1️⃣ Sync backend
+      - name: Deploy backend
+        run: |
+          rsync -av --delete ./backend/ /var/www/elearning/backend/
+      
+      # 2️⃣ Sync frontend
+      - name: Deploy frontend
+        run: |
+          rsync -av --delete ./frontend/ /var/www/elearning/frontend/

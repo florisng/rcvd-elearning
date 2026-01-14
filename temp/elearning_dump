@@ -1,0 +1,550 @@
+--
+-- PostgreSQL database dump
+--
+
+\restrict EAQZef9enoRqNDcCvbagG0X8ftGLjakRajsQWZRyBXeP8hN5sKYQdiNh7NAixb1
+
+-- Dumped from database version 18.1
+-- Dumped by pg_dump version 18.1
+
+-- Started on 2026-01-14 13:06:15
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- TOC entry 222 (class 1259 OID 16419)
+-- Name: chapters; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.chapters (
+    id integer NOT NULL,
+    course_id integer NOT NULL,
+    title character varying(255) NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE public.chapters OWNER TO postgres;
+
+--
+-- TOC entry 221 (class 1259 OID 16418)
+-- Name: chapters_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.chapters_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.chapters_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5002 (class 0 OID 0)
+-- Dependencies: 221
+-- Name: chapters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.chapters_id_seq OWNED BY public.chapters.id;
+
+
+--
+-- TOC entry 220 (class 1259 OID 16389)
+-- Name: courses; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.courses (
+    id integer NOT NULL,
+    title character varying(255) NOT NULL,
+    description text,
+    price numeric(12,0),
+    duration integer NOT NULL,
+    instructor_id integer,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE public.courses OWNER TO postgres;
+
+--
+-- TOC entry 219 (class 1259 OID 16388)
+-- Name: courses_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.courses_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.courses_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5003 (class 0 OID 0)
+-- Dependencies: 219
+-- Name: courses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.courses_id_seq OWNED BY public.courses.id;
+
+
+--
+-- TOC entry 225 (class 1259 OID 16466)
+-- Name: instructors; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.instructors (
+    id integer NOT NULL,
+    firstname character varying(100) NOT NULL,
+    lastname character varying(100) NOT NULL,
+    email character varying(255) NOT NULL,
+    phone character varying(20),
+    password character varying(255) NOT NULL,
+    bio text,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE public.instructors OWNER TO postgres;
+
+--
+-- TOC entry 224 (class 1259 OID 16435)
+-- Name: subchapters; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.subchapters (
+    id integer NOT NULL,
+    chapter_id integer NOT NULL,
+    title character varying(255) NOT NULL,
+    content text,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE public.subchapters OWNER TO postgres;
+
+--
+-- TOC entry 223 (class 1259 OID 16434)
+-- Name: subchapters_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.subchapters_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.subchapters_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5004 (class 0 OID 0)
+-- Dependencies: 223
+-- Name: subchapters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.subchapters_id_seq OWNED BY public.subchapters.id;
+
+
+--
+-- TOC entry 4826 (class 2604 OID 16422)
+-- Name: chapters id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.chapters ALTER COLUMN id SET DEFAULT nextval('public.chapters_id_seq'::regclass);
+
+
+--
+-- TOC entry 4824 (class 2604 OID 16392)
+-- Name: courses id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.courses ALTER COLUMN id SET DEFAULT nextval('public.courses_id_seq'::regclass);
+
+
+--
+-- TOC entry 4828 (class 2604 OID 16438)
+-- Name: subchapters id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.subchapters ALTER COLUMN id SET DEFAULT nextval('public.subchapters_id_seq'::regclass);
+
+
+--
+-- TOC entry 4993 (class 0 OID 16419)
+-- Dependencies: 222
+-- Data for Name: chapters; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.chapters (id, course_id, title, created_at) FROM stdin;
+1	1	Introduction	2025-12-12 18:10:45.882619
+2	1	Core Concepts	2025-12-12 18:10:45.882619
+3	1	Practical Examples	2025-12-12 18:10:45.882619
+4	2	Introduction	2025-12-12 18:10:45.882619
+5	2	Core Concepts	2025-12-12 18:10:45.882619
+6	2	Practical Examples	2025-12-12 18:10:45.882619
+7	3	Introduction	2025-12-12 18:10:45.882619
+8	3	Core Concepts	2025-12-12 18:10:45.882619
+9	3	Practical Examples	2025-12-12 18:10:45.882619
+10	4	Introduction	2025-12-12 18:10:45.882619
+11	4	Core Concepts	2025-12-12 18:10:45.882619
+12	4	Practical Examples	2025-12-12 18:10:45.882619
+13	5	Introduction	2025-12-12 18:10:45.882619
+14	5	Core Concepts	2025-12-12 18:10:45.882619
+15	5	Practical Examples	2025-12-12 18:10:45.882619
+16	6	Introduction	2025-12-12 18:10:45.882619
+17	6	Core Concepts	2025-12-12 18:10:45.882619
+18	6	Practical Examples	2025-12-12 18:10:45.882619
+19	7	Introduction	2025-12-12 18:10:45.882619
+20	7	Core Concepts	2025-12-12 18:10:45.882619
+21	7	Practical Examples	2025-12-12 18:10:45.882619
+22	8	Introduction	2025-12-12 18:10:45.882619
+23	8	Core Concepts	2025-12-12 18:10:45.882619
+24	8	Practical Examples	2025-12-12 18:10:45.882619
+25	9	Introduction	2025-12-12 18:10:45.882619
+26	9	Core Concepts	2025-12-12 18:10:45.882619
+27	9	Practical Examples	2025-12-12 18:10:45.882619
+28	10	Introduction	2025-12-12 18:10:45.882619
+29	10	Core Concepts	2025-12-12 18:10:45.882619
+30	10	Practical Examples	2025-12-12 18:10:45.882619
+31	11	Introduction	2025-12-12 18:10:45.882619
+32	11	Core Concepts	2025-12-12 18:10:45.882619
+33	11	Practical Examples	2025-12-12 18:10:45.882619
+34	12	Introduction	2025-12-12 18:10:45.882619
+35	12	Core Concepts	2025-12-12 18:10:45.882619
+36	12	Practical Examples	2025-12-12 18:10:45.882619
+37	13	Introduction	2025-12-12 18:10:45.882619
+38	13	Core Concepts	2025-12-12 18:10:45.882619
+39	13	Practical Examples	2025-12-12 18:10:45.882619
+40	14	Introduction	2025-12-12 18:10:45.882619
+41	14	Core Concepts	2025-12-12 18:10:45.882619
+42	14	Practical Examples	2025-12-12 18:10:45.882619
+43	15	Introduction	2025-12-12 18:10:45.882619
+44	15	Core Concepts	2025-12-12 18:10:45.882619
+45	15	Practical Examples	2025-12-12 18:10:45.882619
+\.
+
+
+--
+-- TOC entry 4991 (class 0 OID 16389)
+-- Dependencies: 220
+-- Data for Name: courses; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.courses (id, title, description, price, duration, instructor_id, created_at) FROM stdin;
+1	Veterinary Clinical Pathology	Learn how to analyze lab samples, interpret results, and diagnose diseases.	50000	10800	1000008	2025-12-05 18:00:26.865696
+4	Zoonotic Diseases & Public Health	Learn prevention, identification, and control of zoonotic diseases.	45000	10800	1000009	2025-12-05 18:00:26.865696
+5	Avian Medicine Basics	Introduction to care, diseases, and treatment of birds.	35000	7200	1000007	2025-12-05 18:00:26.865696
+6	Equine Health Management	Comprehensive course on horse care, diseases, and nutrition.	55000	14400	1000003	2025-12-05 18:00:26.865696
+7	Small Animal Surgery	Techniques for surgical procedures on dogs and cats.	60000	18000	1000007	2025-12-05 18:00:26.865696
+8	Veterinary Pharmacology	Learn about drugs, dosages, and administration in animals.	45000	10800	1000004	2025-12-05 18:00:26.865696
+9	Animal Behavior and Welfare	Understand animal behavior to improve welfare and handling.	40000	7200	1000020	2025-12-05 18:00:26.865696
+10	Livestock Disease Control	Prevention, diagnosis, and management of livestock diseases.	50000	10800	1000010	2025-12-05 18:00:26.865696
+11	Diagnostic Imaging for Vets	Learn X-ray, ultrasound, and other imaging techniques.	65000	14400	1000020	2025-12-05 18:00:26.865696
+12	Emergency and Critical Care	Managing urgent and life-threatening conditions in animals.	70000	18000	1000012	2025-12-05 18:00:26.865696
+13	Veterinary Ethics & Professionalism	Ethical decision making and professional conduct.	30000	3600	1000007	2025-12-05 18:00:26.865696
+14	Exotic Animal Medicine	Care and treatment for exotic species and pets.	55000	10800	1000019	2025-12-05 18:00:26.865696
+15	Aquatic Animal Health	Diseases and care for fish and other aquatic animals.	50000	10800	1000014	2025-12-05 18:00:26.865696
+2	Animal Nutrition & Feeding	Understand dietary requirements and formulation of feeding programs.	40000	7200	1000009	2025-12-05 18:00:26.865696
+3	Surgical Techniques for Veterinarians	Hands-on guide to modern surgical procedures.	60000	14400	1000013	2025-12-05 18:00:26.865696
+16	hrh	rhtrh	54646	565	1000001	2025-12-19 16:57:52.983208
+17	gr	ert	545	4	1000001	2025-12-19 17:26:48.201187
+18	4545	4564	464	46	1000001	2025-12-19 17:27:01.224646
+\.
+
+
+--
+-- TOC entry 4996 (class 0 OID 16466)
+-- Dependencies: 225
+-- Data for Name: instructors; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.instructors (id, firstname, lastname, email, phone, password, bio, created_at) FROM stdin;
+1000001	John	Doe	john.doe@example.com	0787000001	pass123	Expert in veterinary clinical pathology.	2025-12-19 15:05:13.443684
+1000002	Jane	Smith	jane.smith@example.com	0787000002	pass123	Specialist in animal nutrition.	2025-12-19 15:05:13.443684
+1000003	Mike	Johnson	mike.johnson@example.com	0787000003	pass123	Focuses on veterinary surgery.	2025-12-19 15:05:13.443684
+1000004	Emily	Davis	emily.davis@example.com	0787000004	pass123	Expert in animal reproduction.	2025-12-19 15:05:13.443684
+1000005	William	Brown	william.brown@example.com	0787000005	pass123	Veterinary epidemiologist.	2025-12-19 15:05:13.443684
+1000006	Linda	Wilson	linda.wilson@example.com	0787000006	pass123	Veterinary pharmacology specialist.	2025-12-19 15:05:13.443684
+1000007	Robert	Taylor	robert.taylor@example.com	0787000007	pass123	Veterinary microbiologist.	2025-12-19 15:05:13.443684
+1000008	Patricia	Anderson	patricia.anderson@example.com	0787000008	pass123	Animal welfare expert.	2025-12-19 15:05:13.443684
+1000009	David	Thomas	david.thomas@example.com	0787000009	pass123	Veterinary public health.	2025-12-19 15:05:13.443684
+1000010	Susan	Jackson	susan.jackson@example.com	0787000010	pass123	Specialist in livestock management.	2025-12-19 15:05:13.443684
+1000011	Charles	White	charles.white@example.com	0787000011	pass123	Veterinary immunology.	2025-12-19 15:05:13.443684
+1000012	Barbara	Harris	barbara.harris@example.com	0787000012	pass123	Veterinary diagnostics.	2025-12-19 15:05:13.443684
+1000013	Joseph	Martin	joseph.martin@example.com	0787000013	pass123	Veterinary radiology.	2025-12-19 15:05:13.443684
+1000014	Margaret	Thompson	margaret.thompson@example.com	0787000014	pass123	Veterinary genetics.	2025-12-19 15:05:13.443684
+1000015	Thomas	Garcia	thomas.garcia@example.com	0787000015	pass123	Veterinary pathology.	2025-12-19 15:05:13.443684
+1000016	Dorothy	Martinez	dorothy.martinez@example.com	0787000016	pass123	Veterinary nutritionist.	2025-12-19 15:05:13.443684
+1000017	Christopher	Robinson	christopher.robinson@example.com	0787000017	pass123	Veterinary surgery expert.	2025-12-19 15:05:13.443684
+1000018	Jessica	Clark	jessica.clark@example.com	0787000018	pass123	Veterinary behavior specialist.	2025-12-19 15:05:13.443684
+1000019	Daniel	Rodriguez	daniel.rodriguez@example.com	0787000019	pass123	Veterinary pharmacologist.	2025-12-19 15:05:13.443684
+1000020	Sarah	Lewis	sarah.lewis@example.com	0787000020	pass123	Animal health consultant.	2025-12-19 15:05:13.443684
+\.
+
+
+--
+-- TOC entry 4995 (class 0 OID 16435)
+-- Dependencies: 224
+-- Data for Name: subchapters; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.subchapters (id, chapter_id, title, content, created_at) FROM stdin;
+1	1	Introduction to React	Learn what React is and why it is used.	2025-12-12 18:15:00.806437
+2	1	Setting Up Environment	Install Node.js, npm, and create a React app.	2025-12-12 18:15:00.806437
+3	1	Hello World	Create your first React component.	2025-12-12 18:15:00.806437
+4	2	Components Overview	Learn functional and class components.	2025-12-12 18:15:00.806437
+5	2	Props and State	Understand how to pass data and manage state.	2025-12-12 18:15:00.806437
+6	2	Component Lifecycle	Lifecycle methods explained.	2025-12-12 18:15:00.806437
+7	3	Routing Basics	Set up React Router in your app.	2025-12-12 18:15:00.806437
+8	3	Nested Routes	Understand nested routes and dynamic routing.	2025-12-12 18:15:00.806437
+9	3	Navigation Links	Create navigation links for your app.	2025-12-12 18:15:00.806437
+10	4	Introduction	Course overview.	2025-12-12 18:15:00.806437
+11	4	Middleware	Learn about Express middleware.	2025-12-12 18:15:00.806437
+12	4	Routing	Define routes and route handlers.	2025-12-12 18:15:00.806437
+13	5	Setup	Install necessary tools.	2025-12-12 18:15:00.806437
+14	5	Core Concepts	Understand main features.	2025-12-12 18:15:00.806437
+15	5	Hands-On Example	Create a small project.	2025-12-12 18:15:00.806437
+16	6	Introduction	Start of course content.	2025-12-12 18:15:00.806437
+17	6	Topic 1	Detailed explanation of topic 1.	2025-12-12 18:15:00.806437
+18	6	Topic 2	Detailed explanation of topic 2.	2025-12-12 18:15:00.806437
+19	7	Introduction	Course start.	2025-12-12 18:15:00.806437
+20	7	Lesson 1	Explanation of lesson 1.	2025-12-12 18:15:00.806437
+21	7	Lesson 2	Explanation of lesson 2.	2025-12-12 18:15:00.806437
+22	8	Introduction	Overview.	2025-12-12 18:15:00.806437
+23	8	Lesson 1	Details of lesson 1.	2025-12-12 18:15:00.806437
+24	8	Lesson 2	Details of lesson 2.	2025-12-12 18:15:00.806437
+25	9	Introduction	Course start.	2025-12-12 18:15:00.806437
+26	9	Lesson 1	Explanation of lesson 1.	2025-12-12 18:15:00.806437
+27	9	Lesson 2	Explanation of lesson 2.	2025-12-12 18:15:00.806437
+28	10	Introduction	Course start.	2025-12-12 18:15:00.806437
+29	10	Lesson 1	Explanation of lesson 1.	2025-12-12 18:15:00.806437
+30	10	Lesson 2	Explanation of lesson 2.	2025-12-12 18:15:00.806437
+31	11	Introduction	Overview.	2025-12-12 18:15:00.806437
+32	11	Lesson 1	Details of lesson 1.	2025-12-12 18:15:00.806437
+33	11	Lesson 2	Details of lesson 2.	2025-12-12 18:15:00.806437
+34	12	Introduction	Overview.	2025-12-12 18:15:00.806437
+35	12	Lesson 1	Details of lesson 1.	2025-12-12 18:15:00.806437
+36	12	Lesson 2	Details of lesson 2.	2025-12-12 18:15:00.806437
+37	13	Introduction	Overview.	2025-12-12 18:15:00.806437
+38	13	Lesson 1	Details of lesson 1.	2025-12-12 18:15:00.806437
+39	13	Lesson 2	Details of lesson 2.	2025-12-12 18:15:00.806437
+40	14	Introduction	Overview.	2025-12-12 18:15:00.806437
+41	14	Lesson 1	Details of lesson 1.	2025-12-12 18:15:00.806437
+42	14	Lesson 2	Details of lesson 2.	2025-12-12 18:15:00.806437
+43	15	Introduction	Overview.	2025-12-12 18:15:00.806437
+44	15	Lesson 1	Details of lesson 1.	2025-12-12 18:15:00.806437
+45	15	Lesson 2	Details of lesson 2.	2025-12-12 18:15:00.806437
+46	16	Introduction	Overview.	2025-12-12 18:15:00.806437
+47	16	Lesson 1	Details of lesson 1.	2025-12-12 18:15:00.806437
+48	16	Lesson 2	Details of lesson 2.	2025-12-12 18:15:00.806437
+49	17	Introduction	Overview of chapter 17.	2025-12-12 18:27:22.38929
+50	17	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+51	17	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+52	18	Introduction	Overview of chapter 18.	2025-12-12 18:27:22.38929
+53	18	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+54	18	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+55	19	Introduction	Overview of chapter 19.	2025-12-12 18:27:22.38929
+56	19	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+57	19	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+58	20	Introduction	Overview of chapter 20.	2025-12-12 18:27:22.38929
+59	20	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+60	20	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+61	21	Introduction	Overview of chapter 21.	2025-12-12 18:27:22.38929
+62	21	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+63	21	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+64	22	Introduction	Overview of chapter 22.	2025-12-12 18:27:22.38929
+65	22	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+66	22	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+67	23	Introduction	Overview of chapter 23.	2025-12-12 18:27:22.38929
+68	23	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+69	23	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+70	24	Introduction	Overview of chapter 24.	2025-12-12 18:27:22.38929
+71	24	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+72	24	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+73	25	Introduction	Overview of chapter 25.	2025-12-12 18:27:22.38929
+74	25	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+75	25	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+76	26	Introduction	Overview of chapter 26.	2025-12-12 18:27:22.38929
+77	26	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+78	26	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+79	27	Introduction	Overview of chapter 27.	2025-12-12 18:27:22.38929
+80	27	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+81	27	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+82	28	Introduction	Overview of chapter 28.	2025-12-12 18:27:22.38929
+83	28	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+84	28	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+85	29	Introduction	Overview of chapter 29.	2025-12-12 18:27:22.38929
+86	29	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+87	29	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+88	30	Introduction	Overview of chapter 30.	2025-12-12 18:27:22.38929
+89	30	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+90	30	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+91	31	Introduction	Overview of chapter 31.	2025-12-12 18:27:22.38929
+92	31	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+93	31	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+94	32	Introduction	Overview of chapter 32.	2025-12-12 18:27:22.38929
+95	32	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+96	32	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+97	33	Introduction	Overview of chapter 33.	2025-12-12 18:27:22.38929
+98	33	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+99	33	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+100	34	Introduction	Overview of chapter 34.	2025-12-12 18:27:22.38929
+101	34	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+102	34	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+103	35	Introduction	Overview of chapter 35.	2025-12-12 18:27:22.38929
+104	35	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+105	35	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+106	36	Introduction	Overview of chapter 36.	2025-12-12 18:27:22.38929
+107	36	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+108	36	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+109	37	Introduction	Overview of chapter 37.	2025-12-12 18:27:22.38929
+110	37	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+111	37	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+112	38	Introduction	Overview of chapter 38.	2025-12-12 18:27:22.38929
+113	38	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+114	38	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+115	39	Introduction	Overview of chapter 39.	2025-12-12 18:27:22.38929
+116	39	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+117	39	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+118	40	Introduction	Overview of chapter 40.	2025-12-12 18:27:22.38929
+119	40	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+120	40	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+121	41	Introduction	Overview of chapter 41.	2025-12-12 18:27:22.38929
+122	41	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+123	41	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+124	42	Introduction	Overview of chapter 42.	2025-12-12 18:27:22.38929
+125	42	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+126	42	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+127	43	Introduction	Overview of chapter 43.	2025-12-12 18:27:22.38929
+128	43	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+129	43	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+130	44	Introduction	Overview of chapter 44.	2025-12-12 18:27:22.38929
+131	44	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+132	44	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+133	45	Introduction	Overview of chapter 45.	2025-12-12 18:27:22.38929
+134	45	Lesson 1	Details of lesson 1.	2025-12-12 18:27:22.38929
+135	45	Lesson 2	Details of lesson 2.	2025-12-12 18:27:22.38929
+\.
+
+
+--
+-- TOC entry 5005 (class 0 OID 0)
+-- Dependencies: 221
+-- Name: chapters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.chapters_id_seq', 45, true);
+
+
+--
+-- TOC entry 5006 (class 0 OID 0)
+-- Dependencies: 219
+-- Name: courses_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.courses_id_seq', 18, true);
+
+
+--
+-- TOC entry 5007 (class 0 OID 0)
+-- Dependencies: 223
+-- Name: subchapters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.subchapters_id_seq', 135, true);
+
+
+--
+-- TOC entry 4834 (class 2606 OID 16428)
+-- Name: chapters chapters_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.chapters
+    ADD CONSTRAINT chapters_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4832 (class 2606 OID 16400)
+-- Name: courses courses_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.courses
+    ADD CONSTRAINT courses_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4838 (class 2606 OID 16480)
+-- Name: instructors instructors_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.instructors
+    ADD CONSTRAINT instructors_email_key UNIQUE (email);
+
+
+--
+-- TOC entry 4840 (class 2606 OID 16478)
+-- Name: instructors instructors_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.instructors
+    ADD CONSTRAINT instructors_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4836 (class 2606 OID 16446)
+-- Name: subchapters subchapters_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.subchapters
+    ADD CONSTRAINT subchapters_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4841 (class 2606 OID 16429)
+-- Name: chapters chapters_course_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.chapters
+    ADD CONSTRAINT chapters_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 4842 (class 2606 OID 16447)
+-- Name: subchapters subchapters_chapter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.subchapters
+    ADD CONSTRAINT subchapters_chapter_id_fkey FOREIGN KEY (chapter_id) REFERENCES public.chapters(id) ON DELETE CASCADE;
+
+
+-- Completed on 2026-01-14 13:06:15
+
+--
+-- PostgreSQL database dump complete
+--
+
+\unrestrict EAQZef9enoRqNDcCvbagG0X8ftGLjakRajsQWZRyBXeP8hN5sKYQdiNh7NAixb1
+

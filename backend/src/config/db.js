@@ -1,14 +1,15 @@
-// backend/src/config/db.js
+import dotenv from "dotenv";
 import pkg from "pg";
+
+dotenv.config();
+
 const { Pool } = pkg;
 
-// Update with your PostgreSQL credentials
 const pool = new Pool({
-  user: "postgres",
-  host: "localhost",
-  database: "elearning",
-  password: "12321",
-  port: 5432,
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 export default pool;

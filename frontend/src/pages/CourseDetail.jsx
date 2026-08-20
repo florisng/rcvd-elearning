@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import "./css/CourseDetail.css"; // separate CSS for styling
+import API_URL from "../api";
 
 const CoursePage = () => {
   const { id } = useParams();
@@ -9,13 +10,13 @@ const CoursePage = () => {
   const [expandedChapters, setExpandedChapters] = useState({}); // track expanded chapters
 
   useEffect(() => {
-    fetch(`http://localhost:4000/api/course/${id}`)
-      .then(res => res.json())
-      .then(data => {
+    fetch(`${API_URL}/api/course/${id}`)
+      .then((res) => res.json())
+      .then((data) => {
         setCourse(data);
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         setLoading(false);
       });
@@ -25,7 +26,7 @@ const CoursePage = () => {
   if (!course) return <p className="loading-text">Course not found</p>;
 
   const toggleChapter = (chapterId) => {
-    setExpandedChapters(prev => ({
+    setExpandedChapters((prev) => ({
       ...prev,
       [chapterId]: !prev[chapterId],
     }));
@@ -50,7 +51,8 @@ const CoursePage = () => {
       </p>
       <p className="course-info">
         <i>
-          <b>Price:</b> {course.price ? Number(course.price).toLocaleString() : "0"} RWF -{" "}
+          <b>Price:</b>{" "}
+          {course.price ? Number(course.price).toLocaleString() : "0"} RWF -{" "}
           <b>Duration:</b>{" "}
           {course.duration ? Math.floor(course.duration / 3600) : 0}h{" "}
           {course.duration ? Math.floor((course.duration % 3600) / 60) : 0}m
@@ -61,7 +63,7 @@ const CoursePage = () => {
       <h3>Chapters</h3>
       {chapters.length === 0 && <p>No chapters available</p>}
 
-      {chapters.map(chapter => {
+      {chapters.map((chapter) => {
         const subchapters = chapter.subchapters || [];
         return (
           <div key={chapter.id} className="chapter-card">
@@ -75,9 +77,10 @@ const CoursePage = () => {
             {expandedChapters[chapter.id] && (
               <ul className="subchapter-list">
                 {subchapters.length === 0 && <li>No subchapters available</li>}
-                {subchapters.map(sub => (
+                {subchapters.map((sub) => (
                   <li key={sub.id} className="subchapter-item">
-                    <strong>{sub.title}</strong>: {sub.content || "No content available"}
+                    <strong>{sub.title}</strong>:{" "}
+                    {sub.content || "No content available"}
                   </li>
                 ))}
               </ul>

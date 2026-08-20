@@ -1,24 +1,56 @@
 import pool from "../config/db.js";
 
 /**
+ * Get the instructor profile ID from the authenticated user.
+ */
+const getInstructorId = async (userId) => {
+  const result = await pool.query(
+    `SELECT id
+     FROM instructors
+     WHERE user_id = $1`,
+    [userId],
+  );
+
+  if (result.rows.length === 0) {
+    return null;
+  }
+
+  return result.rows[0].id;
+};
+
+/**
  * GET instructor courses
  */
 export const getInstructorCourses = async (req, res) => {
-  const { id } = req.params;
-
   try {
+    const instructorId = await getInstructorId(req.user.id);
+
+    if (!instructorId) {
+      return res.status(404).json({
+        error: "Instructor profile not found.",
+      });
+    }
+
     const result = await pool.query(
-      `SELECT id, title, description, price, duration
+      `SELECT
+        id,
+        title,
+        description,
+        price,
+        duration
        FROM courses
        WHERE instructor_id = $1
        ORDER BY id DESC`,
-      [id]
+      [instructorId],
     );
 
     res.json(result.rows);
   } catch (err) {
     console.error("Error fetching instructor courses:", err);
-    res.status(500).json({ error: "Server error" });
+
+    res.status(500).json({
+      error: "Server error",
+    });
   }
 };
 
@@ -26,21 +58,37 @@ export const getInstructorCourses = async (req, res) => {
  * CREATE course
  */
 export const createCourse = async (req, res) => {
-  const { id } = req.params;
-  const { title, description, price, duration } = req.body;
-
   try {
+    const instructorId = await getInstructorId(req.user.id);
+
+    if (!instructorId) {
+      return res.status(404).json({
+        error: "Instructor profile not found.",
+      });
+    }
+
+    const { title, description, price, duration } = req.body;
+
     const result = await pool.query(
-      `INSERT INTO courses (title, description, price, duration, instructor_id)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING *`,
-      [title, description, price, duration, id]
+      `INSERT INTO courses (
+        title,
+        description,
+        price,
+        duration,
+        instructor_id
+      )
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *`,
+      [title, description, price, duration, instructorId],
     );
 
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error("Error creating course:", err);
-    res.status(500).json({ error: "Server error" });
+
+    res.status(500).json({
+      error: "Server error",
+    });
   }
 };
 
@@ -48,21 +96,47 @@ export const createCourse = async (req, res) => {
  * UPDATE course
  */
 export const updateCourse = async (req, res) => {
-  const { courseId } = req.params;
-  const { title, description, price, duration } = req.body;
-
   try {
-    await pool.query(
+    const instructorId = await getInstructorId(req.user.id);
+
+    if (!instructorId) {
+      return res.status(404).json({
+        error: "Instructor profile not found.",
+      });
+    }
+
+    const { courseId } = req.params;
+    const { title, description, price, duration } = req.body;
+
+    const result = await pool.query(
       `UPDATE courses
-       SET title=$1, description=$2, price=$3, duration=$4
-       WHERE id=$5`,
-      [title, description, price, duration, courseId]
+       SET
+         title = $1,
+         description = $2,
+         price = $3,
+         duration = $4
+       WHERE id = $5
+         AND instructor_id = $6
+       RETURNING *`,
+      [title, description, price, duration, courseId, instructorId],
     );
 
-    res.json({ message: "Course updated successfully" });
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: "Course not found or you are not authorized to modify it.",
+      });
+    }
+
+    res.json({
+      message: "Course updated successfully",
+      course: result.rows[0],
+    });
   } catch (err) {
     console.error("Error updating course:", err);
-    res.status(500).json({ error: "Server error" });
+
+    res.status(500).json({
+      error: "Server error",
+    });
   }
 };
 
@@ -70,13 +144,39 @@ export const updateCourse = async (req, res) => {
  * DELETE course
  */
 export const deleteCourse = async (req, res) => {
-  const { courseId } = req.params;
-
   try {
-    await pool.query("DELETE FROM courses WHERE id=$1", [courseId]);
-    res.json({ message: "Course deleted successfully" });
+    const instructorId = await getInstructorId(req.user.id);
+
+    if (!instructorId) {
+      return res.status(404).json({
+        error: "Instructor profile not found.",
+      });
+    }
+
+    const { courseId } = req.params;
+
+    const result = await pool.query(
+      `DELETE FROM courses
+       WHERE id = $1
+         AND instructor_id = $2
+       RETURNING id`,
+      [courseId, instructorId],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: "Course not found or you are not authorized to delete it.",
+      });
+    }
+
+    res.json({
+      message: "Course deleted successfully",
+    });
   } catch (err) {
     console.error("Error deleting course:", err);
-    res.status(500).json({ error: "Server error" });
+
+    res.status(500).json({
+      error: "Server error",
+    });
   }
 };

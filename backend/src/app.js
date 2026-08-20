@@ -6,6 +6,8 @@ import coursesRoutes from "./routes/courses.js";
 import instructorsRoutes from "./routes/instructors.js";
 import instructorCoursesRoutes from "./routes/instructorCourses.js";
 import helpRoutes from "./routes/help.js";
+import authRoutes from "./routes/auth.js";
+import enrollmentRoutes from "./routes/enrollmentRoutes.js";
 
 // NEW routes (ADD)
 import chapterRoutes from "./routes/chapterRoutes.js";
@@ -26,11 +28,11 @@ app.use(express.json());
 // Courses (public)
 app.use("/api", coursesRoutes);
 
-// Instructors (public)
-app.use("/api", instructorsRoutes);
-
 // Instructor dashboard (courses CRUD)
 app.use("/api", instructorCoursesRoutes);
+
+// Instructors (public)
+app.use("/api", instructorsRoutes);
 
 // Chapters & Subchapters (authoring)
 app.use("/api", chapterRoutes);
@@ -38,6 +40,12 @@ app.use("/api", subchapterRoutes);
 
 // Help / contact
 app.use("/api", helpRoutes);
+
+// Authentication
+app.use("/api/auth", authRoutes);
+
+// Enrollment
+app.use("/api", enrollmentRoutes);
 
 /* ===============================
    HEALTH CHECK

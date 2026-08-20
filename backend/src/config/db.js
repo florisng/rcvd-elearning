@@ -12,4 +12,11 @@ const pool = new Pool({
   },
 });
 
+// pool
+//   .query("SELECT NOW()")
+//   .then(() => console.log("✅ PostgreSQL connection successful"))
+//   .catch((err) =>
+//     console.error("❌ PostgreSQL connection failed:", err.message),
+//   );
+
 export default pool;

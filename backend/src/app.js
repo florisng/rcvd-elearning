@@ -8,6 +8,7 @@ import instructorCoursesRoutes from "./routes/instructorCourses.js";
 import helpRoutes from "./routes/help.js";
 import authRoutes from "./routes/auth.js";
 import enrollmentRoutes from "./routes/enrollmentRoutes.js";
+import testRoutes from "./routes/testRoutes.js";
 
 // NEW routes (ADD)
 import chapterRoutes from "./routes/chapterRoutes.js";
@@ -46,6 +47,9 @@ app.use("/api/auth", authRoutes);
 
 // Enrollment
 app.use("/api", enrollmentRoutes);
+
+// Tests
+app.use("/api", testRoutes);
 
 /* ===============================
    HEALTH CHECK

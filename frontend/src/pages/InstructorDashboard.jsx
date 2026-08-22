@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./css/InstructorDashboard.css";
+import API_URL from "../api";
 
 const InstructorDashboard = () => {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -9,13 +10,17 @@ const InstructorDashboard = () => {
   useEffect(() => {
     if (!user) return;
 
-    fetch(`http://localhost:4000/api/instructor/${user.id}/courses`)
-      .then(res => res.json())
-      .then(data => {
+    fetch(`${API_URL}/api/instructor/courses`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
         setCourses(data);
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Error fetching instructor courses:", err);
         setLoading(false);
       });
@@ -36,7 +41,7 @@ const InstructorDashboard = () => {
         <p>You have not created any courses yet.</p>
       ) : (
         <div className="instructor-courses">
-          {courses.map(course => (
+          {courses.map((course) => (
             <div key={course.id} className="instructor-course-card">
               <h3>{course.title}</h3>
               <p>{course.description}</p>
@@ -44,9 +49,18 @@ const InstructorDashboard = () => {
                 <b>Price:</b> {Number(course.price).toLocaleString()} RWF
               </p>
               <p>
-                <b>Duration:</b>{" "}
-                {Math.floor(course.duration / 3600)}h{" "}
+                <b>Duration:</b> {Math.floor(course.duration / 3600)}h{" "}
                 {Math.floor((course.duration % 3600) / 60)}m
+              </p>
+              <p>
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={() => {
+                    window.location.href = `/instructor/course/${course.id}`;
+                  }}
+                >
+                  Manage Course
+                </button>
               </p>
             </div>
           ))}

@@ -55,6 +55,84 @@ export const getInstructorCourses = async (req, res) => {
 };
 
 /**
+ * GET one instructor course with chapters and subchapters
+ */
+export const getInstructorCourse = async (req, res) => {
+  try {
+    const instructorId = await getInstructorId(req.user.id);
+    const { courseId } = req.params;
+
+    if (!instructorId) {
+      return res.status(404).json({
+        error: "Instructor profile not found.",
+      });
+    }
+
+    const courseResult = await pool.query(
+      `SELECT
+        id,
+        title,
+        description,
+        price,
+        duration
+       FROM courses
+       WHERE id = $1
+         AND instructor_id = $2`,
+      [courseId, instructorId],
+    );
+
+    if (courseResult.rows.length === 0) {
+      return res.status(404).json({
+        error: "Course not found or you are not authorized to access it.",
+      });
+    }
+
+    const course = courseResult.rows[0];
+
+    const chaptersResult = await pool.query(
+      `SELECT
+        id,
+        title
+       FROM chapters
+       WHERE course_id = $1
+       ORDER BY id`,
+      [courseId],
+    );
+
+    const chapters = [];
+
+    for (const chapter of chaptersResult.rows) {
+      const subchaptersResult = await pool.query(
+        `SELECT
+          id,
+          title,
+          content
+         FROM subchapters
+         WHERE chapter_id = $1
+         ORDER BY id`,
+        [chapter.id],
+      );
+
+      chapters.push({
+        ...chapter,
+        subchapters: subchaptersResult.rows,
+      });
+    }
+
+    res.json({
+      ...course,
+      chapters,
+    });
+  } catch (err) {
+    console.error("Error fetching instructor course:", err);
+
+    res.status(500).json({
+      error: "Server error",
+    });
+  }
+};
+
+/**
  * CREATE course
  */
 export const createCourse = async (req, res) => {

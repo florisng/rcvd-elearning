@@ -11,6 +11,9 @@ import InstructorDetail from "./pages/InstructorDetail";
 import Login from "./pages/Login";
 import PrivateRoute from "./components/PrivateRoute"; // import PrivateRoute
 import InstructorDashboard from "./pages/InstructorDashboard";
+import LearnerDashboard from "./pages/LearnerDashboard";
+import LearnerCourse from "./pages/LearnerCourse";
+import InstructorCourse from "./pages/InstructorCourse";
 import "./App.css";
 
 function App() {
@@ -24,23 +27,48 @@ function App() {
             <Route path="/courses" element={<Courses />} />
 
             {/* Protected CourseDetail route */}
-            <Route 
-              path="/course/:id" 
+            <Route
+              path="/course/:id"
               element={
                 <PrivateRoute>
                   <CourseDetail />
                 </PrivateRoute>
-              } 
+              }
             />
-
+            <Route
+              path="/instructor/course/:id"
+              element={
+                <PrivateRoute role="INSTRUCTOR">
+                  <InstructorCourse />
+                </PrivateRoute>
+              }
+            />
             <Route path="/about" element={<About />} />
             <Route path="/help" element={<Help />} />
             <Route path="/instructors" element={<Instructors />} />
             <Route path="/instructor/:id" element={<InstructorDetail />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/instructor/dashboard" element={
-                <PrivateRoute role="instructor">
+            <Route
+              path="/instructor/dashboard"
+              element={
+                <PrivateRoute role="INSTRUCTOR">
                   <InstructorDashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/learner/dashboard"
+              element={
+                <PrivateRoute role="LEARNER">
+                  <LearnerDashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/learner/course/:id"
+              element={
+                <PrivateRoute role="LEARNER">
+                  <LearnerCourse />
                 </PrivateRoute>
               }
             />

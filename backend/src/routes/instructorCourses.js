@@ -2,6 +2,7 @@ import express from "express";
 
 import {
   getInstructorCourses,
+  getInstructorCourse,
   createCourse,
   updateCourse,
   deleteCourse,
@@ -29,6 +30,13 @@ router.get(
   authMiddleware,
   requireRole("INSTRUCTOR"),
   getInstructorCourses,
+);
+
+router.get(
+  "/instructor/courses/:courseId",
+  authMiddleware,
+  requireRole("INSTRUCTOR"),
+  getInstructorCourse,
 );
 
 router.post(

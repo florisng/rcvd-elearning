@@ -47,14 +47,14 @@ router.post(
 );
 
 router.put(
-  "/courses/:courseId",
+  "/instructor/courses/:courseId",
   authMiddleware,
   requireRole("INSTRUCTOR"),
   updateCourse,
 );
 
 router.delete(
-  "/courses/:courseId",
+  "/instructor/courses/:courseId",
   authMiddleware,
   requireRole("INSTRUCTOR"),
   deleteCourse,

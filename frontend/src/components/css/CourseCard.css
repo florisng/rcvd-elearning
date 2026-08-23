@@ -1,12 +1,27 @@
-.course-card {
-  border-left: 5px solid #0e4e53;
-  padding-left: 20px;
-  margin-bottom: 30px;
-  transition: all 0.3s ease;
+.enroll-btn {
+  background-color: #0e4e53;
+  color: #ffffff;
+  border: 1px solid #0e4e53;
+  padding: 11px 24px;
+  border-radius: 7px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.25s ease;
 }
 
-.course-card:hover {
-  border-left: 8px solid #0e4e53;
-  cursor: pointer;
-  transform: translateX(3px);
+.enroll-btn:hover {
+  background-color: #ffffff;
+  color: #0e4e53;
+  border-color: #0e4e53;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(14, 78, 83, 0.15);
+}
+
+.enroll-btn:disabled {
+  background-color: #8aa5a7;
+  border-color: #8aa5a7;
+  color: #ffffff;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }

@@ -113,11 +113,11 @@ const CourseCard = ({ course }) => {
 
       <button
         type="button"
-        className="btn enroll-btn w-100"
+        className="btn enroll-btn"
         onClick={handleEnroll}
         disabled={enrolling}
       >
-        {enrolling ? "Enrolling..." : "Enroll in Course"}
+        {enrolling ? "Enrolling..." : "Enroll in this course"}
       </button>
     </div>
   );

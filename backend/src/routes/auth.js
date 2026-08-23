@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   registerLearner,
+  registerInstructor,
   login,
   getMe,
 } from "../controllers/authController.js";
@@ -10,6 +11,7 @@ import requireRole from "../middleware/roleMiddleware.js";
 const router = Router();
 
 router.post("/register", registerLearner);
+router.post("/register-instructor", registerInstructor);
 router.post("/login", login);
 router.get("/me", authMiddleware, getMe);
 router.get(

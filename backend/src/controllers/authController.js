@@ -129,7 +129,8 @@ export const login = async (req, res) => {
         rcvd_registration_number,
         professional_title,
         email_verified,
-        is_active
+        is_active,
+        approval_status
        FROM users
        WHERE LOWER(email) = LOWER($1)`,
       [email.trim()],
@@ -146,6 +147,12 @@ export const login = async (req, res) => {
     if (!user.is_active) {
       return res.status(403).json({
         error: "Your account is inactive.",
+      });
+    }
+
+    if (user.role === "INSTRUCTOR" && user.approval_status !== "APPROVED") {
+      return res.status(403).json({
+        error: "Your instructor account is pending approval.",
       });
     }
 
@@ -232,6 +239,114 @@ export const getMe = async (req, res) => {
     });
   } catch (err) {
     console.error("Error fetching current user:", err);
+
+    res.status(500).json({
+      error: "Server error",
+    });
+  }
+};
+
+export const registerInstructor = async (req, res) => {
+  try {
+    const {
+      first_name,
+      last_name,
+      email,
+      phone,
+      rcvd_registration_number,
+      professional_title,
+      password,
+    } = req.body;
+
+    // Basic validation
+    if (
+      !first_name ||
+      !last_name ||
+      !email ||
+      !rcvd_registration_number ||
+      !professional_title ||
+      !password
+    ) {
+      return res.status(400).json({
+        error: "Please fill in all required fields.",
+      });
+    }
+
+    // Check if email already exists
+    const existingEmail = await pool.query(
+      "SELECT id FROM users WHERE LOWER(email) = LOWER($1)",
+      [email.trim()],
+    );
+
+    if (existingEmail.rows.length > 0) {
+      return res.status(409).json({
+        error: "An account with this email already exists.",
+      });
+    }
+
+    // Check if RCVD registration number already exists
+    const existingRegistration = await pool.query(
+      `SELECT id
+       FROM users
+       WHERE rcvd_registration_number = $1`,
+      [rcvd_registration_number.trim()],
+    );
+
+    if (existingRegistration.rows.length > 0) {
+      return res.status(409).json({
+        error: "This RCVD registration number is already registered.",
+      });
+    }
+
+    // Hash password
+    const password_hash = await bcrypt.hash(password, 12);
+
+    // Create instructor as PENDING
+    const result = await pool.query(
+      `INSERT INTO users
+        (
+          first_name,
+          last_name,
+          email,
+          phone,
+          password_hash,
+          role,
+          rcvd_registration_number,
+          professional_title,
+          approval_status
+        )
+       VALUES ($1, $2, $3, $4, $5, 'INSTRUCTOR', $6, $7, 'PENDING')
+       RETURNING
+          id,
+          first_name,
+          last_name,
+          email,
+          phone,
+          role,
+          rcvd_registration_number,
+          professional_title,
+          approval_status,
+          email_verified,
+          is_active,
+          created_at`,
+      [
+        first_name.trim(),
+        last_name.trim(),
+        email.trim().toLowerCase(),
+        phone?.trim() || null,
+        password_hash,
+        rcvd_registration_number.trim(),
+        professional_title.trim(),
+      ],
+    );
+
+    res.status(201).json({
+      message:
+        "Instructor account created successfully. Your account is awaiting administrator approval.",
+      user: result.rows[0],
+    });
+  } catch (err) {
+    console.error("Error registering instructor:", err);
 
     res.status(500).json({
       error: "Server error",

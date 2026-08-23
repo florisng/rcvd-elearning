@@ -559,7 +559,6 @@ export const startTest = async (req, res) => {
   }
 
   try {
-    // 1. Get test information
     const testResult = await pool.query(
       `SELECT
          id,
@@ -582,7 +581,6 @@ export const startTest = async (req, res) => {
 
     const test = testResult.rows[0];
 
-    // 2. Verify learner enrollment
     const enrollmentResult = await pool.query(
       `SELECT id, status
        FROM enrollments
@@ -605,7 +603,6 @@ export const startTest = async (req, res) => {
       });
     }
 
-    // 3. Check course progress
     const progressResult = await pool.query(
       `SELECT
          COUNT(s.id)::integer AS total_subchapters,
@@ -631,7 +628,6 @@ export const startTest = async (req, res) => {
       });
     }
 
-    // 4. Check existing attempts
     const attemptsResult = await pool.query(
       `SELECT
          COUNT(*)::integer AS attempt_count
@@ -649,7 +645,6 @@ export const startTest = async (req, res) => {
       });
     }
 
-    // 5. Make sure there are enough questions
     const questionCountResult = await pool.query(
       `SELECT COUNT(*)::integer AS count
        FROM test_questions
@@ -665,10 +660,8 @@ export const startTest = async (req, res) => {
       });
     }
 
-    // 6. Determine attempt number
     const attemptNumber = attemptCount + 1;
 
-    // 7. Create attempt
     const attemptResult = await pool.query(
       `INSERT INTO test_attempts (
         test_id,
@@ -699,7 +692,6 @@ export const startTest = async (req, res) => {
 
     const attempt = attemptResult.rows[0];
 
-    // 8. Select random questions
     const questionsResult = await pool.query(
       `SELECT id
        FROM test_questions
@@ -709,7 +701,6 @@ export const startTest = async (req, res) => {
       [testId, test.questions_per_attempt],
     );
 
-    // 9. Store selected questions
     for (let i = 0; i < questionsResult.rows.length; i++) {
       await pool.query(
         `INSERT INTO attempt_questions (
@@ -722,7 +713,6 @@ export const startTest = async (req, res) => {
       );
     }
 
-    // 10. Fetch selected questions without correct answers
     const selectedQuestionsResult = await pool.query(
       `SELECT
          aq.question_order,
@@ -790,17 +780,10 @@ export const startTest = async (req, res) => {
  */
 export const submitTest = async (req, res) => {
   const attemptId = parseInt(req.params.attemptId, 10);
-  const { answers } = req.body;
 
   if (!Number.isInteger(attemptId)) {
     return res.status(400).json({
       error: "Invalid attempt ID.",
-    });
-  }
-
-  if (!Array.isArray(answers)) {
-    return res.status(400).json({
-      error: "Answers must be provided as an array.",
     });
   }
 
@@ -832,15 +815,14 @@ export const submitTest = async (req, res) => {
 
     const attempt = attemptResult.rows[0];
 
-    // 2. Make sure attempt is still in progress
+    // 2. Make sure the attempt is still in progress
     if (attempt.status !== "IN_PROGRESS") {
       return res.status(400).json({
         error: "This test attempt has already been submitted.",
       });
     }
 
-    // 3. Check expiration using PostgreSQL
-    // This avoids JavaScript/PostgreSQL timezone conversion problems.
+    // 3. Check expiration
     const expirationResult = await pool.query(
       `SELECT NOW() > expires_at AS expired
        FROM test_attempts
@@ -881,77 +863,14 @@ export const submitTest = async (req, res) => {
       });
     }
 
-    // 5. Validate submitted answers
-    const validQuestionIds = new Set(
-      questions.map((question) => Number(question.question_id)),
-    );
+    const totalQuestions = questions.length;
 
-    for (const answer of answers) {
-      if (
-        !Number.isInteger(Number(answer.question_id)) ||
-        !Number.isInteger(Number(answer.option_id))
-      ) {
-        return res.status(400).json({
-          error: "Each answer must contain a valid question_id and option_id.",
-        });
-      }
-
-      if (!validQuestionIds.has(Number(answer.question_id))) {
-        return res.status(400).json({
-          error:
-            "An answer contains a question that is not part of this attempt.",
-        });
-      }
-
-      // Make sure the selected option actually belongs to the question
-      const optionResult = await pool.query(
-        `SELECT id
-         FROM question_options
-         WHERE id = $1
-           AND question_id = $2`,
-        [Number(answer.option_id), Number(answer.question_id)],
-      );
-
-      if (optionResult.rows.length === 0) {
-        return res.status(400).json({
-          error:
-            "An answer contains an option that does not belong to the specified question.",
-        });
-      }
-    }
-
-    // 6. Save answers
-    await pool.query("BEGIN");
-
-    try {
-      for (const answer of answers) {
-        await pool.query(
-          `INSERT INTO attempt_answers (
-            attempt_id,
-            question_id,
-            option_id
-          )
-          VALUES ($1, $2, $3)
-          ON CONFLICT (attempt_id, question_id)
-          DO UPDATE SET
-            option_id = EXCLUDED.option_id`,
-          [attemptId, Number(answer.question_id), Number(answer.option_id)],
-        );
-      }
-
-      await pool.query("COMMIT");
-    } catch (err) {
-      await pool.query("ROLLBACK");
-      throw err;
-    }
-
-    // 7. Calculate score
-    const scoreResult = await pool.query(
+    // 5. Get answers already saved by saveAnswer()
+    const answersResult = await pool.query(
       `SELECT
-         COUNT(*) FILTER (
-           WHERE qo.is_correct = TRUE
-         )::integer AS correct_answers,
-         COUNT(*)::integer AS answered_questions
+         aa.question_id,
+         aa.option_id,
+         qo.is_correct
        FROM attempt_answers aa
        JOIN question_options qo
          ON qo.id = aa.option_id
@@ -960,18 +879,25 @@ export const submitTest = async (req, res) => {
       [attemptId],
     );
 
-    const score = scoreResult.rows[0];
+    const answers = answersResult.rows;
 
-    const correctAnswers = Number(score.correct_answers);
-    const answeredQuestions = Number(score.answered_questions);
-    const totalQuestions = questions.length;
+    // 6. Calculate score
+    const answeredQuestions = answers.length;
 
+    const correctAnswers = answers.filter(
+      (answer) => answer.is_correct === true,
+    ).length;
+
+    const incorrectAnswers = answeredQuestions - correctAnswers;
+
+    // Unanswered questions are included in the total
+    // but are not counted as correct.
     const percentage =
       totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
 
     const passed = percentage >= Number(attempt.pass_percentage);
 
-    // 8. Calculate actual duration in PostgreSQL
+    // 7. Calculate actual duration
     const actualDurationResult = await pool.query(
       `SELECT
          NOW() - started_at AS duration
@@ -982,7 +908,7 @@ export const submitTest = async (req, res) => {
 
     const actualDuration = actualDurationResult.rows[0].duration;
 
-    // 9. Complete the attempt
+    // 8. Complete the attempt
     const completionResult = await pool.query(
       `UPDATE test_attempts
        SET
@@ -1004,15 +930,16 @@ export const submitTest = async (req, res) => {
 
     const completedAttempt = completionResult.rows[0];
 
-    // 10. Return result
-    res.json({
+    // 9. Return result
+    return res.json({
       message: "Test submitted successfully.",
       result: {
         attempt_id: attemptId,
         total_questions: totalQuestions,
         answered_questions: answeredQuestions,
         correct_answers: correctAnswers,
-        incorrect_answers: totalQuestions - correctAnswers,
+        incorrect_answers: incorrectAnswers,
+        unanswered_questions: totalQuestions - answeredQuestions,
         percentage: Number(percentage.toFixed(2)),
         pass_percentage: Number(attempt.pass_percentage),
         passed,
@@ -1024,6 +951,341 @@ export const submitTest = async (req, res) => {
     });
   } catch (err) {
     console.error("Error submitting test:", err);
+
+    return res.status(500).json({
+      error: "Server error.",
+    });
+  }
+};
+
+/**
+ * Get learner's attempts for a test
+ */
+export const getTestAttempts = async (req, res) => {
+  const testId = parseInt(req.params.testId, 10);
+
+  if (!Number.isInteger(testId)) {
+    return res.status(400).json({
+      error: "Invalid test ID.",
+    });
+  }
+
+  try {
+    const testResult = await pool.query(
+      `SELECT id, title, max_attempts
+       FROM tests
+       WHERE id = $1`,
+      [testId],
+    );
+
+    if (testResult.rows.length === 0) {
+      return res.status(404).json({
+        error: "Test not found.",
+      });
+    }
+
+    const attemptsResult = await pool.query(
+      `SELECT
+         id,
+         attempt_number,
+         status,
+         score,
+         passed,
+         started_at,
+         submitted_at,
+         actual_duration
+       FROM test_attempts
+       WHERE test_id = $1
+         AND user_id = $2
+       ORDER BY attempt_number ASC`,
+      [testId, req.user.id],
+    );
+
+    res.json({
+      test: testResult.rows[0],
+      attempts: attemptsResult.rows,
+    });
+  } catch (err) {
+    console.error("Error fetching test attempts:", err);
+
+    res.status(500).json({
+      error: "Server error.",
+    });
+  }
+};
+
+/**
+ * Resume an existing test attempt
+ */
+export const resumeTest = async (req, res) => {
+  const attemptId = parseInt(req.params.attemptId, 10);
+
+  if (!Number.isInteger(attemptId)) {
+    return res.status(400).json({
+      error: "Invalid attempt ID.",
+    });
+  }
+
+  try {
+    const attemptResult = await pool.query(
+      `SELECT
+         ta.id,
+         ta.test_id,
+         ta.user_id,
+         ta.attempt_number,
+         ta.status,
+         ta.started_at,
+         ta.expires_at,
+         t.title,
+         t.pass_percentage,
+         t.duration_minutes,
+         t.questions_per_attempt
+       FROM test_attempts ta
+       JOIN tests t
+         ON t.id = ta.test_id
+       WHERE ta.id = $1
+         AND ta.user_id = $2`,
+      [attemptId, req.user.id],
+    );
+
+    if (attemptResult.rows.length === 0) {
+      return res.status(404).json({
+        error: "Test attempt not found.",
+      });
+    }
+
+    const attempt = attemptResult.rows[0];
+
+    if (attempt.status !== "IN_PROGRESS") {
+      return res.status(400).json({
+        error: "This test attempt is no longer in progress.",
+      });
+    }
+
+    const expirationResult = await pool.query(
+      `SELECT NOW() > expires_at AS expired
+       FROM test_attempts
+       WHERE id = $1`,
+      [attemptId],
+    );
+
+    if (expirationResult.rows[0].expired) {
+      await pool.query(
+        `UPDATE test_attempts
+         SET
+           status = 'EXPIRED',
+           actual_duration = expires_at - started_at
+         WHERE id = $1`,
+        [attemptId],
+      );
+
+      return res.status(400).json({
+        error: "This test attempt has expired.",
+      });
+    }
+
+    const questionsResult = await pool.query(
+      `SELECT
+         aq.question_order,
+         tq.id AS question_id,
+         tq.question_text,
+         qo.id AS option_id,
+         qo.option_text
+       FROM attempt_questions aq
+       JOIN test_questions tq
+         ON tq.id = aq.question_id
+       JOIN question_options qo
+         ON qo.question_id = tq.id
+       WHERE aq.attempt_id = $1
+       ORDER BY aq.question_order ASC, qo.id ASC`,
+      [attemptId],
+    );
+
+    const questionsMap = new Map();
+
+    for (const row of questionsResult.rows) {
+      if (!questionsMap.has(row.question_id)) {
+        questionsMap.set(row.question_id, {
+          question_id: row.question_id,
+          question_order: row.question_order,
+          question_text: row.question_text,
+          options: [],
+        });
+      }
+
+      questionsMap.get(row.question_id).options.push({
+        option_id: row.option_id,
+        option_text: row.option_text,
+      });
+    }
+
+    const answersResult = await pool.query(
+      `SELECT
+         question_id,
+         option_id
+       FROM attempt_answers
+       WHERE attempt_id = $1`,
+      [attemptId],
+    );
+
+    res.json({
+      message: "Test attempt resumed successfully.",
+      attempt: {
+        id: attempt.id,
+        test_id: attempt.test_id,
+        attempt_number: attempt.attempt_number,
+        started_at: attempt.started_at,
+        expires_at: attempt.expires_at,
+        status: attempt.status,
+      },
+      test: {
+        id: attempt.test_id,
+        title: attempt.title,
+        duration_minutes: attempt.duration_minutes,
+        questions_per_attempt: attempt.questions_per_attempt,
+        pass_percentage: attempt.pass_percentage,
+      },
+      questions: Array.from(questionsMap.values()),
+      answers: answersResult.rows,
+    });
+  } catch (err) {
+    console.error("Error resuming test:", err);
+
+    res.status(500).json({
+      error: "Server error.",
+    });
+  }
+};
+
+/**
+ * Save or update an answer during an active test attempt
+ */
+export const saveAnswer = async (req, res) => {
+  const attemptId = parseInt(req.params.attemptId, 10);
+
+  const { question_id, option_id } = req.body;
+
+  if (!Number.isInteger(attemptId)) {
+    return res.status(400).json({
+      error: "Invalid attempt ID.",
+    });
+  }
+
+  if (
+    !Number.isInteger(Number(question_id)) ||
+    !Number.isInteger(Number(option_id))
+  ) {
+    return res.status(400).json({
+      error: "question_id and option_id are required.",
+    });
+  }
+
+  try {
+    // 1. Get the learner's attempt
+    const attemptResult = await pool.query(
+      `SELECT
+         id,
+         test_id,
+         status,
+         expires_at
+       FROM test_attempts
+       WHERE id = $1
+         AND user_id = $2`,
+      [attemptId, req.user.id],
+    );
+
+    if (attemptResult.rows.length === 0) {
+      return res.status(404).json({
+        error: "Test attempt not found.",
+      });
+    }
+
+    const attempt = attemptResult.rows[0];
+
+    // 2. Attempt must still be in progress
+    if (attempt.status !== "IN_PROGRESS") {
+      return res.status(400).json({
+        error: "This test attempt is no longer in progress.",
+      });
+    }
+
+    // 3. Check expiration
+    const expirationResult = await pool.query(
+      `SELECT NOW() > expires_at AS expired
+       FROM test_attempts
+       WHERE id = $1`,
+      [attemptId],
+    );
+
+    if (expirationResult.rows[0].expired) {
+      await pool.query(
+        `UPDATE test_attempts
+         SET
+           status = 'EXPIRED',
+           actual_duration = expires_at - started_at
+         WHERE id = $1`,
+        [attemptId],
+      );
+
+      return res.status(400).json({
+        error: "This test attempt has expired.",
+      });
+    }
+
+    // 4. Make sure the question belongs to this attempt
+    const questionResult = await pool.query(
+      `SELECT question_id
+       FROM attempt_questions
+       WHERE attempt_id = $1
+         AND question_id = $2`,
+      [attemptId, Number(question_id)],
+    );
+
+    if (questionResult.rows.length === 0) {
+      return res.status(400).json({
+        error: "This question is not part of the test attempt.",
+      });
+    }
+
+    // 5. Make sure the option belongs to the question
+    const optionResult = await pool.query(
+      `SELECT id
+       FROM question_options
+       WHERE id = $1
+         AND question_id = $2`,
+      [Number(option_id), Number(question_id)],
+    );
+
+    if (optionResult.rows.length === 0) {
+      return res.status(400).json({
+        error: "This option does not belong to the specified question.",
+      });
+    }
+
+    // 6. Save or update the answer
+    const answerResult = await pool.query(
+      `INSERT INTO attempt_answers (
+         attempt_id,
+         question_id,
+         option_id
+       )
+       VALUES ($1, $2, $3)
+       ON CONFLICT (attempt_id, question_id)
+       DO UPDATE SET
+         option_id = EXCLUDED.option_id
+       RETURNING
+         attempt_id,
+         question_id,
+         option_id`,
+      [attemptId, Number(question_id), Number(option_id)],
+    );
+
+    res.json({
+      message: "Answer saved successfully.",
+      answer: answerResult.rows[0],
+    });
+  } catch (err) {
+    console.error("Error saving test answer:", err);
 
     res.status(500).json({
       error: "Server error.",

@@ -8,6 +8,9 @@ import {
   deleteQuestion,
   startTest,
   submitTest,
+  getTestAttempts,
+  resumeTest,
+  saveAnswer,
 } from "../controllers/testController.js";
 
 import authMiddleware from "../middleware/authMiddleware.js";
@@ -23,6 +26,7 @@ router.post(
   createTest,
 );
 
+// Create a question
 router.post(
   "/tests/:testId/questions",
   authMiddleware,
@@ -30,6 +34,7 @@ router.post(
   createQuestion,
 );
 
+// Get questions
 router.get(
   "/tests/:testId/questions",
   authMiddleware,
@@ -37,6 +42,7 @@ router.get(
   getQuestions,
 );
 
+// Update question
 router.put(
   "/test-questions/:questionId",
   authMiddleware,
@@ -44,6 +50,7 @@ router.put(
   updateQuestion,
 );
 
+// Delete question
 router.delete(
   "/test-questions/:questionId",
   authMiddleware,
@@ -51,6 +58,7 @@ router.delete(
   deleteQuestion,
 );
 
+// Start test
 router.post(
   "/tests/:testId/start",
   authMiddleware,
@@ -58,11 +66,36 @@ router.post(
   startTest,
 );
 
+// Get test attempts
+router.get(
+  "/tests/:testId/attempts",
+  authMiddleware,
+  requireRole("LEARNER"),
+  getTestAttempts,
+);
+
+// Submit test
 router.post(
   "/tests/attempts/:attemptId/submit",
   authMiddleware,
   requireRole("LEARNER"),
   submitTest,
+);
+
+// Resume test
+router.get(
+  "/tests/attempts/:attemptId/resume",
+  authMiddleware,
+  requireRole("LEARNER"),
+  resumeTest,
+);
+
+// Save answer
+router.post(
+  "/tests/attempts/:attemptId/answers",
+  authMiddleware,
+  requireRole("LEARNER"),
+  saveAnswer,
 );
 
 export default router;

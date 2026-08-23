@@ -9,6 +9,7 @@ import helpRoutes from "./routes/help.js";
 import authRoutes from "./routes/auth.js";
 import enrollmentRoutes from "./routes/enrollmentRoutes.js";
 import testRoutes from "./routes/testRoutes.js";
+import adminRoutes from "./routes/admin.js";
 
 // NEW routes (ADD)
 import chapterRoutes from "./routes/chapterRoutes.js";
@@ -50,6 +51,9 @@ app.use("/api", enrollmentRoutes);
 
 // Tests
 app.use("/api", testRoutes);
+
+// Admin
+app.use("/api", adminRoutes);
 
 /* ===============================
    HEALTH CHECK

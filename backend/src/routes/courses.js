@@ -7,6 +7,6 @@ const router = express.Router();
 router.get("/courses", getCourses);
 
 // Get course by ID
-router.get("/course/:id", getCourseById);
+router.get("/courses/:id", getCourseById);
 
 export default router;

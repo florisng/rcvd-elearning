@@ -113,7 +113,7 @@ const CourseCard = ({ course }) => {
 
       <button
         type="button"
-        className="btn btn-primary w-100"
+        className="btn enroll-btn w-100"
         onClick={handleEnroll}
         disabled={enrolling}
       >

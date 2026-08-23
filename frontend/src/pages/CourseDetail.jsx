@@ -1,17 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import "./css/CourseDetail.css"; // separate CSS for styling
+import { useNavigate, useParams } from "react-router-dom";
+import "./css/CourseDetail.css";
 import API_URL from "../api";
 
-const CoursePage = () => {
+const CourseDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [expandedChapters, setExpandedChapters] = useState({}); // track expanded chapters
+  const [expandedChapters, setExpandedChapters] = useState({});
 
   useEffect(() => {
-    fetch(`${API_URL}/api/course/${id}`)
-      .then((res) => res.json())
+    fetch(`${API_URL}/api/courses/${id}`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to load course.");
+        }
+
+        return res.json();
+      })
       .then((data) => {
         setCourse(data);
         setLoading(false);
@@ -22,13 +30,18 @@ const CoursePage = () => {
       });
   }, [id]);
 
-  if (loading) return <p className="loading-text">Loading course...</p>;
-  if (!course) return <p className="loading-text">Course not found</p>;
+  if (loading) {
+    return <p className="loading-text">Loading course...</p>;
+  }
+
+  if (!course) {
+    return <p className="loading-text">Course not found</p>;
+  }
 
   const toggleChapter = (chapterId) => {
-    setExpandedChapters((prev) => ({
-      ...prev,
-      [chapterId]: !prev[chapterId],
+    setExpandedChapters((previous) => ({
+      ...previous,
+      [chapterId]: !previous[chapterId],
     }));
   };
 
@@ -45,10 +58,12 @@ const CoursePage = () => {
         <b>Instructor:</b> {course.instructor_name || "N/A"}
       </p>
 
-      {/* Description, Price, Duration */}
+      {/* Description */}
       <p className="course-description">
         <b>Description:</b> {course.description || "No description available"}
       </p>
+
+      {/* Price & Duration */}
       <p className="course-info">
         <i>
           <b>Price:</b>{" "}
@@ -61,10 +76,12 @@ const CoursePage = () => {
 
       {/* Chapters */}
       <h3>Chapters</h3>
+
       {chapters.length === 0 && <p>No chapters available</p>}
 
       {chapters.map((chapter) => {
         const subchapters = chapter.subchapters || [];
+
         return (
           <div key={chapter.id} className="chapter-card">
             <div
@@ -77,6 +94,7 @@ const CoursePage = () => {
             {expandedChapters[chapter.id] && (
               <ul className="subchapter-list">
                 {subchapters.length === 0 && <li>No subchapters available</li>}
+
                 {subchapters.map((sub) => (
                   <li key={sub.id} className="subchapter-item">
                     <strong>{sub.title}</strong>:{" "}
@@ -88,8 +106,28 @@ const CoursePage = () => {
           </div>
         );
       })}
+
+      {/* Final Test */}
+      <div className="mt-5 mb-5">
+        <div className="card shadow-sm border-0">
+          <div className="card-body text-center">
+            <h3 className="mb-3">Final Test</h3>
+
+            <p className="text-muted">
+              Complete the final test to evaluate your knowledge of this course.
+            </p>
+
+            <button
+              className="btn btn-primary px-4"
+              onClick={() => navigate(`/tests/${id}`)}
+            >
+              Take Final Test
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default CoursePage;
+export default CourseDetail;

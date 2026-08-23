@@ -15,86 +15,218 @@ const Header = () => {
 
   const user = JSON.parse(localStorage.getItem("user"));
 
-  const handleLogout = () => {
-    setShowLogoutModal(false);        // ✅ close modal first
-    localStorage.removeItem("user"); // ✅ logout
+  const getDashboardPath = () => {
+    if (!user) return "/login";
 
-    // ✅ force navigation after state update
+    switch (user.role) {
+      case "LEARNER":
+        return "/learner/dashboard";
+
+      case "INSTRUCTOR":
+        return "/instructor/dashboard";
+
+      case "RCVD_ADMIN":
+        return "/admin/dashboard";
+
+      default:
+        return "/courses";
+    }
+  };
+
+  const handleLogout = () => {
+    setShowLogoutModal(false);
+
+    localStorage.removeItem("user");
+
     setTimeout(() => {
       navigate("/login");
     }, 0);
   };
 
-  return (
-    <div className="menu">
-      {/* Logo */}
-      <div className="logo">
-        <img src={logo} className="logo-img" alt="Logo" />
-      </div>
+  const closeMobileMenu = () => {
+    setIsOn(true);
+  };
 
-      {/* Burger & Phone Menu */}
-      <div className="burger-div">
-        <div onClick={() => setIsOn(!isOn)} className="burger-wrapper">
-          <img
-            src={isOn ? burgerOn : burgerOff}
-            className="burger-on"
-            alt="Burger icon"
-          />
+  return (
+    <>
+      <header className="menu">
+        {/* =========================================
+            LOGO
+        ========================================= */}
+
+        <div className="logo">
+          <Link to="/" onClick={closeMobileMenu}>
+            <img src={logo} className="logo-img" alt="RCVD E-Learning" />
+          </Link>
         </div>
 
-        <div className={`phone-menu ${isOn ? "hidden" : "show"}`}>
-          <div className="phone-navbar">
-            <Link to="/courses" className="phone-navbar-link">Courses</Link>
-            <Link to="/instructors" className="phone-navbar-link">Instructors</Link>
-            <Link to="/about" className="phone-navbar-link">About</Link>
-            <Link to="/help" className="phone-navbar-link">Helpℹ️</Link>
+        {/* =========================================
+            DESKTOP NAVBAR
+        ========================================= */}
+
+        <nav className="navbar">
+          <div className="links">
+            <Link to="/courses" className="link">
+              Courses
+            </Link>
+
+            <Link to="/instructors" className="link">
+              Instructors
+            </Link>
+
+            {!user && (
+              <Link to="/register" className="link get-started">
+                Get Started
+              </Link>
+            )}
+
+            <Link to="/help" className="link">
+              Contact / Help
+            </Link>
+
             {user ? (
               <>
-                <span className="phone-navbar-link">Hi, {user.firstname}</span>
+                <Link to={getDashboardPath()} className="link user-name">
+                  Hi, {user.first_name}
+                </Link>
+
                 <button
-                  className="btn logout-confirm-btn"
-                  onClick={handleLogout}
+                  className="link logout-btn"
+                  onClick={() => setShowLogoutModal(true)}
                 >
                   Logout
                 </button>
               </>
             ) : (
-              <Link to="/login" className="phone-navbar-link">Login</Link>
+              <Link to="/login" className="login">
+                Login
+              </Link>
             )}
           </div>
-        </div>
-      </div>
+        </nav>
 
-      {/* Desktop Navbar */}
-      <div className="navbar">
-        <div className="links">
-          <Link to="/courses" className="link">Courses</Link>
-          <Link to="/instructors" className="link">Instructors</Link>
-          <Link to="/about" className="link">About</Link>
-          <Link to="/help" className="link">Helpℹ️</Link>
-          {user ? (
-            <>
-              <span className="link user-name">Hi, {user.firstname}</span>
-              <button className="link logout-btn" onClick={() => setShowLogoutModal(true)}>
-                Logout
-              </button>
-            </>
-          ) : (
-            <Link to="/login" className="link login">Login</Link>
-          )}
-        </div>
-      </div>
+        {/* =========================================
+            MOBILE BURGER
+        ========================================= */}
 
-      {/* Logout Confirmation Modal */}
+        <div className="burger-div">
+          <button
+            onClick={() => setIsOn(!isOn)}
+            className="burger-wrapper"
+            aria-label="Toggle navigation"
+          >
+            <img
+              src={isOn ? burgerOn : burgerOff}
+              className="burger-on"
+              alt="Menu"
+            />
+          </button>
+        </div>
+
+        {/* =========================================
+            MOBILE MENU
+        ========================================= */}
+
+        <div className={`phone-menu ${isOn ? "hidden" : "show"}`}>
+          <nav className="phone-navbar">
+            <Link
+              to="/courses"
+              className="phone-navbar-link"
+              onClick={closeMobileMenu}
+            >
+              <i className="bi bi-journal-bookmark me-2"></i>
+              Courses
+            </Link>
+
+            <Link
+              to="/instructors"
+              className="phone-navbar-link"
+              onClick={closeMobileMenu}
+            >
+              <i className="bi bi-people me-2"></i>
+              Instructors
+            </Link>
+
+            {!user && (
+              <Link
+                to="/register"
+                className="phone-navbar-link mobile-get-started"
+                onClick={closeMobileMenu}
+              >
+                <i className="bi bi-person-plus me-2"></i>
+                Get Started
+              </Link>
+            )}
+
+            <Link
+              to="/help"
+              className="phone-navbar-link"
+              onClick={closeMobileMenu}
+            >
+              <i className="bi bi-headset me-2"></i>
+              Contact / Help
+            </Link>
+
+            {user ? (
+              <>
+                <Link
+                  to={getDashboardPath()}
+                  className="phone-navbar-link"
+                  onClick={closeMobileMenu}
+                >
+                  <i className="bi bi-person-circle me-2"></i>
+                  Hi, {user.first_name}
+                </Link>
+
+                <button
+                  className="phone-logout-btn"
+                  onClick={() => {
+                    closeMobileMenu();
+                    setShowLogoutModal(true);
+                  }}
+                >
+                  <i className="bi bi-box-arrow-right me-2"></i>
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="phone-login"
+                onClick={closeMobileMenu}
+              >
+                Login
+              </Link>
+            )}
+          </nav>
+        </div>
+      </header>
+
+      {/* =========================================
+          LOGOUT CONFIRMATION MODAL
+      ========================================= */}
+
       {showLogoutModal && (
         <div className="modal-overlay">
           <div className="modal-content">
+            <div className="modal-icon">
+              <i className="bi bi-box-arrow-right"></i>
+            </div>
+
             <h3>Confirm Logout</h3>
-            <p>Are you sure you want to log out?</p>
+
+            <p>
+              Are you sure you want to log out of your RCVD E-Learning account?
+            </p>
+
             <div className="modal-buttons">
-              <button className="btn cancel-btn" onClick={() => setShowLogoutModal(false)}>
+              <button
+                className="btn cancel-btn"
+                onClick={() => setShowLogoutModal(false)}
+              >
                 Cancel
               </button>
+
               <button className="btn logout-confirm-btn" onClick={handleLogout}>
                 Logout
               </button>
@@ -102,7 +234,7 @@ const Header = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import CourseCard from "../components/CourseCard";
+import API_URL from "../api";
 import "./css/Courses.css";
 
 const Courses = () => {
@@ -9,7 +10,7 @@ const Courses = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await fetch("http://localhost:4000/api/courses");
+        const res = await fetch(`${API_URL}/api/courses`);
         const data = await res.json();
         setCourses(data);
       } catch (err) {
@@ -18,6 +19,7 @@ const Courses = () => {
         setLoading(false);
       }
     };
+
     fetchCourses();
   }, []);
 
@@ -25,13 +27,19 @@ const Courses = () => {
 
   return (
     <>
-      <h1 className="">Courses</h1>
+      <h1>Courses</h1>
+
       <div>
-        <i>Meet our expert facilitators who create and guide courses for RCVD eLearning. Our instructors bring their veterinary expertise to help you learn and succeed."</i>
+        <i>
+          Meet our expert facilitators who create and guide courses for RCVD
+          eLearning. Our instructors bring their veterinary expertise to help
+          you learn and succeed.
+        </i>
       </div>
+
       <div className="courses-container">
         <div className="courses-grid">
-          {courses.map(course => (
+          {courses.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}
         </div>

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import API_URL from "../api";
+import "./css/Auth.css";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -35,17 +36,16 @@ const Login = () => {
         throw new Error(data.error || "Invalid email or password.");
       }
 
-      // Store JWT
       localStorage.setItem("token", data.token);
-
-      // Store authenticated user
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // Redirect according to role
-      if (data.user.role === "INSTRUCTOR") {
+      if (data.user.role === "RCVD_ADMIN") {
+        navigate("/admin/dashboard", { replace: true });
+      } else if (data.user.role === "INSTRUCTOR") {
         navigate("/instructor/dashboard", { replace: true });
       } else if (data.user.role === "LEARNER") {
         const from = location.state?.from?.pathname || "/learner/dashboard";
+
         navigate(from, { replace: true });
       } else {
         setError("Your account does not have a valid role.");
@@ -59,67 +59,94 @@ const Login = () => {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: "400px",
-        margin: "50px auto",
-        padding: "20px",
-        border: "1px solid #ddd",
-        borderRadius: "8px",
-      }}
-    >
-      <h2>Login</h2>
+    <div className="auth-page">
+      <div className="auth-card auth-login-card">
+        <div className="auth-brand">
+          <div className="auth-brand-icon">
+            <i className="bi bi-mortarboard-fill"></i>
+          </div>
 
-      <form onSubmit={handleLogin}>
-        <div>
-          <label>Email:</label>
-
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{
-              width: "100%",
-              padding: "8px",
-              margin: "8px 0",
-            }}
-          />
+          <div>
+            <h1>RCVD E-Learning</h1>
+            <span>Veterinary Professional Education</span>
+          </div>
         </div>
 
-        <div>
-          <label>Password:</label>
-
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{
-              width: "100%",
-              padding: "8px",
-              margin: "8px 0",
-            }}
-          />
+        <div className="auth-heading">
+          <h2>Welcome back</h2>
+          <p>Sign in to continue your veterinary learning journey.</p>
         </div>
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
+        {error && (
+          <div className="auth-alert auth-alert-error">
+            <i className="bi bi-exclamation-circle-fill"></i>
+            <span>{error}</span>
+          </div>
+        )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: "#3b82f6",
-            color: "#fff",
-            border: "none",
-            borderRadius: "5px",
-            cursor: loading ? "not-allowed" : "pointer",
-          }}
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
+        <form onSubmit={handleLogin} className="auth-form">
+          <div className="auth-field">
+            <label htmlFor="email">Email address</label>
+
+            <div className="auth-input-wrapper">
+              <i className="bi bi-envelope"></i>
+
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="auth-field">
+            <label htmlFor="password">Password</label>
+
+            <div className="auth-input-wrapper">
+              <i className="bi bi-lock"></i>
+
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+          </div>
+
+          <button type="submit" className="auth-submit-btn" disabled={loading}>
+            {loading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2"></span>
+                Signing in...
+              </>
+            ) : (
+              <>
+                Sign In
+                <i className="bi bi-arrow-right ms-2"></i>
+              </>
+            )}
+          </button>
+        </form>
+
+        <div className="auth-divider">
+          <span>New to RCVD E-Learning?</span>
+        </div>
+
+        <Link to="/register" className="auth-secondary-btn">
+          Create an Instructor Account
+        </Link>
+
+        <div className="auth-footer">
+          <i className="bi bi-shield-check"></i>
+          Secure access for veterinary professionals
+        </div>
+      </div>
     </div>
   );
 };

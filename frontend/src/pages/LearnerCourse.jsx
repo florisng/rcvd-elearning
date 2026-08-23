@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import API_URL from "../api";
 
 const LearnerCourse = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [course, setCourse] = useState(null);
   const [progress, setProgress] = useState(null);
   const [completedSubchapters, setCompletedSubchapters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [completing, setCompleting] = useState(null);
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -20,7 +22,6 @@ const LearnerCourse = () => {
           Authorization: `Bearer ${token}`,
         };
 
-        // Get course content
         const courseRes = await fetch(`${API_URL}/api/my-courses/${id}`, {
           headers,
         });
@@ -31,7 +32,6 @@ const LearnerCourse = () => {
           throw new Error(courseData.error || "Failed to load course.");
         }
 
-        // Get learner progress
         const progressRes = await fetch(
           `${API_URL}/api/my-courses/${id}/progress`,
           { headers },
@@ -40,7 +40,9 @@ const LearnerCourse = () => {
         const progressData = await progressRes.json();
 
         if (!progressRes.ok) {
-          throw new Error(progressData.error || "Failed to load progress.");
+          throw new Error(
+            progressData.error || "Failed to load course progress.",
+          );
         }
 
         setCourse(courseData.course);
@@ -64,6 +66,8 @@ const LearnerCourse = () => {
 
   const markAsCompleted = async (subchapterId) => {
     try {
+      setCompleting(subchapterId);
+
       const token = localStorage.getItem("token");
 
       const res = await fetch(
@@ -85,7 +89,13 @@ const LearnerCourse = () => {
         );
       }
 
-      setCompletedSubchapters((prev) => [...prev, subchapterId]);
+      setCompletedSubchapters((prev) => {
+        if (prev.includes(subchapterId)) {
+          return prev;
+        }
+
+        return [...prev, subchapterId];
+      });
 
       const progressRes = await fetch(
         `${API_URL}/api/my-courses/${id}/progress`,
@@ -104,6 +114,8 @@ const LearnerCourse = () => {
     } catch (err) {
       console.error("Error completing subchapter:", err);
       alert(err.message);
+    } finally {
+      setCompleting(null);
     }
   };
 
@@ -119,6 +131,13 @@ const LearnerCourse = () => {
     return (
       <div className="container py-5">
         <div className="alert alert-danger">{error}</div>
+
+        <button
+          className="btn btn-secondary"
+          onClick={() => navigate("/learner/dashboard")}
+        >
+          Back to Dashboard
+        </button>
       </div>
     );
   }
@@ -127,26 +146,41 @@ const LearnerCourse = () => {
     return null;
   }
 
+  const isCompleted = progress?.percentage === 100;
+
   return (
     <div className="container py-5">
-      <h1>{course.title}</h1>
+      {/* Back button */}
+      <button
+        className="btn btn-outline-secondary mb-4"
+        onClick={() => navigate("/learner/dashboard")}
+      >
+        ← Back to My Courses
+      </button>
 
-      <p className="text-muted">{course.description}</p>
+      {/* Course header */}
+      <div className="mb-4">
+        <h1 className="fw-bold">{course.title}</h1>
 
+        <p className="text-muted mb-2">{course.description}</p>
+
+        <small className="text-muted">
+          Instructor:{" "}
+          <strong>
+            {course.instructor_firstname} {course.instructor_lastname}
+          </strong>
+        </small>
+      </div>
+
+      {/* Progress */}
       {progress && (
-        <div className="card shadow-sm mb-4">
-          <div className="card-body">
-            <div className="d-flex justify-content-between mb-2">
-              <strong>Course Progress: </strong>
-              <strong>{progress.percentage}%</strong>
-            </div>
+        <div className="card shadow-sm border-0 mb-5">
+          <div className="card-body p-4">
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <strong>Course Progress</strong>
 
-            {progress.percentage === 100 && (
-              <div className="alert alert-success mt-3 mb-0">
-                🎉 <strong>Course Completed!</strong> Congratulations, you have
-                completed all the subchapters in this course.
-              </div>
-            )}
+              <strong className="text-primary">{progress.percentage}%</strong>
+            </div>
 
             <div
               style={{
@@ -162,7 +196,7 @@ const LearnerCourse = () => {
                 style={{
                   width: `${progress.percentage}%`,
                   height: "100%",
-                  backgroundColor: "#198754",
+                  backgroundColor: isCompleted ? "#198754" : "#0d6efd",
                   borderRadius: "7px",
                   transition: "width 0.4s ease",
                 }}
@@ -173,41 +207,64 @@ const LearnerCourse = () => {
               {progress.completed_subchapters} completed ·{" "}
               {progress.remaining_subchapters} remaining
             </div>
+
+            {isCompleted && (
+              <div className="alert alert-success mt-3 mb-0">
+                🎉 <strong>Course Completed!</strong>
+                <br />
+                Congratulations! You have completed all the subchapters in this
+                course.
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      <hr />
+      {/* Chapters */}
+      <h2 className="mb-4">Course Content</h2>
 
       {course.chapters?.map((chapter, index) => (
-        <div className="card mb-4 shadow-sm" key={chapter.id}>
-          <div className="card-header">
+        <div className="card mb-4 shadow-sm border-0" key={chapter.id}>
+          <div className="card-header bg-primary text-white py-3">
             <h4 className="mb-0">
               Chapter {index + 1}: {chapter.title}
             </h4>
           </div>
 
-          <div className="card-body">
-            {chapter.subchapters?.map((subchapter, subIndex) => (
-              <div key={subchapter.id} className="border-bottom py-3">
-                <h5>
-                  {index + 1}.{subIndex + 1} {subchapter.title}
-                </h5>
+          <div className="card-body p-4">
+            {chapter.subchapters?.map((subchapter, subIndex) => {
+              const completed = completedSubchapters.includes(subchapter.id);
 
-                <p className="text-muted">{subchapter.content}</p>
+              return (
+                <div key={subchapter.id} className="border-bottom py-4">
+                  <div className="d-flex justify-content-between align-items-start gap-3">
+                    <div>
+                      <h5 className="mb-2">
+                        {index + 1}.{subIndex + 1} {subchapter.title}
+                      </h5>
 
-                {completedSubchapters.includes(subchapter.id) ? (
-                  <span className="badge bg-success">✓ Completed</span>
-                ) : (
-                  <button
-                    className="btn btn-outline-success btn-sm"
-                    onClick={() => markAsCompleted(subchapter.id)}
-                  >
-                    Mark as completed
-                  </button>
-                )}
-              </div>
-            ))}
+                      <p className="text-muted mb-3">{subchapter.content}</p>
+                    </div>
+
+                    {completed && (
+                      <span className="badge bg-success">✓ Completed</span>
+                    )}
+                  </div>
+
+                  {!completed && !isCompleted && (
+                    <button
+                      className="btn btn-outline-success btn-sm"
+                      disabled={completing === subchapter.id}
+                      onClick={() => markAsCompleted(subchapter.id)}
+                    >
+                      {completing === subchapter.id
+                        ? "Saving..."
+                        : "Mark as completed"}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       ))}

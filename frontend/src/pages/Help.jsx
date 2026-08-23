@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import API_URL from "../api";
 import "./css/Help.css";
 
 const Help = () => {
@@ -23,7 +24,7 @@ const Help = () => {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:4000/api/help", {
+      const res = await fetch(`${API_URL}/api/help`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -61,11 +62,7 @@ const Help = () => {
 
       {/* ✅ FEEDBACK MESSAGE */}
       {status.submitted ? (
-        <div
-          className={`feedback-box ${
-            status.success ? "success" : "error"
-          }`}
-        >
+        <div className={`feedback-box ${status.success ? "success" : "error"}`}>
           <h3>{status.success ? "Message Sent" : "Submission Failed"}</h3>
           <p>{status.message}</p>
         </div>

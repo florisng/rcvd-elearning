@@ -1,0 +1,110 @@
+{
+  "navigation": {
+    "home": "Accueil",
+    "courses": "Cours",
+    "instructors": "Formateurs",
+    "about": "À propos",
+    "help": "Aide",
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "logout": "Déconnexion",
+    "getStarted": "Commencer"
+  },
+
+  "common": {
+    "welcome": "Bienvenue",
+    "search": "Rechercher",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "submit": "Soumettre",
+    "loading": "Chargement...",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "language": "Langue"
+  },
+
+  "landing": {
+    "badge": "PLATEFORME E-LEARNING DU RCVD",
+    "heroTitle": "Promouvoir",
+    "heroHighlight": "l'excellence vétérinaire",
+    "heroLocation": " au Rwanda",
+    "heroDescription": "Accédez à une formation professionnelle de qualité conçue pour les vétérinaires et les professionnels de la médecine vétérinaire au Rwanda. Apprenez auprès de formateurs expérimentés, développez vos compétences et restez à jour avec les dernières connaissances en médecine vétérinaire.",
+    "exploreCourses": "Explorer les cours",
+    "getStarted": "Commencer",
+    "heroImageAlt": "Professionnels vétérinaires travaillant avec des animaux au Rwanda",
+    "imageTitle": "Formation vétérinaire",
+    "imageCaption": "Former des professionnels vétérinaires plus compétents au Rwanda",
+    "whyBadge": "POURQUOI RCVD E-LEARNING",
+    "whyTitle": "Une formation professionnelle pour l'excellence vétérinaire",
+    "whyDescription": "Développez vos connaissances et vos compétences professionnelles grâce à des cours structurés spécialement conçus pour les professionnels vétérinaires.",
+    "featureCoursesTitle": "Cours professionnels",
+    "featureCoursesDescription": "Accédez à des cours soigneusement conçus couvrant des domaines importants de la médecine vétérinaire, de la santé animale et de la pratique professionnelle.",
+    "featureInstructorsTitle": "Formateurs expérimentés",
+    "featureInstructorsDescription": "Apprenez auprès de professionnels vétérinaires qualifiés et de formateurs expérimentés possédant une connaissance pratique du terrain.",
+    "featureCertificationTitle": "Apprendre et obtenir une certification",
+    "featureCertificationDescription": "Terminez vos cours, passez les évaluations et démontrez vos connaissances grâce à une certification professionnelle.",
+    "ctaTitle": "Prêt à faire progresser votre carrière vétérinaire ?",
+    "ctaDescription": "Explorez nos cours et commencez votre apprentissage dès aujourd'hui avec RCVD E-Learning."
+  },
+
+  "courses": {
+    "course": "Cours",
+    "coursesTitle": "Cours de médecine vétérinaire",
+    "courseDetails": "Détails du cours",
+    "enroll": "S'inscrire à ce cours",
+    "enrolling": "Inscription...",
+    "enrolled": "Inscrit",
+    "instructor": "Formateur",
+    "duration": "Durée",
+    "price": "Prix"
+  },
+
+  "auth": {
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "phone": "Téléphone",
+    "signIn": "Se connecter",
+    "signUp": "S'inscrire",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "dontHaveAccount": "Vous n'avez pas de compte ?"
+  },
+
+  "learner": {
+    "dashboard": "Tableau de bord",
+    "myCourses": "Mes cours",
+    "myTests": "Mes tests",
+    "progress": "Progression",
+    "continueLearning": "Continuer l'apprentissage"
+  },
+
+  "tests": {
+    "test": "Test",
+    "tests": "Tests",
+    "startTest": "Commencer le test",
+    "resumeTest": "Reprendre le test",
+    "submitTest": "Soumettre le test",
+    "score": "Score",
+    "passed": "Réussi",
+    "failed": "Échoué",
+    "attempts": "Tentatives",
+    "attempt": "Tentative",
+    "inProgress": "En cours",
+    "completed": "Terminé"
+  },
+
+  "instructor": {
+    "dashboard": "Tableau de bord du formateur",
+    "myStudents": "Mes étudiants",
+    "myContent": "Mon contenu"
+  },
+
+  "admin": {
+    "dashboard": "Tableau de bord administrateur",
+    "users": "Utilisateurs",
+    "manageInstructors": "Gérer les formateurs"
+  }
+}

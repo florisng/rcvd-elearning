@@ -1,4 +1,97 @@
 const translations = {
+  // =========================================================
+  // FRENCH
+  // =========================================================
+  fr: {
+    // Navigation
+    home: "Accueil",
+    courses: "Cours",
+    instructors: "Formateurs",
+    about: "À propos",
+    help: "Aide",
+    login: "Connexion",
+    register: "S'inscrire",
+    logout: "Déconnexion",
+    getStarted: "Commencer",
+
+    // Common
+    welcome: "Bienvenue",
+    search: "Rechercher",
+    cancel: "Annuler",
+    save: "Enregistrer",
+    submit: "Soumettre",
+    loading: "Chargement...",
+    back: "Retour",
+    next: "Suivant",
+    previous: "Précédent",
+    language: "Langue",
+
+    // Landing page
+    veterinaryEducation: "Formation vétérinaire",
+    learnGrowLead: "Apprendre. Progresser. Diriger.",
+    landingDescription:
+      "Accédez à des opportunités de formation continue de qualité conçues pour les professionnels de la médecine vétérinaire au Rwanda.",
+    exploreCourses: "Explorer les cours",
+    joinPlatform: "Commencer",
+
+    // Courses
+    course: "Cours",
+    coursesTitle: "Cours de médecine vétérinaire",
+    courseDetails: "Détails du cours",
+    enroll: "S'inscrire à ce cours",
+    enrolling: "Inscription...",
+    enrolled: "Inscrit",
+    instructor: "Formateur",
+    duration: "Durée",
+    price: "Prix",
+
+    // Authentication
+    email: "E-mail",
+    password: "Mot de passe",
+    confirmPassword: "Confirmer le mot de passe",
+    firstName: "Prénom",
+    lastName: "Nom",
+    phone: "Téléphone",
+    signIn: "Se connecter",
+    signUp: "S'inscrire",
+    alreadyHaveAccount: "Vous avez déjà un compte ?",
+    dontHaveAccount: "Vous n'avez pas de compte ?",
+
+    // Learner
+    dashboard: "Tableau de bord",
+    myCourses: "Mes cours",
+    myTests: "Mes tests",
+    progress: "Progression",
+    continueLearning: "Continuer l'apprentissage",
+
+    // Tests
+    test: "Test",
+    tests: "Tests",
+    startTest: "Commencer le test",
+    resumeTest: "Reprendre le test",
+    submitTest: "Soumettre le test",
+    score: "Score",
+    passed: "Réussi",
+    failed: "Échoué",
+    attempts: "Tentatives",
+    attempt: "Tentative",
+    inProgress: "En cours",
+    completed: "Terminé",
+
+    // Instructor
+    instructorDashboard: "Tableau de bord du formateur",
+    myStudents: "Mes étudiants",
+    myContent: "Mon contenu",
+
+    // Admin
+    adminDashboard: "Tableau de bord administrateur",
+    users: "Utilisateurs",
+    manageInstructors: "Gérer les formateurs",
+  },
+
+  // =========================================================
+  // ENGLISH
+  // =========================================================
   en: {
     // Navigation
     home: "Home",
@@ -21,6 +114,7 @@ const translations = {
     back: "Back",
     next: "Next",
     previous: "Previous",
+    language: "Language",
 
     // Landing page
     veterinaryEducation: "Veterinary Education",
@@ -85,6 +179,9 @@ const translations = {
     manageInstructors: "Manage Instructors",
   },
 
+  // =========================================================
+  // KINYARWANDA
+  // =========================================================
   rw: {
     // Navigation
     home: "Ahabanza",
@@ -107,6 +204,7 @@ const translations = {
     back: "Subira inyuma",
     next: "Komeza",
     previous: "Subira ku byabanje",
+    language: "Ururimi",
 
     // Landing page
     veterinaryEducation: "Uburezi bw'Ubuvuzi bw'Amatungo",

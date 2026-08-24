@@ -85,6 +85,20 @@ const Header = () => {
               {t("help")}
             </Link>
 
+            <div className="language-selector">
+              <i className="bi bi-translate"></i>
+
+              <select
+                value={language}
+                onChange={(e) => changeLanguage(e.target.value)}
+                aria-label={t("language")}
+              >
+                <option value="en">EN</option>
+                <option value="fr">FR</option>
+                <option value="rw">RW</option>
+              </select>
+            </div>
+
             {user ? (
               <>
                 <Link to={getDashboardPath()} className="link user-name">
@@ -103,23 +117,6 @@ const Header = () => {
                 {t("login")}
               </Link>
             )}
-            <div className="language-selector">
-              <button
-                type="button"
-                className={`language-btn ${language === "en" ? "active" : ""}`}
-                onClick={() => changeLanguage("en")}
-              >
-                🇬🇧 EN
-              </button>
-
-              <button
-                type="button"
-                className={`language-btn ${language === "rw" ? "active" : ""}`}
-                onClick={() => changeLanguage("rw")}
-              >
-                🇷🇼 RW
-              </button>
-            </div>
           </div>
         </nav>
 
@@ -185,34 +182,18 @@ const Header = () => {
               {t("help")}
             </Link>
 
-            {/* Language Selector */}
             <div className="mobile-language-selector">
-              <span className="mobile-language-label">
-                <i className="bi bi-translate me-2"></i>
-                {t("language")}
-              </span>
+              <i className="bi bi-translate me-2"></i>
 
-              <div className="mobile-language-buttons">
-                <button
-                  type="button"
-                  className={`mobile-language-btn ${
-                    language === "en" ? "active" : ""
-                  }`}
-                  onClick={() => changeLanguage("en")}
-                >
-                  🇬🇧 English
-                </button>
-
-                <button
-                  type="button"
-                  className={`mobile-language-btn ${
-                    language === "rw" ? "active" : ""
-                  }`}
-                  onClick={() => changeLanguage("rw")}
-                >
-                  🇷🇼 Kinyarwanda
-                </button>
-              </div>
+              <select
+                value={language}
+                onChange={(e) => changeLanguage(e.target.value)}
+                aria-label={t("language")}
+              >
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+                <option value="rw">Kinyarwanda</option>
+              </select>
             </div>
 
             {user ? (

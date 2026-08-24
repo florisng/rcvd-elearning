@@ -625,3 +625,51 @@
     width: 100%;
   }
 }
+/* =========================
+   MOBILE LANGUAGE SELECTOR
+========================= */
+
+.mobile-language-selector {
+  margin: 8px 15px 12px;
+  padding: 14px;
+  background: #f4f8f8;
+  border: 1px solid #dce8e7;
+  border-radius: 10px;
+}
+
+.mobile-language-label {
+  display: block;
+  margin-bottom: 10px;
+  color: #0e4e53;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.mobile-language-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.mobile-language-btn {
+  flex: 1;
+  padding: 9px 10px;
+  border: 1px solid #cbdedc;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #0e4e53;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mobile-language-btn:hover {
+  background: #e7f1f0;
+  border-color: #0e4e53;
+}
+
+.mobile-language-btn.active {
+  background: #0e4e53;
+  border-color: #0e4e53;
+  color: #ffffff;
+}

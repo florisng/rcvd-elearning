@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useLanguage } from "../i18n/LanguageContext";
 
 import burgerOn from "./images/burger-on.png";
 import burgerOff from "./images/burger-off.png";
@@ -8,6 +9,8 @@ import logo from "./images/logo.png";
 import "./css/Header.css";
 
 const Header = () => {
+  const { language, changeLanguage, t } = useLanguage();
+
   const [isOn, setIsOn] = useState(true);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
@@ -67,21 +70,19 @@ const Header = () => {
         <nav className="navbar">
           <div className="links">
             <Link to="/courses" className="link">
-              Courses
+              {t("courses")}
             </Link>
 
             <Link to="/instructors" className="link">
-              Instructors
+              {t("instructors")}
             </Link>
 
-            {!user && (
-              <Link to="/register" className="link get-started">
-                Get Started
-              </Link>
-            )}
+            <Link to="/about" className="link">
+              {t("about")}
+            </Link>
 
             <Link to="/help" className="link">
-              Contact / Help
+              {t("help")}
             </Link>
 
             {user ? (
@@ -94,14 +95,31 @@ const Header = () => {
                   className="link logout-btn"
                   onClick={() => setShowLogoutModal(true)}
                 >
-                  Logout
+                  {t("logout")}
                 </button>
               </>
             ) : (
-              <Link to="/login" className="login">
-                Login
+              <Link to="/login" className="link login">
+                {t("login")}
               </Link>
             )}
+            <div className="language-selector">
+              <button
+                type="button"
+                className={`language-btn ${language === "en" ? "active" : ""}`}
+                onClick={() => changeLanguage("en")}
+              >
+                🇬🇧 EN
+              </button>
+
+              <button
+                type="button"
+                className={`language-btn ${language === "rw" ? "active" : ""}`}
+                onClick={() => changeLanguage("rw")}
+              >
+                🇷🇼 RW
+              </button>
+            </div>
           </div>
         </nav>
 
@@ -124,8 +142,8 @@ const Header = () => {
         </div>
 
         {/* =========================================
-            MOBILE MENU
-        ========================================= */}
+    MOBILE MENU
+========================================= */}
 
         <div className={`phone-menu ${isOn ? "hidden" : "show"}`}>
           <nav className="phone-navbar">
@@ -135,7 +153,7 @@ const Header = () => {
               onClick={closeMobileMenu}
             >
               <i className="bi bi-journal-bookmark me-2"></i>
-              Courses
+              {t("courses")}
             </Link>
 
             <Link
@@ -144,7 +162,7 @@ const Header = () => {
               onClick={closeMobileMenu}
             >
               <i className="bi bi-people me-2"></i>
-              Instructors
+              {t("instructors")}
             </Link>
 
             {!user && (
@@ -154,7 +172,7 @@ const Header = () => {
                 onClick={closeMobileMenu}
               >
                 <i className="bi bi-person-plus me-2"></i>
-                Get Started
+                {t("getStarted")}
               </Link>
             )}
 
@@ -164,8 +182,38 @@ const Header = () => {
               onClick={closeMobileMenu}
             >
               <i className="bi bi-headset me-2"></i>
-              Contact / Help
+              {t("help")}
             </Link>
+
+            {/* Language Selector */}
+            <div className="mobile-language-selector">
+              <span className="mobile-language-label">
+                <i className="bi bi-translate me-2"></i>
+                {t("language")}
+              </span>
+
+              <div className="mobile-language-buttons">
+                <button
+                  type="button"
+                  className={`mobile-language-btn ${
+                    language === "en" ? "active" : ""
+                  }`}
+                  onClick={() => changeLanguage("en")}
+                >
+                  🇬🇧 English
+                </button>
+
+                <button
+                  type="button"
+                  className={`mobile-language-btn ${
+                    language === "rw" ? "active" : ""
+                  }`}
+                  onClick={() => changeLanguage("rw")}
+                >
+                  🇷🇼 Kinyarwanda
+                </button>
+              </div>
+            </div>
 
             {user ? (
               <>
@@ -175,7 +223,7 @@ const Header = () => {
                   onClick={closeMobileMenu}
                 >
                   <i className="bi bi-person-circle me-2"></i>
-                  Hi, {user.first_name}
+                  {t("welcome")}, {user.first_name}
                 </Link>
 
                 <button
@@ -186,7 +234,7 @@ const Header = () => {
                   }}
                 >
                   <i className="bi bi-box-arrow-right me-2"></i>
-                  Logout
+                  {t("logout")}
                 </button>
               </>
             ) : (
@@ -195,7 +243,8 @@ const Header = () => {
                 className="phone-login"
                 onClick={closeMobileMenu}
               >
-                Login
+                <i className="bi bi-box-arrow-in-right me-2"></i>
+                {t("login")}
               </Link>
             )}
           </nav>

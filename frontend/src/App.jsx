@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
+import PrivateRoute from "./components/PrivateRoute";
 
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
@@ -14,11 +15,8 @@ import InstructorDetail from "./pages/InstructorDetail";
 import Login from "./pages/Login";
 import InstructorSignup from "./pages/InstructorSignup";
 
-import PrivateRoute from "./components/PrivateRoute";
-
 import InstructorDashboard from "./pages/InstructorDashboard";
 import LearnerDashboard from "./pages/LearnerDashboard";
-import LearnerCourse from "./pages/LearnerCourse";
 import InstructorCourse from "./pages/InstructorCourse";
 
 import TestPage from "./pages/Test/TestPage";
@@ -55,11 +53,11 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<InstructorSignup />} />
 
-            {/* Protected Course Detail */}
+            {/* Course Detail / Learner Course */}
             <Route
               path="/courses/:id"
               element={
-                <PrivateRoute>
+                <PrivateRoute role="LEARNER">
                   <CourseDetail />
                 </PrivateRoute>
               }
@@ -91,16 +89,6 @@ function App() {
               element={
                 <PrivateRoute role="LEARNER">
                   <LearnerDashboard />
-                </PrivateRoute>
-              }
-            />
-
-            {/* Learner Course */}
-            <Route
-              path="/learner/courses/:id"
-              element={
-                <PrivateRoute role="LEARNER">
-                  <LearnerCourse />
                 </PrivateRoute>
               }
             />

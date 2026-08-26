@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import API_URL from "../api";
+import "./css/LearnerDashboard.css";
 
 const LearnerDashboard = () => {
   const [courses, setCourses] = useState([]);
   const [progress, setProgress] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const user = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -88,8 +91,12 @@ const LearnerDashboard = () => {
 
   if (loading) {
     return (
-      <div className="container py-5 text-center">
-        <p>Loading your courses...</p>
+      <div className="learner-dashboard-loading">
+        <div className="spinner-border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+
+        <p>Loading your learning dashboard...</p>
       </div>
     );
   }
@@ -102,106 +109,264 @@ const LearnerDashboard = () => {
     );
   }
 
+  // =========================================
+  // CALCULATE DASHBOARD STATISTICS
+  // =========================================
+
+  let completedCourses = 0;
+  let inProgressCourses = 0;
+  let totalProgress = 0;
+
+  courses.forEach((course) => {
+    const courseProgress = progress[course.course_id];
+
+    const percentage = courseProgress?.percentage ?? 0;
+
+    const isCompleted = course.status === "COMPLETED" || percentage === 100;
+
+    if (isCompleted) {
+      completedCourses++;
+    } else {
+      inProgressCourses++;
+    }
+
+    totalProgress += percentage;
+  });
+
+  const averageProgress =
+    courses.length > 0 ? Math.round(totalProgress / courses.length) : 0;
+
   return (
-    <div className="container py-5">
-      {/* Header */}
-      <div className="mb-4">
-        <h1 className="fw-bold mb-2">Learner Dashboard</h1>
+    <div className="learner-dashboard">
+      <div className="container py-5">
+        {/* =========================================
+            DASHBOARD HEADER
+        ========================================= */}
 
-        <p className="text-muted mb-0">Welcome to your learning dashboard.</p>
-      </div>
+        <div className="dashboard-header mb-5">
+          <div>
+            <span className="dashboard-label">RCVD E-LEARNING</span>
 
-      {/* Courses */}
-      <h3 className="mb-4">My Courses</h3>
+            <h1 className="dashboard-title">
+              Welcome back
+              {user?.first_name ? `, ${user.first_name}` : ""}! 👋
+            </h1>
 
-      {courses.length === 0 ? (
-        <div className="alert alert-info">
-          You are not enrolled in any courses yet.
+            <p className="dashboard-subtitle">
+              Continue your professional learning journey with RCVD E-Learning.
+            </p>
+          </div>
         </div>
-      ) : (
-        <div className="row g-4">
-          {courses.map((course) => {
-            const courseProgress = progress[course.course_id];
 
-            const percentage = courseProgress?.percentage ?? 0;
+        {/* =========================================
+            STATISTICS
+        ========================================= */}
 
-            const isCompleted =
-              course.status === "COMPLETED" || percentage === 100;
+        <div className="row g-4 mb-5">
+          {/* Enrolled Courses */}
 
-            return (
-              <div className="col-md-6 col-lg-4" key={course.course_id}>
-                <div className="card h-100 shadow-sm border-0">
-                  <div className="card-body p-4 d-flex flex-column">
-                    {/* Title */}
-                    <h5 className="card-title fw-bold">{course.title}</h5>
+          <div className="col-12 col-sm-6 col-xl-3">
+            <div className="dashboard-stat-card">
+              <div className="stat-icon">
+                <i className="bi bi-journal-bookmark-fill"></i>
+              </div>
 
-                    {/* Description */}
-                    <p className="card-text text-muted">{course.description}</p>
+              <div>
+                <div className="stat-number">{courses.length}</div>
 
-                    {/* Instructor */}
-                    <p className="mb-2">
-                      <strong>Instructor:</strong> {course.instructor_firstname}{" "}
-                      {course.instructor_lastname}
-                    </p>
+                <div className="stat-label">Enrolled Courses</div>
+              </div>
+            </div>
+          </div>
 
-                    {/* Status */}
-                    <p className="mb-3">
-                      <strong>Status:</strong>{" "}
-                      <span
-                        className={`badge ${
-                          isCompleted ? "bg-success" : "bg-primary"
-                        }`}
-                      >
-                        {isCompleted ? "COMPLETED" : "IN PROGRESS"}
-                      </span>
-                    </p>
+          {/* Completed Courses */}
 
-                    {/* Progress */}
-                    <div className="mb-3">
-                      <div className="d-flex justify-content-between mb-1">
-                        <small className="text-muted">Progress</small>
+          <div className="col-12 col-sm-6 col-xl-3">
+            <div className="dashboard-stat-card">
+              <div className="stat-icon completed">
+                <i className="bi bi-check-circle-fill"></i>
+              </div>
 
-                        <small className="fw-bold">{percentage}%</small>
-                      </div>
+              <div>
+                <div className="stat-number">{completedCourses}</div>
 
-                      <div className="progress" style={{ height: "8px" }}>
-                        <div
-                          className={`progress-bar ${
-                            isCompleted ? "bg-success" : "bg-primary"
-                          }`}
-                          role="progressbar"
-                          style={{
-                            width: `${percentage}%`,
-                          }}
-                        />
-                      </div>
+                <div className="stat-label">Completed</div>
+              </div>
+            </div>
+          </div>
 
-                      {courseProgress && (
-                        <small className="text-muted">
-                          {courseProgress.completed_subchapters} completed ·{" "}
-                          {courseProgress.remaining_subchapters} remaining
-                        </small>
-                      )}
+          {/* In Progress */}
+
+          <div className="col-12 col-sm-6 col-xl-3">
+            <div className="dashboard-stat-card">
+              <div className="stat-icon progress-icon">
+                <i className="bi bi-graph-up-arrow"></i>
+              </div>
+
+              <div>
+                <div className="stat-number">{inProgressCourses}</div>
+
+                <div className="stat-label">In Progress</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Average Progress */}
+
+          <div className="col-12 col-sm-6 col-xl-3">
+            <div className="dashboard-stat-card">
+              <div className="stat-icon average">
+                <i className="bi bi-bar-chart-fill"></i>
+              </div>
+
+              <div>
+                <div className="stat-number">{averageProgress}%</div>
+
+                <div className="stat-label">Average Progress</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* =========================================
+            MY COURSES
+        ========================================= */}
+
+        <div className="courses-section-header">
+          <div>
+            <span className="dashboard-label">YOUR LEARNING</span>
+
+            <h2 className="courses-section-title">My Courses</h2>
+          </div>
+        </div>
+
+        {courses.length === 0 ? (
+          <div className="empty-courses">
+            <div className="empty-icon">
+              <i className="bi bi-journal-x"></i>
+            </div>
+
+            <h4>No courses yet</h4>
+
+            <p>
+              You are not enrolled in any courses yet. Explore our available
+              courses and start learning.
+            </p>
+
+            <Link to="/courses" className="dashboard-primary-btn">
+              <i className="bi bi-search me-2"></i>
+              Explore Courses
+            </Link>
+          </div>
+        ) : (
+          <div className="row g-4">
+            {courses.map((course) => {
+              const courseProgress = progress[course.course_id];
+
+              const percentage = courseProgress?.percentage ?? 0;
+
+              const isCompleted =
+                course.status === "COMPLETED" || percentage === 100;
+
+              return (
+                <div
+                  className="col-12 col-md-6 col-xl-4"
+                  key={course.course_id}
+                >
+                  <div className="learner-course-card">
+                    {/* Course Icon */}
+
+                    <div className="course-card-icon">
+                      <i className="bi bi-book-half"></i>
                     </div>
 
-                    {/* Button */}
-                    <div className="mt-auto">
+                    {/* Course Content */}
+
+                    <div className="course-card-content">
+                      <h5 className="course-card-title">{course.title}</h5>
+
+                      <p className="course-card-description">
+                        {course.description}
+                      </p>
+
+                      {/* Instructor */}
+
+                      <div className="course-instructor">
+                        <i className="bi bi-person-circle"></i>
+
+                        <span>
+                          {course.instructor_firstname}{" "}
+                          {course.instructor_lastname}
+                        </span>
+                      </div>
+
+                      {/* Status */}
+
+                      <div className="course-status-row">
+                        <span className="status-label">Status</span>
+
+                        <span
+                          className={`course-status ${
+                            isCompleted ? "completed-status" : "progress-status"
+                          }`}
+                        >
+                          {isCompleted ? "COMPLETED" : "IN PROGRESS"}
+                        </span>
+                      </div>
+
+                      {/* Progress */}
+
+                      <div className="course-progress">
+                        <div className="progress-header">
+                          <span>Progress</span>
+
+                          <strong>{percentage}%</strong>
+                        </div>
+
+                        <div className="progress-track">
+                          <div
+                            className={`progress-fill ${
+                              isCompleted ? "completed-progress" : ""
+                            }`}
+                            style={{
+                              width: `${percentage}%`,
+                            }}
+                          />
+                        </div>
+
+                        {courseProgress && (
+                          <div className="progress-details">
+                            <span>
+                              {courseProgress.completed_subchapters} completed
+                            </span>
+
+                            <span>
+                              {courseProgress.remaining_subchapters} remaining
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Button */}
+
                       <Link
-                        to={`/learner/course/${course.course_id}`}
-                        className={`btn w-100 ${
-                          isCompleted ? "btn-outline-success" : "btn-primary"
+                        to={`/courses/${course.course_id}`}
+                        className={`course-action-btn ${
+                          isCompleted ? "completed-action" : ""
                         }`}
                       >
                         {isCompleted ? "View Course" : "Continue Learning"}
+
+                        <i className="bi bi-arrow-right"></i>
                       </Link>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

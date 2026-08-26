@@ -1,10 +1,59 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+
+import { getTestResult } from "../../services/testService";
 
 function TestResult() {
-  const location = useLocation();
+  const { attemptId } = useParams();
   const navigate = useNavigate();
 
-  const result = location.state;
+  const token = localStorage.getItem("token");
+
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const loadResult = async () => {
+      try {
+        const data = await getTestResult(attemptId, token);
+
+        setResult(data.result);
+      } catch (err) {
+        console.error("Error loading test result:", err);
+
+        setError(err.message || "Failed to load test result.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadResult();
+  }, [attemptId, token]);
+
+  if (loading) {
+    return (
+      <div className="container py-5 text-center">
+        <div className="spinner-border text-primary" />
+        <p className="text-muted mt-3">Loading test result...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container py-5">
+        <div className="alert alert-danger">{error}</div>
+
+        <button
+          className="btn btn-primary"
+          onClick={() => navigate("/learner/dashboard")}
+        >
+          Back to Dashboard
+        </button>
+      </div>
+    );
+  }
 
   if (!result) {
     return (

@@ -1,3 +1,7 @@
+/* =========================================
+   COURSE PAGE
+========================================= */
+
 .course-page-container {
   max-width: 900px;
   margin: 0 auto;
@@ -5,9 +9,22 @@
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
+.course-title {
+  margin-bottom: 15px;
+  font-weight: 700;
+}
+
+.course-instructor {
+  margin-bottom: 10px;
+}
+
 .course-description {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   line-height: 1.6;
+}
+
+.course-info {
+  margin-bottom: 30px;
 }
 
 .loading-text {
@@ -17,7 +34,10 @@
   color: #4b5563;
 }
 
-/* Chapters styling */
+/* =========================================
+   CHAPTERS
+========================================= */
+
 .chapter-card {
   margin-bottom: 20px;
   border: 1px solid #e2e8f0;
@@ -26,11 +46,16 @@
 }
 
 .chapter-header {
-  background-color: rgb(17, 113, 113);
-  color: #fff;
+  background-color: #117171;
+  color: #ffffff;
   padding: 12px 20px;
   cursor: pointer;
   font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.chapter-header:hover {
+  background-color: #0e4e53;
 }
 
 .subchapter-list {
@@ -42,9 +67,55 @@
 
 .subchapter-item {
   margin-bottom: 10px;
+  color: #212529;
 }
 
-/* Responsive */
+/* =========================================
+   MAIN BUTTON
+========================================= */
+
+.course-main-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: #0e4e53;
+  color: #ffffff;
+
+  border: 1px solid #0e4e53;
+  border-radius: 7px;
+
+  padding: 10px 20px;
+
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.5;
+
+  text-decoration: none;
+  cursor: pointer;
+
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.course-main-btn:hover {
+  background-color: #ffffff;
+  color: #0e4e53;
+  border-color: #0e4e53;
+}
+
+.course-main-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(14, 78, 83, 0.2);
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
 @media (max-width: 768px) {
   .course-page-container {
     padding: 15px;
@@ -61,5 +132,10 @@
 
   .subchapter-list {
     padding: 10px 15px;
+  }
+
+  .course-main-btn {
+    padding: 9px 17px;
+    font-size: 0.9rem;
   }
 }

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import API_URL from "../api";
 import "./css/CourseCard.css";
 
-const CourseCard = ({ course }) => {
+const CourseCard = ({ course, isEnrolled }) => {
   const navigate = useNavigate();
 
   const [enrolling, setEnrolling] = useState(false);
@@ -48,19 +48,13 @@ const CourseCard = ({ course }) => {
       const data = await res.json();
 
       if (!res.ok) {
-        if (data.error === "You are already enrolled in this course.") {
-          setMessage("You are already enrolled in this course.");
-        } else {
-          throw new Error(data.error || "Failed to enroll in course.");
-        }
-
-        return;
+        throw new Error(data.error || "Failed to enroll in course.");
       }
 
       setMessage("Successfully enrolled in this course.");
 
       setTimeout(() => {
-        navigate(`/learner/course/${course.id}`);
+        navigate(`/courses/${course.id}`);
       }, 800);
     } catch (err) {
       console.error("Enrollment error:", err);
@@ -72,16 +66,6 @@ const CourseCard = ({ course }) => {
 
   return (
     <div className="course-card">
-      <p>
-        <Link
-          to={`/courses/${course.id}`}
-          id={`course-${course.id}`}
-          className="link right"
-        >
-          View course
-        </Link>
-      </p>
-
       <h2 className="course-title">{course.title}</h2>
 
       <hr />
@@ -107,18 +91,36 @@ const CourseCard = ({ course }) => {
         {formattedPrice}
       </p>
 
-      {message && <div className="alert alert-success py-2">{message}</div>}
+      {isEnrolled && (
+        <div className="alert alert-success py-2">
+          You are already enrolled in this course.
+        </div>
+      )}
+
+      {message && !isEnrolled && (
+        <div className="alert alert-success py-2">{message}</div>
+      )}
 
       {error && <div className="alert alert-danger py-2">{error}</div>}
 
-      <button
-        type="button"
-        className="btn enroll-btn"
-        onClick={handleEnroll}
-        disabled={enrolling}
-      >
-        {enrolling ? "Enrolling..." : "Enroll in this course"}
-      </button>
+      {isEnrolled ? (
+        <button
+          type="button"
+          className="btn btn-link p-0"
+          onClick={() => navigate(`/courses/${course.id}`)}
+        >
+          Continue Course
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="btn enroll-btn"
+          onClick={handleEnroll}
+          disabled={enrolling}
+        >
+          {enrolling ? "Enrolling..." : "Enroll in this course"}
+        </button>
+      )}
     </div>
   );
 };

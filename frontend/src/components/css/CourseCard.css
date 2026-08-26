@@ -1,27 +1,148 @@
+/* =========================================
+   COURSE CARD
+========================================= */
+
+.course-card {
+  padding: 25px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background-color: #ffffff;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* =========================================
+   COURSE TITLE
+========================================= */
+
+.course-card .course-title {
+  margin: 0 0 15px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+/* =========================================
+   DESCRIPTION
+========================================= */
+
+.course-card .course-description {
+  margin-bottom: 20px;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+/* =========================================
+   COURSE INFORMATION
+========================================= */
+
+.course-info {
+  margin-bottom: 15px;
+  line-height: 1.8;
+  color: #374151;
+}
+
+.course-price {
+  margin-bottom: 20px;
+  color: #374151;
+}
+
+/* =========================================
+   ENROLL BUTTON
+========================================= */
+
 .enroll-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: auto;
+  min-width: 0;
+
+  padding: 9px 18px;
+
   background-color: #0e4e53;
   color: #ffffff;
+
   border: 1px solid #0e4e53;
-  padding: 11px 24px;
   border-radius: 7px;
-  font-weight: 600;
+
+  font-family: inherit;
   font-size: 0.95rem;
-  transition: all 0.25s ease;
+  font-weight: 600;
+  line-height: 1.4;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .enroll-btn:hover {
   background-color: #ffffff;
   color: #0e4e53;
   border-color: #0e4e53;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(14, 78, 83, 0.15);
+}
+
+.enroll-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(14, 78, 83, 0.2);
 }
 
 .enroll-btn:disabled {
-  background-color: #8aa5a7;
-  border-color: #8aa5a7;
+  background-color: #9ca3af;
   color: #ffffff;
+  border-color: #9ca3af;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+  opacity: 1;
+}
+
+.enroll-btn:disabled:hover {
+  background-color: #9ca3af;
+  color: #ffffff;
+  border-color: #9ca3af;
+}
+
+/* =========================================
+   CONTINUE COURSE
+========================================= */
+
+.course-card .btn-link {
+  color: #0e4e53 !important;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.course-card .btn-link:hover {
+  color: #0e4e53 !important;
+  text-decoration: underline;
+}
+
+/* =========================================
+   ALERTS
+========================================= */
+
+.course-card .alert {
+  margin-bottom: 15px;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 768px) {
+  .course-card {
+    padding: 20px;
+  }
+
+  .course-card .course-title {
+    font-size: 1.2rem;
+  }
+
+  .enroll-btn {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
 }

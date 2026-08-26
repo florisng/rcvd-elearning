@@ -209,17 +209,9 @@ function TestPage() {
               setError("");
 
               try {
-                const data = await submitTest(attempt.id, answers, token);
+                await submitTest(attempt.id, answers, token);
 
-                window.alert(
-                  `Test submitted successfully!\n\nScore: ${data.result.score}%\nCorrect answers: ${data.result.correct_answers}/${data.result.total_questions}\n\n${
-                    data.result.passed
-                      ? "Congratulations! You passed."
-                      : "Unfortunately, you did not pass."
-                  }`,
-                );
-
-                navigate(`/tests/${testId}`);
+                navigate(`/tests/result/${attempt.id}`);
               } catch (err) {
                 console.error("Error submitting test:", err);
 

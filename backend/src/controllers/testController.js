@@ -1292,3 +1292,113 @@ export const saveAnswer = async (req, res) => {
     });
   }
 };
+
+/**
+ * Get the result of a completed test attempt
+ */
+export const getTestResult = async (req, res) => {
+  const attemptId = parseInt(req.params.attemptId, 10);
+
+  if (!Number.isInteger(attemptId)) {
+    return res.status(400).json({
+      error: "Invalid attempt ID.",
+    });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT
+         ta.id AS attempt_id,
+         ta.test_id,
+         ta.attempt_number,
+         ta.status,
+         ta.score,
+         ta.passed,
+         ta.started_at,
+         ta.submitted_at,
+         ta.actual_duration,
+         t.title AS test_title,
+         t.pass_percentage
+       FROM test_attempts ta
+       JOIN tests t
+         ON t.id = ta.test_id
+       WHERE ta.id = $1
+         AND ta.user_id = $2`,
+      [attemptId, req.user.id],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: "Test attempt not found.",
+      });
+    }
+
+    const attempt = result.rows[0];
+
+    if (attempt.status !== "COMPLETED") {
+      return res.status(400).json({
+        error: "This test attempt has not been completed.",
+      });
+    }
+
+    const statisticsResult = await pool.query(
+      `SELECT
+         COUNT(aq.question_id)::integer AS total_questions,
+         COUNT(aa.question_id)::integer AS answered_questions,
+         COUNT(
+           CASE
+             WHEN qo.is_correct = true THEN 1
+           END
+         )::integer AS correct_answers
+       FROM attempt_questions aq
+       LEFT JOIN attempt_answers aa
+         ON aa.attempt_id = aq.attempt_id
+        AND aa.question_id = aq.question_id
+       LEFT JOIN question_options qo
+         ON qo.id = aa.option_id
+       WHERE aq.attempt_id = $1`,
+      [attemptId],
+    );
+
+    const statistics = statisticsResult.rows[0];
+
+    const totalQuestions = Number(statistics.total_questions);
+    const answeredQuestions = Number(statistics.answered_questions);
+    const correctAnswers = Number(statistics.correct_answers);
+    const incorrectAnswers = answeredQuestions - correctAnswers;
+    const unansweredQuestions = totalQuestions - answeredQuestions;
+
+    const percentage =
+      totalQuestions > 0
+        ? Number(((correctAnswers / totalQuestions) * 100).toFixed(2))
+        : 0;
+
+    res.json({
+      result: {
+        attempt_id: attempt.attempt_id,
+        test_id: attempt.test_id,
+        test_title: attempt.test_title,
+        attempt_number: attempt.attempt_number,
+        total_questions: totalQuestions,
+        answered_questions: answeredQuestions,
+        correct_answers: correctAnswers,
+        incorrect_answers: incorrectAnswers,
+        unanswered_questions: unansweredQuestions,
+        percentage,
+        pass_percentage: Number(attempt.pass_percentage),
+        passed: attempt.passed,
+        status: attempt.status,
+        submitted_at: attempt.submitted_at,
+        score: attempt.score,
+        actual_duration: attempt.actual_duration,
+        started_at: attempt.started_at,
+      },
+    });
+  } catch (err) {
+    console.error("Error fetching test result:", err);
+
+    res.status(500).json({
+      error: "Server error.",
+    });
+  }
+};

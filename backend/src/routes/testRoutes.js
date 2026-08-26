@@ -11,6 +11,7 @@ import {
   getTestAttempts,
   resumeTest,
   saveAnswer,
+  getTestResult,
 } from "../controllers/testController.js";
 
 import authMiddleware from "../middleware/authMiddleware.js";
@@ -80,6 +81,14 @@ router.post(
   authMiddleware,
   requireRole("LEARNER"),
   submitTest,
+);
+
+// Get completed test result
+router.get(
+  "/tests/attempts/:attemptId/result",
+  authMiddleware,
+  requireRole("LEARNER"),
+  getTestResult,
 );
 
 // Resume test

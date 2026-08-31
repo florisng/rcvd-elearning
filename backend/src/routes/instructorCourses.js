@@ -9,22 +9,12 @@ import {
 } from "../controllers/instructorCoursesController.js";
 
 import authMiddleware from "../middleware/authMiddleware.js";
+
 import requireRole from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
 
-// router.get(
-//   "/instructor/test-auth",
-//   authMiddleware,
-//   requireRole("INSTRUCTOR"),
-//   (req, res) => {
-//     res.json({
-//       message: "Instructor authentication and authorization work.",
-//       user: req.user,
-//     });
-//   },
-// );
-
+// Get instructor's courses
 router.get(
   "/instructor/courses",
   authMiddleware,
@@ -32,6 +22,7 @@ router.get(
   getInstructorCourses,
 );
 
+// Get one instructor course
 router.get(
   "/instructor/courses/:courseId",
   authMiddleware,
@@ -39,6 +30,7 @@ router.get(
   getInstructorCourse,
 );
 
+// Create course
 router.post(
   "/instructor/courses",
   authMiddleware,
@@ -46,6 +38,7 @@ router.post(
   createCourse,
 );
 
+// Update course
 router.put(
   "/instructor/courses/:courseId",
   authMiddleware,
@@ -53,6 +46,7 @@ router.put(
   updateCourse,
 );
 
+// Delete course
 router.delete(
   "/instructor/courses/:courseId",
   authMiddleware,

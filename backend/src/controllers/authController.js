@@ -14,6 +14,14 @@ export const registerLearner = async (req, res) => {
       password,
     } = req.body;
 
+    // Allowed professional titles
+    const allowedTitles = [
+      "Veterinary Technician (A1, A2)",
+      "Veterinary Technologist",
+      "Animal Scientist",
+      "Veterinary Doctor",
+    ];
+
     // Basic validation
     if (
       !first_name ||
@@ -25,6 +33,13 @@ export const registerLearner = async (req, res) => {
     ) {
       return res.status(400).json({
         error: "Please fill in all required fields.",
+      });
+    }
+
+    // Validate professional title
+    if (!allowedTitles.includes(professional_title.trim())) {
+      return res.status(400).json({
+        error: "Please select a valid professional title.",
       });
     }
 

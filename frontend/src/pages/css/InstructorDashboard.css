@@ -5,7 +5,7 @@
   max-width: 1000px;
   margin: 0 auto;
   padding: 30px 20px;
-  font-family: 'Roboto', 'Segoe UI', sans-serif;
+  font-family: "Roboto", "Segoe UI", sans-serif;
   color: #1f2937;
 }
 
@@ -17,8 +17,10 @@
 }
 
 /* Section Headings */
-h1, h2, h3 {
-  color: #1e40af;
+h1,
+h2,
+h3 {
+  color: #2463ee;
   font-weight: 700;
   margin-bottom: 15px;
 }
@@ -39,7 +41,9 @@ h1, h2, h3 {
   padding: 20px;
   flex: 1 1 280px; /* min width 280px, grow if space */
   max-width: 320px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .instructor-course-card:hover {

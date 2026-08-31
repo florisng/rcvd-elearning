@@ -1,10 +1,287 @@
-.instructor-card {
-    border-left: 5px solid rgb(7, 113, 113);
-    padding-left: 20px;
-    margin-bottom: 30px;
-    transition: 1s;
+/* =========================================
+   RCVD E-LEARNING — INSTRUCTORS
+========================================= */
+
+.instructors-page {
+  min-height: calc(100vh - 70px);
+  background: #f8fafc;
+  padding: 55px 20px 80px;
 }
-.instructor-card:hover {
-    border-left: 20px solid rgb(7, 113, 113);
-    cursor: pointer;
+
+.instructors-wrapper {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+/* =========================================
+   HEADER
+========================================= */
+
+.instructors-heading {
+  max-width: 700px;
+  margin: 0 auto 45px;
+  text-align: center;
+}
+
+.instructors-label {
+  display: inline-block;
+  margin-bottom: 10px;
+
+  color: #2563eb;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+}
+
+.instructors-heading h1 {
+  margin: 0 0 14px;
+
+  color: #172033;
+  font-size: 2.35rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.instructors-heading p {
+  margin: 0;
+
+  color: #64748b;
+  font-size: 0.98rem;
+  line-height: 1.7;
+}
+
+/* =========================================
+   INSTRUCTOR GRID
+========================================= */
+
+.instructors-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+/* =========================================
+   INSTRUCTOR CARD
+========================================= */
+
+.instructor-item {
+  display: flex;
+  align-items: center;
+
+  min-height: 135px;
+  padding: 22px;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.instructor-item:hover {
+  transform: translateY(-3px);
+
+  border-color: #bfdbfe;
+
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+/* =========================================
+   AVATAR
+========================================= */
+
+.instructor-profile-icon {
+  width: 64px;
+  height: 64px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-right: 17px;
+
+  border-radius: 50%;
+
+  background: #eff6ff;
+  color: #2563eb;
+
+  font-size: 1.15rem;
+  font-weight: 700;
+
+  letter-spacing: 0.5px;
+}
+
+/* =========================================
+   DETAILS
+========================================= */
+
+.instructor-details {
+  min-width: 0;
+}
+
+.instructor-details h2 {
+  margin: 0 0 6px;
+
+  color: #172033;
+
+  font-size: 1rem;
+  font-weight: 650;
+
+  line-height: 1.35;
+}
+
+.instructor-specialization {
+  margin: 0 0 9px;
+
+  color: #64748b;
+
+  font-size: 0.82rem;
+
+  line-height: 1.4;
+}
+
+/* =========================================
+   PROFILE LINK
+========================================= */
+
+.instructor-profile-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  color: #2563eb;
+
+  font-size: 0.82rem;
+  font-weight: 600;
+
+  text-decoration: none;
+
+  transition:
+    color 0.2s ease,
+    gap 0.2s ease;
+}
+
+.instructor-profile-link:hover {
+  color: #1d4ed8;
+  gap: 8px;
+}
+
+.instructor-profile-link span {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* =========================================
+   EMPTY STATE
+========================================= */
+
+.instructors-empty {
+  max-width: 600px;
+  margin: 0 auto;
+
+  padding: 45px 25px;
+
+  text-align: center;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+}
+
+.instructors-empty h3 {
+  margin: 0 0 8px;
+
+  color: #172033;
+
+  font-size: 1.1rem;
+}
+
+.instructors-empty p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 0.9rem;
+}
+
+/* =========================================
+   LOADING
+========================================= */
+
+.instructors-loading {
+  min-height: 400px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  color: #64748b;
+}
+
+.instructors-loading p {
+  margin-top: 14px;
+  margin-bottom: 0;
+}
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 1000px) {
+  .instructors-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 650px) {
+  .instructors-page {
+    padding: 40px 16px 60px;
+  }
+
+  .instructors-heading {
+    margin-bottom: 32px;
+  }
+
+  .instructors-heading h1 {
+    font-size: 2rem;
+  }
+
+  .instructors-heading p {
+    font-size: 0.92rem;
+  }
+
+  .instructors-list {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .instructor-item {
+    min-height: 115px;
+    padding: 18px;
+  }
+
+  .instructor-profile-icon {
+    width: 58px;
+    height: 58px;
+
+    margin-right: 15px;
+
+    font-size: 1rem;
+  }
 }

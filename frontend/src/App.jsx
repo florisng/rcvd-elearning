@@ -1,11 +1,9 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
 import PrivateRoute from "./components/PrivateRoute";
-
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
 import About from "./pages/About";
@@ -14,18 +12,16 @@ import Instructors from "./pages/Instructors";
 import InstructorDetail from "./pages/InstructorDetail";
 import Login from "./pages/Login";
 import InstructorSignup from "./pages/InstructorSignup";
-
+import LearnerSignup from "./pages/LearnerSignup";
 import InstructorDashboard from "./pages/InstructorDashboard";
 import LearnerDashboard from "./pages/LearnerDashboard";
 import InstructorCourse from "./pages/InstructorCourse";
-
+import CreateCourse from "./pages/CreateCourse";
 import TestPage from "./pages/Test/TestPage";
 import TestResult from "./pages/Test/TestResult";
-
+import CourseBuilder from "./pages/CourseBuilder";
 import AdminDashboard from "./pages/AdminDashboard";
-
 import Landing from "./pages/Landing";
-
 import "./App.css";
 
 function App() {
@@ -52,6 +48,7 @@ function App() {
             {/* Authentication */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<InstructorSignup />} />
+            <Route path="/learner/register" element={<LearnerSignup />} />
 
             {/* Course Detail / Learner Course */}
             <Route
@@ -69,6 +66,24 @@ function App() {
               element={
                 <PrivateRoute role="INSTRUCTOR">
                   <InstructorCourse />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/instructor/courses/:id/builder"
+              element={
+                <PrivateRoute role="INSTRUCTOR">
+                  <CourseBuilder />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/instructor/courses/create"
+              element={
+                <PrivateRoute role="INSTRUCTOR">
+                  <CreateCourse />
                 </PrivateRoute>
               }
             />

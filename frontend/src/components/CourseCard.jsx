@@ -21,6 +21,15 @@ const CourseCard = ({ course, isEnrolled }) => {
   const formattedPrice =
     new Intl.NumberFormat("en-US").format(course.price) + " RWF";
 
+  // Format course creation date
+  const createdDate = course.created_at
+    ? new Date(course.created_at).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
+    : "—";
+
   const handleEnroll = async () => {
     if (!token || !user) {
       navigate("/login");
@@ -66,30 +75,55 @@ const CourseCard = ({ course, isEnrolled }) => {
 
   return (
     <div className="course-card">
-      <h2 className="course-title">{course.title}</h2>
+      <div className="course-card-header">
+        <span className="course-type-label">
+          <i className="bi bi-book-half"></i>
+          COURSE
+        </span>
+
+        <h2 className="course-title">{course.title}</h2>
+      </div>
 
       <hr />
 
       <p className="course-description">{course.description}</p>
 
       <div className="course-info">
-        <span className="course-instructor">
-          <b>Instructor: </b>
-          {course.instructor_name}
-        </span>
+        <div className="course-meta-item">
+          <i className="bi bi-person-fill"> </i>
+          <span>
+            <b>Instructor:</b> {course.instructor_name}
+          </span>
+        </div>
 
-        <br />
+        <div className="course-meta-item">
+          <i className="bi bi-clock-fill"> </i>
+          <span>
+            <b>Duration:</b> {durationStr}
+          </span>
+        </div>
 
-        <span className="course-duration">
-          <b>Duration: </b>
-          {durationStr}
-        </span>
+        {course.target_professional_title && (
+          <div className="course-professional-title">
+            <i className="bi bi-person-badge"> </i>
+            <span>
+              <b>For:</b> {course.target_professional_title}
+            </span>
+          </div>
+        )}
+
+        <div className="course-meta-item">
+          <i className="bi bi-calendar3"> </i>
+          <span>
+            <b>Created:</b> {createdDate}
+          </span>
+        </div>
       </div>
 
-      <p className="course-price">
-        <b>Price: </b>
-        {formattedPrice}
-      </p>
+      <div className="course-price">
+        <span className="course-price-label">Course fee: </span>
+        <strong>{formattedPrice}</strong>
+      </div>
 
       {isEnrolled && (
         <div className="alert alert-success py-2">

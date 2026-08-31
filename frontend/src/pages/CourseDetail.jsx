@@ -169,6 +169,15 @@ const CourseDetail = () => {
     (progress?.completed_subchapters || 0) +
     (progress?.remaining_subchapters || 0);
 
+  // Format course creation date
+  const createdDate = course.created_at
+    ? new Date(course.created_at).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
+    : "—";
+
   return (
     <div className="learner-course-page">
       <div className="container py-4 py-md-5">
@@ -210,6 +219,19 @@ const CourseDetail = () => {
                 <strong>
                   {course.instructor_firstname} {course.instructor_lastname}
                 </strong>
+              </div>
+            </div>
+
+            {/* Course Created Date */}
+            <div className="course-instructor-info">
+              <div className="instructor-avatar">
+                <i className="bi bi-calendar3"></i>
+              </div>
+
+              <div>
+                <span>Created</span>
+
+                <strong>{createdDate}</strong>
               </div>
             </div>
           </div>

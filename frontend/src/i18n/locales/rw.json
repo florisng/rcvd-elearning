@@ -70,7 +70,10 @@
     "signIn": "Injira",
     "signUp": "Iyandikishe",
     "alreadyHaveAccount": "Usanzwe ufite konti?",
-    "dontHaveAccount": "Nta konti ufite?"
+    "dontHaveAccount": "Nta konti ufite?",
+
+    "confirmLogout": "Emeza gusohoka",
+    "logoutMessage": "Urashaka koko gusohoka muri konti yawe?"
   },
 
   "learner": {

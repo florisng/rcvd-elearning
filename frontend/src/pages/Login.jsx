@@ -138,7 +138,13 @@ const Login = () => {
           <span>New to RCVD E-Learning?</span>
         </div>
 
-        <Link to="/register" className="auth-secondary-btn">
+        <Link to="/learner/register" className="auth-secondary-btn">
+          <i className="bi bi-person-plus me-2"></i>
+          Create a Learner Account
+        </Link>
+
+        <Link to="/register" className="auth-secondary-btn mt-2">
+          <i className="bi bi-person-badge me-2"></i>
           Create an Instructor Account
         </Link>
 

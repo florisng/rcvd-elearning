@@ -3,11 +3,53 @@
 ========================================= */
 
 .course-card {
-  padding: 25px;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 24px;
+
   background-color: #ffffff;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.course-card:hover {
+  transform: translateY(-4px);
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.09);
+}
+
+/* =========================================
+   COURSE HEADER
+========================================= */
+
+.course-card-header {
+  margin-bottom: 15px;
+}
+
+.course-type-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  margin-bottom: 8px;
+
+  color: #2463ee;
+
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.course-type-label i {
+  font-size: 0.8rem;
 }
 
 /* =========================================
@@ -15,10 +57,26 @@
 ========================================= */
 
 .course-card .course-title {
-  margin: 0 0 15px;
-  font-size: 1.35rem;
-  font-weight: 700;
+  margin: 0;
+
   color: #1f2937;
+
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+/* =========================================
+   DIVIDER
+========================================= */
+
+.course-card hr {
+  margin: 0 0 18px;
+
+  border: 0;
+  border-top: 1px solid #e5e7eb;
+
+  opacity: 1;
 }
 
 /* =========================================
@@ -26,9 +84,17 @@
 ========================================= */
 
 .course-card .course-description {
-  margin-bottom: 20px;
-  line-height: 1.6;
+  margin: 0 0 20px;
+
   color: #4b5563;
+
+  font-size: 0.94rem;
+  line-height: 1.6;
+
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
 }
 
 /* =========================================
@@ -36,14 +102,102 @@
 ========================================= */
 
 .course-info {
-  margin-bottom: 15px;
-  line-height: 1.8;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+
+  margin-bottom: 18px;
+
   color: #374151;
+
+  font-size: 0.9rem;
 }
 
+.course-info > span {
+  display: flex;
+  align-items: center;
+
+  line-height: 1.5;
+}
+
+.course-info b {
+  margin-right: 4px;
+
+  color: #1f2937;
+  font-weight: 600;
+}
+
+/* =========================================
+   PROFESSIONAL TITLE
+========================================= */
+
+.course-professional-title {
+  display: inline-flex !important;
+  align-items: center;
+
+  width: fit-content;
+
+  margin-top: 2px;
+  padding: 5px 10px;
+
+  background-color: #eef4ff;
+  border: 1px solid #dbe7ff;
+  border-radius: 7px;
+
+  color: #2463ee;
+
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.course-professional-title i {
+  margin-right: 5px;
+  color: #2463ee;
+}
+
+.course-professional-title span {
+  font-weight: 600;
+}
+
+/* =========================================
+   CREATED DATE
+========================================= */
+
+.course-created {
+  color: #64748b;
+  font-size: 0.84rem;
+}
+
+.course-created b {
+  margin-right: 4px;
+
+  color: #475569;
+  font-weight: 600;
+}
+
+/* =========================================
+   COURSE PRICE
+========================================= */
+
 .course-price {
-  margin-bottom: 20px;
+  margin-top: auto;
+  margin-bottom: 18px;
+  padding-top: 15px;
+
+  border-top: 1px solid #eef2f7;
+
   color: #374151;
+
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.course-price b {
+  margin-right: 5px;
+
+  color: #1f2937;
+  font-weight: 600;
 }
 
 /* =========================================
@@ -58,16 +212,16 @@
   width: auto;
   min-width: 0;
 
-  padding: 9px 18px;
+  padding: 10px 18px;
 
-  background-color: #0e4e53;
+  background-color: #2463ee;
   color: #ffffff;
 
-  border: 1px solid #0e4e53;
+  border: 1px solid #2463ee;
   border-radius: 7px;
 
   font-family: inherit;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 600;
   line-height: 1.4;
 
@@ -81,27 +235,21 @@
 
 .enroll-btn:hover {
   background-color: #ffffff;
-  color: #0e4e53;
-  border-color: #0e4e53;
+  color: #2463ee;
+  border-color: #2463ee;
 }
 
 .enroll-btn:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(14, 78, 83, 0.2);
+  box-shadow: 0 0 0 3px rgba(14, 78, 83, 0.15);
 }
 
 .enroll-btn:disabled {
   background-color: #9ca3af;
   color: #ffffff;
   border-color: #9ca3af;
-  cursor: not-allowed;
-  opacity: 1;
-}
 
-.enroll-btn:disabled:hover {
-  background-color: #9ca3af;
-  color: #ffffff;
-  border-color: #9ca3af;
+  cursor: not-allowed;
 }
 
 /* =========================================
@@ -109,14 +257,22 @@
 ========================================= */
 
 .course-card .btn-link {
-  color: #0e4e53 !important;
-  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px 0;
+
+  color: #2463ee !important;
+
+  font-size: 0.92rem;
   font-weight: 600;
-  font-size: 0.95rem;
+
+  text-decoration: none;
 }
 
 .course-card .btn-link:hover {
-  color: #0e4e53 !important;
+  color: #0a3e42 !important;
   text-decoration: underline;
 }
 
@@ -126,6 +282,10 @@
 
 .course-card .alert {
   margin-bottom: 15px;
+
+  border-radius: 7px;
+
+  font-size: 0.85rem;
 }
 
 /* =========================================
@@ -135,14 +295,23 @@
 @media (max-width: 768px) {
   .course-card {
     padding: 20px;
+    border-radius: 12px;
   }
 
   .course-card .course-title {
     font-size: 1.2rem;
   }
 
+  .course-card .course-description {
+    -webkit-line-clamp: 5;
+  }
+
+  .course-price {
+    margin-bottom: 16px;
+  }
+
   .enroll-btn {
-    padding: 8px 16px;
-    font-size: 0.9rem;
+    width: 100%;
+    padding: 9px 16px;
   }
 }

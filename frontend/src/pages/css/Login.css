@@ -17,7 +17,7 @@
 
 .login-card h2 {
   text-align: center;
-  color: #1e40af;
+  color: #2463ee;
   margin-bottom: 20px;
 }
 
@@ -35,12 +35,12 @@
 }
 
 .login-form input:focus {
-  border-color: #1e40af;
+  border-color: #2463ee;
   outline: none;
 }
 
 .login-btn {
-  background-color: #1e40af;
+  background-color: #2463ee;
   color: white;
   padding: 12px;
   border: none;

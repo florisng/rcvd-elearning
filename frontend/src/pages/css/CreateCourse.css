@@ -1,0 +1,398 @@
+/* =========================================================
+   RCVD E-LEARNING
+   Create Course — Instructor Authoring
+========================================================= */
+
+.create-course-page {
+  min-height: calc(100vh - 120px);
+  padding: 55px 20px 70px;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(14, 78, 83, 0.07), transparent 30%),
+    radial-gradient(circle at 90% 90%, rgba(14, 78, 83, 0.05), transparent 30%),
+    #f4f8f7;
+  font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+.create-course-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.create-course-header {
+  margin-bottom: 30px;
+}
+
+.create-course-header h1 {
+  margin: 0 0 8px;
+  color: #163f42;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.6px;
+}
+
+.create-course-header p {
+  margin: 0;
+  color: #718385;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* =========================================================
+   MAIN CARD
+========================================================= */
+
+.create-course-card {
+  background: #ffffff;
+  border: 1px solid #e2ecea;
+  border-radius: 20px;
+  box-shadow: 0 20px 55px rgba(14, 78, 83, 0.09);
+  padding: 38px;
+}
+
+/* =========================================================
+   SECTIONS
+========================================================= */
+
+.create-course-section {
+  padding-bottom: 30px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #edf1f0;
+}
+
+.create-course-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.create-course-section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  margin-bottom: 25px;
+}
+
+.create-course-section-heading > i {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: #e7f1f0;
+  color: #2463ee;
+  font-size: 1rem;
+}
+
+.create-course-section-heading h3 {
+  margin: 0 0 4px;
+  color: #163f42;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.create-course-section-heading p {
+  margin: 0;
+  color: #829192;
+  font-size: 0.8rem;
+}
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.create-course-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.create-course-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.create-course-field label {
+  color: #294547;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.create-course-input-wrapper {
+  position: relative;
+}
+
+.create-course-input-wrapper > i {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #789091;
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.create-course-input-wrapper input,
+.create-course-input-wrapper textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d7e3e1;
+  border-radius: 9px;
+  background: #fbfdfd;
+  color: #24383a;
+  font-family: inherit;
+  font-size: 0.92rem;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.create-course-input-wrapper input {
+  height: 48px;
+  padding: 0 15px 0 43px;
+}
+
+.create-course-input-wrapper textarea {
+  min-height: 130px;
+  padding: 14px 15px 14px 43px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.create-course-input-wrapper input::placeholder,
+.create-course-input-wrapper textarea::placeholder {
+  color: #a2b0b0;
+}
+
+.create-course-input-wrapper input:hover,
+.create-course-input-wrapper textarea:hover {
+  border-color: #b8cecc;
+}
+
+.create-course-input-wrapper input:focus,
+.create-course-input-wrapper textarea:focus {
+  background: #ffffff;
+  border-color: #2463ee;
+  box-shadow: 0 0 0 3px rgba(14, 78, 83, 0.09);
+}
+
+/* =========================================================
+   TWO-COLUMN FORM
+========================================================= */
+
+.create-course-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 17px;
+}
+
+/* =========================================================
+   CHAPTER
+========================================================= */
+
+.course-chapter-card {
+  padding: 24px;
+  margin-bottom: 20px;
+  border: 1px solid #dce9e7;
+  border-radius: 14px;
+  background: #f9fbfb;
+}
+
+.course-chapter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.course-chapter-header span {
+  display: inline-block;
+  margin-bottom: 5px;
+  color: #2463ee;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+}
+
+.course-chapter-header h4 {
+  margin: 0;
+  color: #294547;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+/* =========================================================
+   SUBCHAPTER
+========================================================= */
+
+.course-subchapters {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+  margin-bottom: 18px;
+}
+
+.course-subchapter-card {
+  padding: 20px;
+  border: 1px solid #e2ecea;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.course-subchapter-header {
+  margin-bottom: 17px;
+}
+
+.course-subchapter-header span {
+  color: #607577;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+.create-course-secondary-btn {
+  width: 100%;
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #b8cecc;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #2463ee;
+  font-family: inherit;
+  font-size: 0.87rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.create-course-secondary-btn:hover {
+  background: #edf5f4;
+  border-color: #2463ee;
+}
+
+.create-course-submit-btn {
+  width: 100%;
+  min-height: 50px;
+  margin-top: 5px;
+  border: 1px solid #2463ee;
+  border-radius: 9px;
+  background: #2463ee;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(14, 78, 83, 0.16);
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.create-course-submit-btn:hover {
+  background: #2463ee;
+  border-color: #2463ee;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgba(14, 78, 83, 0.22);
+}
+
+.create-course-submit-btn:active {
+  transform: translateY(0);
+}
+
+.create-course-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.create-course-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px 15px;
+  margin-bottom: 20px;
+  border: 1px solid #f5d0d0;
+  border-radius: 9px;
+  background: #fff1f1;
+  color: #a33a3a;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.create-course-error i {
+  margin-top: 2px;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 700px) {
+  .create-course-page {
+    padding: 35px 15px 50px;
+  }
+
+  .create-course-card {
+    padding: 28px 22px;
+    border-radius: 16px;
+  }
+
+  .create-course-form-row {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .create-course-header h1 {
+    font-size: 1.7rem;
+  }
+
+  .course-chapter-card {
+    padding: 20px;
+  }
+
+  .course-subchapter-card {
+    padding: 17px;
+  }
+}
+
+@media (max-width: 450px) {
+  .create-course-page {
+    padding: 25px 10px 40px;
+  }
+
+  .create-course-card {
+    padding: 23px 17px;
+    border-radius: 14px;
+  }
+
+  .create-course-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .course-chapter-card {
+    padding: 17px;
+  }
+
+  .course-subchapter-card {
+    padding: 15px;
+  }
+}

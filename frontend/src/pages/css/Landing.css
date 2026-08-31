@@ -1,6 +1,6 @@
 /* =========================================================
    RCVD E-LEARNING — LANDING PAGE
-   Main brand color: #0e4e53
+   Main brand color: #2463ee
 ========================================================= */
 
 .landing-page {
@@ -42,7 +42,7 @@
   border: 1px solid #cfe1df;
   border-radius: 50px;
   background: rgba(255, 255, 255, 0.75);
-  color: #0e4e53;
+  color: #2463ee;
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 1.5px;
@@ -63,7 +63,7 @@
 
 .landing-hero h1 span {
   display: block;
-  color: #0e4e53;
+  color: #2463ee;
 }
 
 /* Description */
@@ -103,15 +103,15 @@
 /* Primary button */
 
 .landing-hero-buttons .btn-primary {
-  background: #0e4e53;
-  border: 1px solid #0e4e53;
+  background: #2463ee;
+  border: 1px solid #2463ee;
   color: #ffffff;
   box-shadow: 0 9px 22px rgba(14, 78, 83, 0.2);
 }
 
 .landing-hero-buttons .btn-primary:hover {
-  background: #0a3d41;
-  border-color: #0a3d41;
+  background: #2463ee;
+  border-color: #2463ee;
   color: #ffffff;
   transform: translateY(-3px);
   box-shadow: 0 14px 28px rgba(14, 78, 83, 0.26);
@@ -122,13 +122,13 @@
 .landing-hero-buttons .btn-outline-primary {
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid #b9cfcd;
-  color: #0e4e53;
+  color: #2463ee;
 }
 
 .landing-hero-buttons .btn-outline-primary:hover {
   background: #edf5f4;
-  border-color: #0e4e53;
-  color: #0e4e53;
+  border-color: #2463ee;
+  color: #2463ee;
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(14, 78, 83, 0.1);
 }
@@ -246,7 +246,7 @@
 
   border-radius: 10px;
   background: #e5f1ef;
-  color: #0e4e53;
+  color: #2463ee;
 }
 
 .hero-floating-card strong {
@@ -276,7 +276,7 @@
 }
 
 .landing-section-heading > span {
-  color: #0e4e53;
+  color: #2463ee;
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 2px;
@@ -348,7 +348,7 @@
 
   border-radius: 13px;
   background: #e7f1f0;
-  color: #0e4e53;
+  color: #2463ee;
 }
 
 .feature-icon i {
@@ -384,7 +384,7 @@
       rgba(255, 255, 255, 0.1),
       transparent 30%
     ),
-    linear-gradient(135deg, #0e4e53, #17666b);
+    linear-gradient(135deg, #2463ee, #17666b);
 
   color: #ffffff;
 
@@ -417,7 +417,7 @@
   border-radius: 8px;
 
   background: #ffffff;
-  color: #0e4e53;
+  color: #2463ee;
 
   font-weight: 700;
   white-space: nowrap;
@@ -428,7 +428,7 @@
 }
 
 .landing-cta .btn:hover {
-  color: #0e4e53;
+  color: #2463ee;
   transform: translateY(-3px);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.16);
 }

@@ -70,7 +70,9 @@
     "signIn": "Sign In",
     "signUp": "Sign Up",
     "alreadyHaveAccount": "Already have an account?",
-    "dontHaveAccount": "Don't have an account?"
+    "dontHaveAccount": "Don't have an account?",
+    "confirmLogout": "Log out?",
+    "logoutMessage": "Are you sure you want to log out of your account?"
   },
 
   "learner": {

@@ -55,7 +55,7 @@
 }
 
 .chapter-header:hover {
-  background-color: #0e4e53;
+  background-color: #2463ee;
 }
 
 .subchapter-list {
@@ -79,10 +79,10 @@
   align-items: center;
   justify-content: center;
 
-  background-color: #0e4e53;
+  background-color: #2463ee;
   color: #ffffff;
 
-  border: 1px solid #0e4e53;
+  border: 1px solid #2463ee;
   border-radius: 7px;
 
   padding: 10px 20px;
@@ -103,8 +103,8 @@
 
 .course-main-btn:hover {
   background-color: #ffffff;
-  color: #0e4e53;
-  border-color: #0e4e53;
+  color: #2463ee;
+  border-color: #2463ee;
 }
 
 .course-main-btn:focus {

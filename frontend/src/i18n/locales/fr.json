@@ -70,7 +70,9 @@
     "signIn": "Se connecter",
     "signUp": "S'inscrire",
     "alreadyHaveAccount": "Vous avez déjà un compte ?",
-    "dontHaveAccount": "Vous n'avez pas de compte ?"
+    "dontHaveAccount": "Vous n'avez pas de compte ?",
+    "confirmLogout": "Se déconnecter ?",
+    "logoutMessage": "Êtes-vous sûr de vouloir vous déconnecter de votre compte ?"
   },
 
   "learner": {

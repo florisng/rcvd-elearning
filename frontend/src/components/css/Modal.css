@@ -1,0 +1,140 @@
+.standard-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+}
+
+.standard-modal {
+  width: 100%;
+  max-width: 460px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  animation: standardModalAppear 0.2s ease-out;
+}
+
+.standard-modal-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 26px;
+}
+
+.standard-modal-success .standard-modal-icon {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.standard-modal-error .standard-modal-icon {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.standard-modal-warning .standard-modal-icon {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.standard-modal-info .standard-modal-icon {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.standard-modal-content h3 {
+  margin: 0 0 10px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.standard-modal-content p {
+  margin: 0;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.standard-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.standard-modal-btn {
+  min-width: 100px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease,
+    background 0.15s ease;
+}
+
+.standard-modal-btn:hover {
+  transform: translateY(-1px);
+}
+
+.standard-modal-btn:active {
+  transform: translateY(0);
+}
+
+.standard-modal-btn-primary {
+  background: #2463ee;
+  color: #ffffff;
+}
+
+.standard-modal-btn-primary:hover {
+  background: #1d4ed8;
+}
+
+.standard-modal-btn-secondary {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.standard-modal-btn-secondary:hover {
+  background: #cbd5e1;
+}
+
+@keyframes standardModalAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 576px) {
+  .standard-modal {
+    padding: 24px 20px;
+  }
+
+  .standard-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .standard-modal-btn {
+    width: 100%;
+  }
+}

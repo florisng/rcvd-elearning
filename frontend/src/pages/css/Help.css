@@ -36,7 +36,7 @@
 }
 
 .submit-btn {
-  background-color: #2463ee;
+  background-color: #18436d;
   color: #fff;
   padding: 12px 25px;
   border: none;
@@ -60,7 +60,7 @@
 .feedback-box.success {
   background-color: #ecfdf5;
   border: 1px solid #34d399;
-  color: #2463ee;
+  color: #18436d;
 }
 
 .feedback-box.error {

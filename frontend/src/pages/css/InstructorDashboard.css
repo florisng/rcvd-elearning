@@ -6,21 +6,21 @@
   margin: 0 auto;
   padding: 30px 20px;
   font-family: "Roboto", "Segoe UI", sans-serif;
-  color: #1f2937;
+  color: #18436d;
 }
 
 /* Welcome Text */
 .welcome-text {
   font-size: 1.2rem;
   margin-bottom: 30px;
-  color: #374151;
+  color: #18436d;
 }
 
 /* Section Headings */
 h1,
 h2,
 h3 {
-  color: #2463ee;
+  color: #18436d;
   font-weight: 700;
   margin-bottom: 15px;
 }
@@ -61,7 +61,7 @@ h3 {
 .instructor-course-card p {
   margin-bottom: 8px;
   font-size: 0.95rem;
-  color: #4b5563;
+  color: #18436d;
 }
 
 /* Loading Text */
@@ -69,7 +69,7 @@ h3 {
   text-align: center;
   font-size: 1.2rem;
   margin-top: 80px;
-  color: #4b5563;
+  color: #18436d;
 }
 
 /* Responsive Adjustments */

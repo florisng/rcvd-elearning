@@ -18,7 +18,7 @@
 }
 
 .learner-dashboard-loading .spinner-border {
-  color: #2463ee;
+  color: #18436d;
 }
 
 /* =========================================
@@ -34,7 +34,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 1.5px;
-  color: #2463ee;
+  color: #18436d;
   margin-bottom: 8px;
 }
 
@@ -81,7 +81,7 @@
   min-width: 52px;
   border-radius: 12px;
   background: #e6f3f4;
-  color: #2463ee;
+  color: #18436d;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -154,7 +154,7 @@
 
 .course-card-icon {
   height: 90px;
-  background: #2463ee;
+  background: #18436d;
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -198,7 +198,7 @@
 }
 
 .course-instructor i {
-  color: #2463ee;
+  color: #18436d;
 }
 
 /* =========================================
@@ -266,7 +266,7 @@
 
 .progress-fill {
   height: 100%;
-  background: #2463ee;
+  background: #18436d;
   border-radius: 20px;
   transition: width 0.4s ease;
 }
@@ -293,7 +293,7 @@
   width: 100%;
   padding: 11px 15px;
   border-radius: 8px;
-  background: #2463ee;
+  background: #18436d;
   color: #ffffff;
   text-decoration: none;
   font-size: 0.9rem;
@@ -348,7 +348,7 @@
   height: 65px;
   border-radius: 50%;
   background: #e6f3f4;
-  color: #2463ee;
+  color: #18436d;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -374,7 +374,7 @@
   align-items: center;
   padding: 11px 20px;
   border-radius: 8px;
-  background: #2463ee;
+  background: #18436d;
   color: #ffffff;
   text-decoration: none;
   font-weight: 600;

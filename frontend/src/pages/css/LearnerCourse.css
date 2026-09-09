@@ -18,7 +18,7 @@
 }
 
 .learner-course-loading .spinner-border {
-  color: #2463ee;
+  color: #18436d;
 }
 
 /* =========================================
@@ -78,7 +78,7 @@
 }
 
 .course-back-link:hover {
-  color: #2463ee;
+  color: #18436d;
 }
 
 /* =========================================
@@ -89,7 +89,7 @@
   position: relative;
   overflow: hidden;
   min-height: 270px;
-  background: #2463ee;
+  background: #18436d;
   border-radius: 18px;
   padding: 40px;
   display: flex;
@@ -129,7 +129,7 @@
 
 .course-label {
   display: inline-block;
-  color: #2463ee;
+  color: #18436d;
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 1.5px;
@@ -224,7 +224,7 @@
 
 .progress-label {
   display: block;
-  color: #2463ee;
+  color: #18436d;
   font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 1.2px;
@@ -239,7 +239,7 @@
 }
 
 .progress-percentage {
-  color: #2463ee;
+  color: #18436d;
   font-size: 1.6rem;
   font-weight: 800;
 }
@@ -258,7 +258,7 @@
 
 .course-progress-fill {
   height: 100%;
-  background: #2463ee;
+  background: #18436d;
   border-radius: 20px;
   transition: width 0.5s ease;
 }
@@ -277,7 +277,7 @@
 }
 
 .progress-card-bottom i {
-  color: #2463ee;
+  color: #18436d;
 }
 
 .total-lessons {
@@ -374,7 +374,7 @@
   height: 48px;
   min-width: 48px;
   border-radius: 12px;
-  background: #2463ee;
+  background: #18436d;
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -389,7 +389,7 @@
 
 .chapter-title-wrapper span {
   display: block;
-  color: #2463ee;
+  color: #18436d;
   font-size: 0.65rem;
   font-weight: 800;
   letter-spacing: 1.2px;
@@ -489,9 +489,9 @@
 }
 
 .complete-lesson-btn {
-  border: 1px solid #2463ee;
+  border: 1px solid #18436d;
   background: #ffffff;
-  color: #2463ee;
+  color: #18436d;
   padding: 8px 14px;
   border-radius: 7px;
   font-size: 0.78rem;
@@ -500,7 +500,7 @@
 }
 
 .complete-lesson-btn:hover:not(:disabled) {
-  background: #2463ee;
+  background: #18436d;
   color: #ffffff;
 }
 
@@ -534,8 +534,8 @@
 }
 
 .course-back-btn:hover {
-  border-color: #2463ee;
-  color: #2463ee;
+  border-color: #18436d;
+  color: #18436d;
 }
 
 .course-finished {

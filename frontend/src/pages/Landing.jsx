@@ -111,7 +111,7 @@ function Landing() {
 
       <section className="landing-cta">
         <div>
-          <h2>{t("landing.ctaTitle")}</h2>
+          <h1 className="white">{t("landing.ctaTitle")}</h1>
 
           <p>{t("landing.ctaDescription")}</p>
         </div>

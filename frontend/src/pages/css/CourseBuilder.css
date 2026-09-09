@@ -55,7 +55,7 @@
   align-items: center;
   gap: 7px;
   margin-bottom: 10px;
-  color: #2463ee;
+  color: #18436d;
   font-size: 0.78rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -103,7 +103,7 @@
 }
 
 .course-builder-meta-item i {
-  color: #2463ee;
+  color: #18436d;
 }
 
 /* =========================================================
@@ -141,7 +141,7 @@
   flex-shrink: 0;
   border-radius: 11px;
   background: #e7f1f0;
-  color: #2463ee;
+  color: #18436d;
   font-size: 1.05rem;
 }
 
@@ -190,15 +190,15 @@
 }
 
 .course-builder-btn-primary {
-  background: #2463ee;
-  border-color: #2463ee;
+  background: #18436d;
+  border-color: #18436d;
   color: #ffffff;
   box-shadow: 0 6px 15px rgba(14, 78, 83, 0.14);
 }
 
 .course-builder-btn-primary:hover:not(:disabled) {
-  background: #2463ee;
-  border-color: #2463ee;
+  background: #18436d;
+  border-color: #18436d;
   color: #ffffff;
   transform: translateY(-1px);
   box-shadow: 0 8px 18px rgba(14, 78, 83, 0.18);
@@ -207,13 +207,13 @@
 .course-builder-btn-secondary {
   background: #ffffff;
   border-color: #c4d7d5;
-  color: #2463ee;
+  color: #18436d;
 }
 
 .course-builder-btn-secondary:hover:not(:disabled) {
   background: #edf5f4;
-  border-color: #2463ee;
-  color: #2463ee;
+  border-color: #18436d;
+  color: #18436d;
 }
 
 .course-builder-btn-danger {
@@ -299,7 +299,7 @@
 
 .course-builder-input:focus,
 .course-builder-textarea:focus {
-  border-color: #2463ee;
+  border-color: #18436d;
   box-shadow: 0 0 0 3px rgba(14, 78, 83, 0.09);
   background: #ffffff;
 }
@@ -378,7 +378,7 @@
 }
 
 .course-builder-chapter-number {
-  color: #2463ee;
+  color: #18436d;
   font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;

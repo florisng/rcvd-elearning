@@ -84,7 +84,7 @@
   justify-content: center;
   border-radius: 11px;
   background: #e7f1f0;
-  color: #2463ee;
+  color: #18436d;
   font-size: 1rem;
 }
 
@@ -180,7 +180,7 @@
 .create-course-input-wrapper input:focus,
 .create-course-input-wrapper textarea:focus {
   background: #ffffff;
-  border-color: #2463ee;
+  border-color: #18436d;
   box-shadow: 0 0 0 3px rgba(14, 78, 83, 0.09);
 }
 
@@ -216,7 +216,7 @@
 .course-chapter-header span {
   display: inline-block;
   margin-bottom: 5px;
-  color: #2463ee;
+  color: #18436d;
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -272,7 +272,7 @@
   border: 1px dashed #b8cecc;
   border-radius: 9px;
   background: #ffffff;
-  color: #2463ee;
+  color: #18436d;
   font-family: inherit;
   font-size: 0.87rem;
   font-weight: 700;
@@ -282,16 +282,16 @@
 
 .create-course-secondary-btn:hover {
   background: #edf5f4;
-  border-color: #2463ee;
+  border-color: #18436d;
 }
 
 .create-course-submit-btn {
   width: 100%;
   min-height: 50px;
   margin-top: 5px;
-  border: 1px solid #2463ee;
+  border: 1px solid #18436d;
   border-radius: 9px;
-  background: #2463ee;
+  background: #18436d;
   color: #ffffff;
   font-family: inherit;
   font-size: 0.92rem;
@@ -305,8 +305,8 @@
 }
 
 .create-course-submit-btn:hover {
-  background: #2463ee;
-  border-color: #2463ee;
+  background: #18436d;
+  border-color: #18436d;
   transform: translateY(-2px);
   box-shadow: 0 12px 25px rgba(14, 78, 83, 0.22);
 }

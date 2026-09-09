@@ -41,7 +41,7 @@
 
   margin-bottom: 8px;
 
-  color: #2463ee;
+  color: #18436d;
 
   font-size: 0.72rem;
   font-weight: 700;
@@ -144,7 +144,7 @@
   border: 1px solid #dbe7ff;
   border-radius: 7px;
 
-  color: #2463ee;
+  color: #18436d;
 
   font-size: 0.82rem;
   font-weight: 500;
@@ -153,7 +153,7 @@
 
 .course-professional-title i {
   margin-right: 5px;
-  color: #2463ee;
+  color: #18436d;
 }
 
 .course-professional-title span {
@@ -214,10 +214,10 @@
 
   padding: 10px 18px;
 
-  background-color: #2463ee;
+  background-color: #18436d;
   color: #ffffff;
 
-  border: 1px solid #2463ee;
+  border: 1px solid #18436d;
   border-radius: 7px;
 
   font-family: inherit;
@@ -235,8 +235,8 @@
 
 .enroll-btn:hover {
   background-color: #ffffff;
-  color: #2463ee;
-  border-color: #2463ee;
+  color: #18436d;
+  border-color: #18436d;
 }
 
 .enroll-btn:focus {
@@ -263,7 +263,7 @@
 
   padding: 10px 0;
 
-  color: #2463ee !important;
+  color: #18436d !important;
 
   font-size: 0.92rem;
   font-weight: 600;

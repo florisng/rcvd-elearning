@@ -76,7 +76,7 @@
 
   padding: 10px 15px;
 
-  color: #2769e3;
+  color: #18436d;
 
   text-decoration: none;
 
@@ -102,7 +102,7 @@
 
   height: 2px;
 
-  background: #2463ee;
+  background: #18436d;
 
   transform: scaleX(0);
   transform-origin: center;
@@ -111,7 +111,7 @@
 }
 
 .link:hover {
-  color: #2463ee;
+  color: #18436d;
 }
 
 .link:hover::after {
@@ -123,7 +123,7 @@
 ========================================================= */
 
 .get-started {
-  color: #2463ee;
+  color: #18436d;
 }
 
 /* =========================================================
@@ -143,8 +143,8 @@
 
   border-radius: 7px;
 
-  background: #2463ee;
-  border: 1px solid #2463ee;
+  background: #18436d;
+  border: 1px solid #18436d;
 
   color: #ffffff;
 
@@ -159,8 +159,8 @@
 }
 
 .login:hover {
-  background: #2463ee;
-  border-color: #2463ee;
+  background: #18436d;
+  border-color: #18436d;
 
   color: #ffffff;
 
@@ -174,7 +174,7 @@
 ========================================================= */
 
 .user-name {
-  color: #2463ee;
+  color: #18436d;
 }
 
 /* =========================================================
@@ -319,7 +319,7 @@
 
   background: #e9f2f1;
 
-  color: #2463ee;
+  color: #18436d;
 
   font-size: 1.5rem;
 }
@@ -517,14 +517,14 @@
 
   .phone-navbar-link:hover {
     background: #f0f6f5;
-    color: #2463ee;
+    color: #18436d;
     padding-left: 16px;
   }
 
   /* Mobile Get Started */
 
   .mobile-get-started {
-    color: #2463ee;
+    color: #18436d;
   }
 
   /* Mobile Login */
@@ -540,7 +540,7 @@
 
     border-radius: 7px;
 
-    background: #2463ee;
+    background: #18436d;
 
     color: #ffffff;
 
@@ -552,7 +552,7 @@
   }
 
   .phone-login:hover {
-    background: #2463ee;
+    background: #18436d;
 
     color: #ffffff;
   }
@@ -638,7 +638,7 @@
 .mobile-language-label {
   display: block;
   margin-bottom: 10px;
-  color: #2463ee;
+  color: #18436d;
   font-size: 0.85rem;
   font-weight: 700;
 }
@@ -654,7 +654,7 @@
   border: 1px solid #cbdedc;
   border-radius: 7px;
   background: #ffffff;
-  color: #2463ee;
+  color: #18436d;
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
@@ -663,12 +663,12 @@
 
 .mobile-language-btn:hover {
   background: #e7f1f0;
-  border-color: #2463ee;
+  border-color: #18436d;
 }
 
 .mobile-language-btn.active {
-  background: #2463ee;
-  border-color: #2463ee;
+  background: #18436d;
+  border-color: #18436d;
   color: #ffffff;
 }
 /* =========================================
@@ -684,7 +684,7 @@
   border: 1px solid #d7e3e2;
   border-radius: 8px;
   background: #ffffff;
-  color: #2463ee;
+  color: #18436d;
 }
 
 .language-selector i {
@@ -695,7 +695,7 @@
   border: none;
   outline: none;
   background: transparent;
-  color: #2463ee;
+  color: #18436d;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -716,7 +716,7 @@
   margin-top: 5px;
   border-top: 1px solid #e5eeee;
   border-bottom: 1px solid #e5eeee;
-  color: #2463ee;
+  color: #18436d;
 }
 
 .mobile-language-selector i {
@@ -729,7 +729,7 @@
   border: 1px solid #d7e3e2;
   border-radius: 6px;
   background: #ffffff;
-  color: #2463ee;
+  color: #18436d;
   font-weight: 600;
   outline: none;
 }

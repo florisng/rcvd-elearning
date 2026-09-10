@@ -10,10 +10,11 @@ import authRoutes from "./routes/auth.js";
 import enrollmentRoutes from "./routes/enrollmentRoutes.js";
 import testRoutes from "./routes/testRoutes.js";
 import adminRoutes from "./routes/admin.js";
-
+import paymentRoutes from "./routes/paymentRoutes.js";
 // NEW routes (ADD)
 import chapterRoutes from "./routes/chapterRoutes.js";
 import subchapterRoutes from "./routes/subchapterRoutes.js";
+import certificateRoutes from "./routes/certificateRoutes.js";
 
 const app = express();
 
@@ -55,6 +56,11 @@ app.use("/api", testRoutes);
 // Admin
 app.use("/api", adminRoutes);
 
+// Certificates
+app.use("/api/certificates", certificateRoutes);
+
+// Payments
+app.use("/api/payments", paymentRoutes);
 /* ===============================
    HEALTH CHECK
 ================================ */

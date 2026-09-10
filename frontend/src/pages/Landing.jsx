@@ -40,7 +40,7 @@ function Landing() {
         <div className="landing-hero-image">
           <div className="hero-image-placeholder">
             <img
-              src="/images/rwanda-veterinary.JPG"
+              src="/images/rwanda-veterinary.jfif"
               alt={t("landing.heroImageAlt")}
               className="hero-veterinary-image"
             />

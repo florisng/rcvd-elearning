@@ -2,6 +2,8 @@ import express from "express";
 
 import {
   createTest,
+  getTest,
+  deleteTest,
   createQuestion,
   getQuestions,
   updateQuestion,
@@ -25,6 +27,13 @@ router.post(
   authMiddleware,
   requireRole("INSTRUCTOR"),
   createTest,
+);
+
+router.delete(
+  "/instructor/tests/:testId",
+  authMiddleware,
+  requireRole("INSTRUCTOR"),
+  deleteTest,
 );
 
 // Create a question
@@ -65,6 +74,13 @@ router.post(
   authMiddleware,
   requireRole("LEARNER"),
   startTest,
+);
+
+router.get(
+  "/instructor/courses/:courseId/test",
+  authMiddleware,
+  requireRole("INSTRUCTOR"),
+  getTest,
 );
 
 // Get test attempts

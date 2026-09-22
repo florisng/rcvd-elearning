@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 
 import burgerOn from "./images/burger-on.png";
 import burgerOff from "./images/burger-off.png";
@@ -13,13 +12,6 @@ const Header = () => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const navigate = useNavigate();
-
-  const { t, i18n } = useTranslation();
-
-  const changeLanguage = (lang) => {
-    i18n.changeLanguage(lang);
-    localStorage.setItem("language", lang);
-  };
 
   const user = JSON.parse(localStorage.getItem("user"));
 
@@ -75,53 +67,60 @@ const Header = () => {
         <nav className="navbar">
           <div className="links">
             <Link to="/courses" className="link">
-              {t("navigation.courses")}
+              Courses
             </Link>
 
             <Link to="/instructors" className="link">
-              {t("navigation.instructors")}
+              Instructors
             </Link>
 
-            <Link to="/about" className="link">
-              {t("navigation.about")}
-            </Link>
+            {user?.role === "LEARNER" && (
+              <Link to="/my-learning" className="link">
+                My Learning
+              </Link>
+            )}
 
             <Link to="/help" className="link">
-              {t("navigation.help")}
+              Help
             </Link>
 
-            {/* Language Selector */}
-            <div className="language-selector">
-              <i className="bi bi-translate"></i>
-
-              <select
-                value={i18n.language}
-                onChange={(e) => changeLanguage(e.target.value)}
-                aria-label={t("common.language")}
-              >
-                <option value="en">EN</option>
-                <option value="fr">FR</option>
-                <option value="rw">RW</option>
-              </select>
-            </div>
-
             {user ? (
-              <>
-                <Link to={getDashboardPath()} className="link user-name">
-                  {t("common.welcome")}, {user.first_name}
+              <div className="user-dropdown">
+                <div className="user-name">
+                  {user.first_name} - {user.role}
+                  <i className="bi bi-chevron-down ms-1"></i>
+                </div>
+
+                <div className="user-dropdown-menu">
+                  <Link to="/profile" className="user-dropdown-item">
+                    <i className="bi bi-person-circle me-2"></i>
+                    Profile
+                  </Link>
+
+                  <Link to={getDashboardPath()} className="user-dropdown-item">
+                    <i className="bi bi-speedometer2 me-2"></i>
+                    Dashboard
+                  </Link>
+
+                  <button
+                    className="user-dropdown-item logout-dropdown-item"
+                    onClick={() => setShowLogoutModal(true)}
+                  >
+                    <i className="bi bi-box-arrow-right me-2"></i>
+                    Logout
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="auth-nav-actions">
+                <Link to="/login" className="link login">
+                  Login
                 </Link>
 
-                <button
-                  className="link logout-btn"
-                  onClick={() => setShowLogoutModal(true)}
-                >
-                  {t("navigation.logout")}
-                </button>
-              </>
-            ) : (
-              <Link to="/login" className="link login">
-                {t("navigation.login")}
-              </Link>
+                <Link to="/register" className="get-started-btn">
+                  Get Started
+                </Link>
+              </div>
             )}
           </div>
         </nav>
@@ -156,7 +155,7 @@ const Header = () => {
               onClick={closeMobileMenu}
             >
               <i className="bi bi-journal-bookmark me-2"></i>
-              {t("navigation.courses")}
+              Courses
             </Link>
 
             <Link
@@ -165,17 +164,17 @@ const Header = () => {
               onClick={closeMobileMenu}
             >
               <i className="bi bi-people me-2"></i>
-              {t("navigation.instructors")}
+              Instructors
             </Link>
 
-            {!user && (
+            {user && (
               <Link
-                to="/register"
-                className="phone-navbar-link mobile-get-started"
+                to="/my-learning"
+                className="phone-navbar-link"
                 onClick={closeMobileMenu}
               >
-                <i className="bi bi-person-plus me-2"></i>
-                {t("navigation.getStarted")}
+                <i className="bi bi-book me-2"></i>
+                My Learning
               </Link>
             )}
 
@@ -185,33 +184,27 @@ const Header = () => {
               onClick={closeMobileMenu}
             >
               <i className="bi bi-headset me-2"></i>
-              {t("navigation.help")}
+              Help
             </Link>
-
-            {/* Mobile Language Selector */}
-            <div className="mobile-language-selector">
-              <i className="bi bi-translate me-2"></i>
-
-              <select
-                value={i18n.language}
-                onChange={(e) => changeLanguage(e.target.value)}
-                aria-label={t("common.language")}
-              >
-                <option value="en">English</option>
-                <option value="fr">Français</option>
-                <option value="rw">Kinyarwanda</option>
-              </select>
-            </div>
 
             {user ? (
               <>
+                <Link
+                  to="/profile"
+                  className="phone-navbar-link"
+                  onClick={closeMobileMenu}
+                >
+                  <i className="bi bi-person-circle me-2"></i>
+                  Profile
+                </Link>
+
                 <Link
                   to={getDashboardPath()}
                   className="phone-navbar-link"
                   onClick={closeMobileMenu}
                 >
-                  <i className="bi bi-person-circle me-2"></i>
-                  {t("common.welcome")}, {user.first_name}
+                  <i className="bi bi-speedometer2 me-2"></i>
+                  Dashboard
                 </Link>
 
                 <button
@@ -222,18 +215,29 @@ const Header = () => {
                   }}
                 >
                   <i className="bi bi-box-arrow-right me-2"></i>
-                  {t("navigation.logout")}
+                  Logout
                 </button>
               </>
             ) : (
-              <Link
-                to="/login"
-                className="phone-login"
-                onClick={closeMobileMenu}
-              >
-                <i className="bi bi-box-arrow-in-right me-2"></i>
-                {t("navigation.login")}
-              </Link>
+              <>
+                <Link
+                  to="/login"
+                  className="phone-login"
+                  onClick={closeMobileMenu}
+                >
+                  <i className="bi bi-box-arrow-in-right me-2"></i>
+                  Login
+                </Link>
+
+                <Link
+                  to="/register"
+                  className="phone-get-started"
+                  onClick={closeMobileMenu}
+                >
+                  <i className="bi bi-person-plus me-2"></i>
+                  Get Started
+                </Link>
+              </>
             )}
           </nav>
         </div>
@@ -250,20 +254,20 @@ const Header = () => {
               <i className="bi bi-box-arrow-right"></i>
             </div>
 
-            <h3>{t("auth.confirmLogout")}</h3>
+            <h3>Confirm Logout</h3>
 
-            <p>{t("auth.logoutMessage")}</p>
+            <p>Are you sure you want to logout?</p>
 
             <div className="modal-buttons">
               <button
                 className="btn cancel-btn"
                 onClick={() => setShowLogoutModal(false)}
               >
-                {t("common.cancel")}
+                Cancel
               </button>
 
               <button className="btn logout-confirm-btn" onClick={handleLogout}>
-                {t("navigation.logout")}
+                Logout
               </button>
             </div>
           </div>

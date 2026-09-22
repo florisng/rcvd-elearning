@@ -1,3 +1,8 @@
+/* =========================================================
+   RCVD E-LEARNING STANDARD MODAL
+   Primary brand color: #18436d
+========================================================= */
+
 .standard-modal-overlay {
   position: fixed;
   inset: 0;
@@ -32,31 +37,35 @@
   font-size: 26px;
 }
 
+/* Success */
 .standard-modal-success .standard-modal-icon {
   background: #dcfce7;
   color: #16a34a;
 }
 
+/* Error */
 .standard-modal-error .standard-modal-icon {
   background: #fee2e2;
   color: #dc2626;
 }
 
+/* Warning */
 .standard-modal-warning .standard-modal-icon {
   background: #fef3c7;
   color: #d97706;
 }
 
+/* Information - RCVD primary color */
 .standard-modal-info .standard-modal-icon {
-  background: #dbeafe;
-  color: #2563eb;
+  background: #eaf1f7;
+  color: #18436d;
 }
 
 .standard-modal-content h3 {
   margin: 0 0 10px;
   font-size: 22px;
   font-weight: 700;
-  color: #1e293b;
+  color: #18436d;
 }
 
 .standard-modal-content p {
@@ -84,7 +93,8 @@
   transition:
     transform 0.15s ease,
     opacity 0.15s ease,
-    background 0.15s ease;
+    background 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .standard-modal-btn:hover {
@@ -95,15 +105,19 @@
   transform: translateY(0);
 }
 
+/* Primary RCVD button */
 .standard-modal-btn-primary {
   background: #18436d;
   color: #ffffff;
+  box-shadow: 0 5px 14px rgba(24, 67, 109, 0.16);
 }
 
 .standard-modal-btn-primary:hover {
-  background: #1d4ed8;
+  background: #123653;
+  box-shadow: 0 7px 18px rgba(24, 67, 109, 0.22);
 }
 
+/* Secondary button */
 .standard-modal-btn-secondary {
   background: #e2e8f0;
   color: #334155;

@@ -37,10 +37,7 @@ export const createChapter = async (req, res) => {
     }
 
     const courseResult = await pool.query(
-      `SELECT id
-       FROM courses
-       WHERE id = $1
-         AND instructor_id = $2`,
+      `SELECT id FROM courses WHERE id = $1 AND instructor_id = $2 AND status <> 'PUBLISHED'`,
       [courseId, instructorId],
     );
 
@@ -131,16 +128,7 @@ export const updateChapter = async (req, res) => {
     }
 
     const result = await pool.query(
-      `UPDATE chapters
-       SET title = $1
-       WHERE chapters.id = $2
-         AND EXISTS (
-           SELECT 1
-           FROM courses
-           WHERE courses.id = chapters.course_id
-             AND courses.instructor_id = $3
-         )
-       RETURNING chapters.*`,
+      `UPDATE chapters SET title = $1 WHERE chapters.id = $2 AND EXISTS (SELECT 1 FROM courses WHERE courses.id = chapters.course_id AND courses.instructor_id = $3 AND courses.status <> 'PUBLISHED') RETURNING chapters.*`,
       [title.trim(), chapterId, instructorId],
     );
 
@@ -182,15 +170,7 @@ export const deleteChapter = async (req, res) => {
     }
 
     const result = await pool.query(
-      `DELETE FROM chapters
-       WHERE chapters.id = $1
-         AND EXISTS (
-           SELECT 1
-           FROM courses
-           WHERE courses.id = chapters.course_id
-             AND courses.instructor_id = $2
-         )
-       RETURNING chapters.*`,
+      `DELETE FROM chapters WHERE chapters.id = $1 AND EXISTS (SELECT 1 FROM courses WHERE courses.id = chapters.course_id AND courses.instructor_id = $2 AND courses.status <> 'PUBLISHED') RETURNING chapters.*`,
       [chapterId, instructorId],
     );
 

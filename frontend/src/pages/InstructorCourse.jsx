@@ -50,7 +50,6 @@ const InstructorCourse = () => {
     title: "",
     description: "",
     price: "",
-    duration: "",
   });
 
   // =========================
@@ -83,7 +82,6 @@ const InstructorCourse = () => {
         title: data.title || "",
         description: data.description || "",
         price: data.price || "",
-        duration: data.duration || "",
       });
     } catch (err) {
       console.error("Error loading instructor course:", err);
@@ -129,7 +127,6 @@ const InstructorCourse = () => {
           title: form.title,
           description: form.description,
           price: Number(form.price),
-          duration: Number(form.duration),
         }),
       });
 
@@ -520,6 +517,8 @@ const InstructorCourse = () => {
     return null;
   }
 
+  const isPublished = course.status === "PUBLISHED";
+
   // =========================
   // RENDER
   // =========================
@@ -540,6 +539,7 @@ const InstructorCourse = () => {
             <button
               className="btn btn-primary"
               onClick={() => setEditing(true)}
+              disabled={isPublished}
             >
               Edit Course
             </button>
@@ -547,8 +547,6 @@ const InstructorCourse = () => {
 
           <div className="mb-4">
             <strong>Price:</strong> {Number(course.price).toLocaleString()} RWF
-            <br />
-            <strong>Duration:</strong> {course.duration} minutes
           </div>
 
           <hr />
@@ -564,6 +562,7 @@ const InstructorCourse = () => {
               <button
                 className="btn btn-success"
                 onClick={() => setAddingChapter(true)}
+                disabled={isPublished}
               >
                 + Add Chapter
               </button>
@@ -588,13 +587,14 @@ const InstructorCourse = () => {
                       onChange={(e) => setChapterTitle(e.target.value)}
                       placeholder="Enter chapter title"
                       required
+                      disabled={isPublished}
                     />
                   </div>
 
                   <button
                     type="submit"
                     className="btn btn-success me-2"
-                    disabled={chapterSaving}
+                    disabled={chapterSaving || isPublished}
                   >
                     {chapterSaving ? "Saving..." : "Save Chapter"}
                   </button>
@@ -635,12 +635,13 @@ const InstructorCourse = () => {
                       className="form-control mb-2"
                       value={editingChapterTitle}
                       onChange={(e) => setEditingChapterTitle(e.target.value)}
+                      disabled={isPublished}
                     />
 
                     <button
                       className="btn btn-sm btn-success me-2"
                       onClick={() => handleUpdateChapter(chapter.id)}
-                      disabled={chapterSaving}
+                      disabled={chapterSaving || isPublished}
                     >
                       Save
                     </button>
@@ -669,7 +670,7 @@ const InstructorCourse = () => {
                           setEditingChapterId(chapter.id);
                           setEditingChapterTitle(chapter.title);
                         }}
-                        disabled={chapterSaving}
+                        disabled={chapterSaving || isPublished}
                       >
                         Edit
                       </button>
@@ -677,7 +678,7 @@ const InstructorCourse = () => {
                       <button
                         className="btn btn-sm btn-outline-danger"
                         onClick={() => handleDeleteChapter(chapter.id)}
-                        disabled={chapterSaving}
+                        disabled={chapterSaving || isPublished}
                       >
                         Delete
                       </button>
@@ -702,6 +703,7 @@ const InstructorCourse = () => {
                         content: "",
                       });
                     }}
+                    disabled={isPublished}
                   >
                     + Add Subchapter
                   </button>
@@ -727,6 +729,7 @@ const InstructorCourse = () => {
                             value={subchapterForm.title}
                             onChange={handleSubchapterChange}
                             required
+                            disabled={isPublished}
                           />
                         </div>
 
@@ -740,13 +743,14 @@ const InstructorCourse = () => {
                             value={subchapterForm.content}
                             onChange={handleSubchapterChange}
                             required
+                            disabled={isPublished}
                           />
                         </div>
 
                         <button
                           type="submit"
                           className="btn btn-success me-2"
-                          disabled={subchapterSaving}
+                          disabled={subchapterSaving || isPublished}
                         >
                           {subchapterSaving ? "Saving..." : "Save Subchapter"}
                         </button>
@@ -789,6 +793,7 @@ const InstructorCourse = () => {
                               className="form-control"
                               value={editingSubchapterForm.title}
                               onChange={handleEditingSubchapterChange}
+                              disabled={isPublished}
                             />
                           </div>
 
@@ -801,6 +806,7 @@ const InstructorCourse = () => {
                               rows="5"
                               value={editingSubchapterForm.content}
                               onChange={handleEditingSubchapterChange}
+                              disabled={isPublished}
                             />
                           </div>
 
@@ -898,6 +904,7 @@ const InstructorCourse = () => {
                 value={form.title}
                 onChange={handleChange}
                 required
+                disabled={isPublished}
               />
             </div>
 
@@ -911,6 +918,7 @@ const InstructorCourse = () => {
                 value={form.description}
                 onChange={handleChange}
                 required
+                disabled={isPublished}
               />
             </div>
 
@@ -925,20 +933,7 @@ const InstructorCourse = () => {
                 onChange={handleChange}
                 min="0"
                 required
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="form-label">Duration (minutes)</label>
-
-              <input
-                type="number"
-                name="duration"
-                className="form-control"
-                value={form.duration}
-                onChange={handleChange}
-                min="1"
-                required
+                disabled={isPublished}
               />
             </div>
 

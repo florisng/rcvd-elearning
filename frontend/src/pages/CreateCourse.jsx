@@ -11,7 +11,6 @@ const CreateCourse = () => {
     description: "",
     target_professional_title: "",
     price: "",
-    duration: "",
   });
 
   const [error, setError] = useState("");
@@ -47,12 +46,6 @@ const CreateCourse = () => {
       return;
     }
 
-    // Validate duration
-    if (!formData.duration) {
-      setError("Course duration is required.");
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -74,7 +67,6 @@ const CreateCourse = () => {
           description: formData.description.trim(),
           target_professional_title: formData.target_professional_title,
           price: Number(formData.price),
-          duration: Number(formData.duration) * 60,
         }),
       });
 
@@ -203,44 +195,23 @@ const CreateCourse = () => {
               </div>
             </div>
 
-            {/* Price & Duration */}
-            <div className="auth-form-row">
-              <div className="auth-field">
-                <label htmlFor="price">Price (RWF)</label>
+            {/* Course Price */}
+            <div className="auth-field">
+              <label htmlFor="price">Price (RWF)</label>
 
-                <div className="auth-input-wrapper">
-                  <i className="bi bi-cash"></i>
+              <div className="auth-input-wrapper">
+                <i className="bi bi-cash"></i>
 
-                  <input
-                    id="price"
-                    type="number"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleChange}
-                    placeholder="e.g. 45000"
-                    min="0"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="auth-field">
-                <label htmlFor="duration">Duration (minutes)</label>
-
-                <div className="auth-input-wrapper">
-                  <i className="bi bi-clock"></i>
-
-                  <input
-                    id="duration"
-                    type="number"
-                    name="duration"
-                    value={formData.duration}
-                    onChange={handleChange}
-                    placeholder="e.g. 60"
-                    min="1"
-                    required
-                  />
-                </div>
+                <input
+                  id="price"
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleChange}
+                  placeholder="e.g. 45000"
+                  min="0"
+                  required
+                />
               </div>
             </div>
           </div>

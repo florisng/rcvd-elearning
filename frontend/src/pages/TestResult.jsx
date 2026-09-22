@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { getTestResult } from "../../services/testService";
+import { getTestResult } from "../services/testService";
 
 function TestResult() {
   const { attemptId } = useParams();

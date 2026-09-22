@@ -13,11 +13,6 @@ const CourseCard = ({ course, isEnrolled }) => {
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "null");
 
-  const hours = Math.floor(course.duration / 3600);
-  const minutes = Math.floor((course.duration % 3600) / 60);
-
-  const durationStr = `${hours > 0 ? hours + "h " : ""}${minutes}m`;
-
   const formattedPrice =
     new Intl.NumberFormat("en-US").format(course.price) + " RWF";
 
@@ -93,13 +88,6 @@ const CourseCard = ({ course, isEnrolled }) => {
           <i className="bi bi-person-fill"> </i>
           <span>
             <b>Instructor:</b> {course.instructor_name}
-          </span>
-        </div>
-
-        <div className="course-meta-item">
-          <i className="bi bi-clock-fill"> </i>
-          <span>
-            <b>Duration:</b> {durationStr}
           </span>
         </div>
 

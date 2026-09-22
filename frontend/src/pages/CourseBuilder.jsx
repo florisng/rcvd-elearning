@@ -3,6 +3,22 @@ import { useNavigate, useParams } from "react-router-dom";
 import API_URL from "../api";
 import "./css/CourseBuilder.css";
 
+const calculateChapterReadingTime = (subchapters = []) => {
+  const totalWords = subchapters.reduce((total, subchapter) => {
+    const content = (subchapter.content || "").trim();
+
+    if (!content) {
+      return total;
+    }
+
+    const words = content.split(/\s+/).filter(Boolean);
+
+    return total + words.length;
+  }, 0);
+
+  return Math.ceil(totalWords / 100);
+};
+
 const CourseBuilder = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -10,14 +26,270 @@ const CourseBuilder = () => {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [publishingCourse, setPublishingCourse] = useState(false);
 
   // Edit course
   const [showCourseForm, setShowCourseForm] = useState(false);
   const [courseTitle, setCourseTitle] = useState("");
   const [courseDescription, setCourseDescription] = useState("");
   const [coursePrice, setCoursePrice] = useState("");
-  const [courseDuration, setCourseDuration] = useState("");
   const [savingCourse, setSavingCourse] = useState(false);
+
+  // Test
+  const [test, setTest] = useState(null);
+  const [showTestForm, setShowTestForm] = useState(false);
+
+  // Test questions
+  const [questions, setQuestions] = useState([]);
+  const [showQuestionForm, setShowQuestionForm] = useState(false);
+  const [questionText, setQuestionText] = useState("");
+
+  const [questionOptions, setQuestionOptions] = useState([
+    { text: "", is_correct: false },
+    { text: "", is_correct: false },
+  ]);
+
+  const [testTitle, setTestTitle] = useState("");
+  const [testPassPercentage, setTestPassPercentage] = useState(80);
+  const [testDurationMinutes, setTestDurationMinutes] = useState(30);
+  const [testQuestionsPerAttempt, setTestQuestionsPerAttempt] = useState(20);
+  const [testMaxAttempts, setTestMaxAttempts] = useState(3);
+  const [savingTest, setSavingTest] = useState(false);
+
+  const handleCreateTest = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    if (!testTitle.trim()) {
+      return;
+    }
+
+    try {
+      setSavingTest(true);
+
+      const response = await fetch(
+        `${API_URL}/api/instructor/courses/${id}/test`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title: testTitle.trim(),
+            pass_percentage: Number(testPassPercentage),
+            duration_minutes: Number(testDurationMinutes),
+            questions_per_attempt: Number(testQuestionsPerAttempt),
+            max_attempts: Number(testMaxAttempts),
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Error creating test:", data);
+        return;
+      }
+
+      setTest(data.test);
+      setShowTestForm(false);
+      setError("");
+
+      setTestTitle("");
+      setTestPassPercentage(80);
+      setTestDurationMinutes(30);
+      setTestQuestionsPerAttempt(20);
+      setTestMaxAttempts(3);
+    } catch (err) {
+      console.error("Error creating test:", err);
+    } finally {
+      setSavingTest(false);
+    }
+  };
+
+  const handlePublishCourse = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      setPublishingCourse(true);
+      setError("");
+
+      const response = await fetch(
+        `${API_URL}/api/instructor/courses/${id}/publish`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (Array.isArray(data.missing) && data.missing.length > 0) {
+          setError(
+            `Course is not ready to publish. Missing: ${data.missing.join(", ")}.`,
+          );
+        } else {
+          setError(data.error || "Failed to publish course.");
+        }
+
+        return;
+      }
+
+      setCourse((prev) => ({
+        ...prev,
+        status: "PUBLISHED",
+      }));
+
+      setError("");
+    } catch (err) {
+      console.error("Error publishing course:", err);
+      setError("Unable to publish course. Please try again.");
+    } finally {
+      setPublishingCourse(false);
+    }
+  };
+
+  const handleUnpublishCourse = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      setPublishingCourse(true);
+      setError("");
+
+      const response = await fetch(
+        `${API_URL}/api/instructor/courses/${id}/unpublish`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Failed to unpublish course.");
+        return;
+      }
+
+      setCourse((prev) => ({
+        ...prev,
+        status: "DRAFT",
+      }));
+
+      setError("");
+    } catch (err) {
+      console.error("Error unpublishing course:", err);
+      setError("Unable to unpublish course. Please try again.");
+    } finally {
+      setPublishingCourse(false);
+    }
+  };
+
+  const handleCreateQuestion = async () => {
+    if (!test?.id) {
+      setError("Please create a test before adding questions.");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    if (!questionText.trim()) {
+      setError("Question text is required.");
+      return;
+    }
+
+    if (!Array.isArray(questionOptions) || questionOptions.length < 2) {
+      setError("At least two answer options are required.");
+      return;
+    }
+
+    const validOptions = questionOptions.every((option) => option.text?.trim());
+
+    if (!validOptions) {
+      setError("Please enter text for every answer option.");
+      return;
+    }
+
+    const correctOptions = questionOptions.filter(
+      (option) => option.is_correct === true,
+    );
+
+    if (correctOptions.length !== 1) {
+      setError("Please select exactly one correct answer.");
+      return;
+    }
+
+    try {
+      setError("");
+
+      const response = await fetch(
+        `${API_URL}/api/tests/${test.id}/questions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            question_text: questionText.trim(),
+            options: questionOptions.map((option) => ({
+              text: option.text.trim(),
+              is_correct: option.is_correct === true,
+            })),
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Failed to create question.");
+        return;
+      }
+
+      setQuestions((prev) => [
+        ...(Array.isArray(prev) ? prev : []),
+        data.question,
+      ]);
+
+      setQuestionText("");
+
+      setQuestionOptions([
+        { text: "", is_correct: false },
+        { text: "", is_correct: false },
+      ]);
+
+      setShowQuestionForm(false);
+    } catch (err) {
+      console.error("Error creating question:", err);
+      setError("Unable to create question. Please try again.");
+    }
+  };
 
   // Chapter form
   const [showChapterForm, setShowChapterForm] = useState(false);
@@ -71,11 +343,41 @@ const CourseBuilder = () => {
 
         const data = await response.json();
 
+        console.log("COURSE DATA STATUS:", data.status, data);
+
         if (!response.ok) {
           throw new Error(data.error || "Failed to load course.");
         }
 
         setCourse(data);
+
+        const testResponse = await fetch(
+          `${API_URL}/api/instructor/courses/${id}/test`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        if (testResponse.ok) {
+          const testData = await testResponse.json();
+          setTest(testData);
+
+          const questionsResponse = await fetch(
+            `${API_URL}/api/tests/${testData.id}/questions`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+
+          if (questionsResponse.ok) {
+            const questionsData = await questionsResponse.json();
+            setQuestions(questionsData.questions);
+          }
+        }
       } catch (err) {
         console.error("Error loading course:", err);
         setError(err.message || "Failed to load course.");
@@ -153,6 +455,30 @@ const CourseBuilder = () => {
         });
       }
 
+      if (deleteModal.type === "test") {
+        response = await fetch(
+          `${API_URL}/api/instructor/tests/${deleteModal.id}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+      }
+
+      if (deleteModal.type === "question") {
+        response = await fetch(
+          `${API_URL}/api/test-questions/${deleteModal.id}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+      }
+
       const data = await response.json();
 
       if (!response.ok) {
@@ -202,6 +528,19 @@ const CourseBuilder = () => {
           setSubchapterTitle("");
           setSubchapterContent("");
         }
+      }
+
+      if (deleteModal.type === "test") {
+        setTest(null);
+        setShowTestForm(false);
+      }
+
+      if (deleteModal.type === "question") {
+        const questionId = deleteModal.id;
+
+        setQuestions((prev) =>
+          prev.filter((question) => question.id !== questionId),
+        );
       }
 
       setDeleteModal({
@@ -354,11 +693,6 @@ const CourseBuilder = () => {
       return;
     }
 
-    if (!courseDuration || Number(courseDuration) <= 0) {
-      setError("Please enter a valid course duration.");
-      return;
-    }
-
     try {
       setSavingCourse(true);
       setError("");
@@ -375,7 +709,6 @@ const CourseBuilder = () => {
           title: courseTitle.trim(),
           description: courseDescription.trim(),
           price: Number(coursePrice),
-          duration: Number(courseDuration) * 60,
         }),
       });
 
@@ -390,14 +723,12 @@ const CourseBuilder = () => {
         title: courseTitle.trim(),
         description: courseDescription.trim(),
         price: Number(coursePrice),
-        duration: Number(courseDuration) * 60,
       }));
 
       setShowCourseForm(false);
       setCourseTitle("");
       setCourseDescription("");
       setCoursePrice("");
-      setCourseDuration("");
     } catch (err) {
       console.error("Error updating course:", err);
       setError(err.message || "Failed to update course.");
@@ -444,17 +775,22 @@ const CourseBuilder = () => {
         throw new Error(data.error || "Failed to create subchapter.");
       }
 
-      setCourse((prev) => ({
-        ...prev,
-        chapters: prev.chapters.map((chapter) =>
-          chapter.id === chapterId
-            ? {
-                ...chapter,
-                subchapters: [...(chapter.subchapters || []), data],
-              }
-            : chapter,
-        ),
-      }));
+      const courseResponse = await fetch(
+        `${API_URL}/api/instructor/courses/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const updatedCourse = await courseResponse.json();
+
+      if (!courseResponse.ok) {
+        throw new Error(updatedCourse.error || "Failed to refresh course.");
+      }
+
+      setCourse(updatedCourse);
 
       setSubchapterTitle("");
       setSubchapterContent("");
@@ -509,15 +845,22 @@ const CourseBuilder = () => {
         throw new Error(data.error || "Failed to update subchapter.");
       }
 
-      setCourse((prev) => ({
-        ...prev,
-        chapters: prev.chapters.map((chapter) => ({
-          ...chapter,
-          subchapters: (chapter.subchapters || []).map((subchapter) =>
-            subchapter.id === editingSubchapter.id ? data : subchapter,
-          ),
-        })),
-      }));
+      const courseResponse = await fetch(
+        `${API_URL}/api/instructor/courses/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const updatedCourse = await courseResponse.json();
+
+      if (!courseResponse.ok) {
+        throw new Error(updatedCourse.error || "Failed to refresh course.");
+      }
+
+      setCourse(updatedCourse);
 
       setEditingSubchapter(null);
       setSubchapterTitle("");
@@ -575,6 +918,8 @@ const CourseBuilder = () => {
     return null;
   }
 
+  const isPublished = course.status === "PUBLISHED";
+
   return (
     <div className="course-builder-page">
       <div className="course-builder-container">
@@ -604,11 +949,9 @@ const CourseBuilder = () => {
                   setCourseTitle(course.title);
                   setCourseDescription(course.description || "");
                   setCoursePrice(course.price || "");
-                  setCourseDuration(
-                    course.duration ? Math.floor(course.duration / 60) : "",
-                  );
                   setShowCourseForm(true);
                 }}
+                disabled={isPublished}
               >
                 <i className="bi bi-pencil"></i>
                 Edit Course
@@ -632,13 +975,26 @@ const CourseBuilder = () => {
             </div>
 
             <div className="course-builder-meta-item">
-              <i className="bi bi-clock"></i>
-              {Math.floor(course.duration / 60)} minutes
-            </div>
-
-            <div className="course-builder-meta-item">
               <i className="bi bi-list-nested"></i>
               {course.chapters?.length || 0} chapters
+            </div>
+
+            <div
+              className={`course-builder-meta-item course-builder-status ${
+                course.status === "PUBLISHED"
+                  ? "course-builder-status-published"
+                  : "course-builder-status-draft"
+              }`}
+            >
+              <i
+                className={
+                  course.status === "PUBLISHED"
+                    ? "bi bi-check-circle-fill"
+                    : "bi bi-pencil-square"
+                }
+              ></i>
+
+              {course.status === "PUBLISHED" ? "Published" : "Draft"}
             </div>
           </div>
         </div>
@@ -663,6 +1019,7 @@ const CourseBuilder = () => {
                 onChange={(e) => setCourseTitle(e.target.value)}
                 placeholder="Enter course title"
                 autoFocus
+                disabled={isPublished}
               />
             </div>
 
@@ -676,6 +1033,7 @@ const CourseBuilder = () => {
                 onChange={(e) => setCourseDescription(e.target.value)}
                 placeholder="Describe what learners will learn in this course"
                 rows="5"
+                disabled={isPublished}
               />
             </div>
 
@@ -691,20 +1049,7 @@ const CourseBuilder = () => {
                   onChange={(e) => setCoursePrice(e.target.value)}
                   placeholder="e.g. 45000"
                   min="0"
-                />
-              </div>
-
-              <div className="course-builder-field">
-                <label htmlFor="courseDuration">Duration (minutes)</label>
-
-                <input
-                  id="courseDuration"
-                  type="number"
-                  className="course-builder-input"
-                  value={courseDuration}
-                  onChange={(e) => setCourseDuration(e.target.value)}
-                  placeholder="e.g. 60"
-                  min="1"
+                  disabled={isPublished}
                 />
               </div>
             </div>
@@ -713,7 +1058,7 @@ const CourseBuilder = () => {
               <button
                 type="submit"
                 className="course-builder-btn course-builder-btn-primary"
-                disabled={savingCourse}
+                disabled={savingCourse || isPublished}
               >
                 {savingCourse ? (
                   <>
@@ -767,20 +1112,12 @@ const CourseBuilder = () => {
                 setError("");
                 setShowChapterForm(true);
               }}
+              disabled={isPublished}
             >
               <i className="bi bi-plus-lg"></i>
               Add Chapter
             </button>
           </div>
-
-          {/* Error */}
-
-          {error && (
-            <div className="course-builder-error">
-              <i className="bi bi-exclamation-circle-fill me-2"></i>
-              {error}
-            </div>
-          )}
 
           {/* =========================
               ADD CHAPTER FORM
@@ -809,7 +1146,7 @@ const CourseBuilder = () => {
                 <button
                   type="submit"
                   className="course-builder-btn course-builder-btn-primary"
-                  disabled={savingChapter}
+                  disabled={savingChapter || isPublished}
                 >
                   {savingChapter ? (
                     <>
@@ -853,10 +1190,16 @@ const CourseBuilder = () => {
                   <div className="course-builder-chapter-header">
                     <div>
                       <div className="course-builder-chapter-number">
-                        Chapter {index + 1}
-                      </div>
+                        <h3>
+                          Chapter {index + 1}: {chapter.title}
+                        </h3>
 
-                      <h3>{chapter.title}</h3>
+                        <p className="course-builder-chapter-duration">
+                          <i className="bi bi-clock"></i>{" "}
+                          {calculateChapterReadingTime(chapter.subchapters)} min
+                          read
+                        </p>
+                      </div>
                     </div>
 
                     <div className="course-builder-chapter-actions">
@@ -868,6 +1211,7 @@ const CourseBuilder = () => {
                           setEditingChapterTitle(chapter.title);
                           setError("");
                         }}
+                        disabled={isPublished}
                       >
                         <i className="bi bi-pencil"></i>
                         Edit
@@ -883,6 +1227,7 @@ const CourseBuilder = () => {
                             title: chapter.title,
                           })
                         }
+                        disabled={isPublished}
                       >
                         <i className="bi bi-trash"></i>
                         Delete
@@ -914,6 +1259,7 @@ const CourseBuilder = () => {
                           }
                           placeholder="Enter chapter title"
                           autoFocus
+                          disabled={isPublished}
                         />
                       </div>
 
@@ -921,7 +1267,7 @@ const CourseBuilder = () => {
                         <button
                           type="submit"
                           className="course-builder-btn course-builder-btn-primary"
-                          disabled={savingEditedChapter}
+                          disabled={savingEditedChapter || isPublished}
                         >
                           {savingEditedChapter ? (
                             <>
@@ -984,6 +1330,7 @@ const CourseBuilder = () => {
                                   );
                                   setError("");
                                 }}
+                                disabled={isPublished}
                               >
                                 <i className="bi bi-pencil"></i>
                                 Edit
@@ -1000,6 +1347,7 @@ const CourseBuilder = () => {
                                     title: subchapter.title,
                                   })
                                 }
+                                disabled={isPublished}
                               >
                                 <i className="bi bi-trash"></i>
                                 Delete
@@ -1008,8 +1356,8 @@ const CourseBuilder = () => {
                           </div>
 
                           {/* =========================
-                                EDIT SUBCHAPTER FORM
-                            ========================== */}
+                              EDIT SUBCHAPTER FORM
+                          ========================== */}
 
                           {editingSubchapter?.id === subchapter.id && (
                             <form
@@ -1031,6 +1379,7 @@ const CourseBuilder = () => {
                                   onChange={(e) =>
                                     setSubchapterTitle(e.target.value)
                                   }
+                                  disabled={isPublished}
                                 />
                               </div>
 
@@ -1050,6 +1399,7 @@ const CourseBuilder = () => {
                                   }
                                   placeholder="Write the learning content here..."
                                   rows="10"
+                                  disabled={isPublished}
                                 ></textarea>
                               </div>
 
@@ -1057,7 +1407,9 @@ const CourseBuilder = () => {
                                 <button
                                   type="submit"
                                   className="course-builder-btn course-builder-btn-primary"
-                                  disabled={savingEditedSubchapter}
+                                  disabled={
+                                    savingEditedSubchapter || isPublished
+                                  }
                                 >
                                   {savingEditedSubchapter ? (
                                     <>
@@ -1116,6 +1468,7 @@ const CourseBuilder = () => {
                           setSubchapterTitle("");
                           setSubchapterContent("");
                         }}
+                        disabled={isPublished}
                       >
                         <i className="bi bi-plus-lg"></i>
                         Add Subchapter
@@ -1162,7 +1515,7 @@ const CourseBuilder = () => {
                           <button
                             type="submit"
                             className="course-builder-btn course-builder-btn-primary"
-                            disabled={savingSubchapter}
+                            disabled={savingSubchapter || isPublished}
                           >
                             {savingSubchapter ? (
                               <>
@@ -1208,6 +1561,425 @@ const CourseBuilder = () => {
             </div>
           )}
         </div>
+
+        {/* =========================
+            TEST / ASSESSMENT
+        ========================== */}
+
+        <div className="course-builder-content course-builder-test-section">
+          <div className="course-builder-section-header">
+            <div className="course-builder-section-title">
+              <div className="course-builder-section-icon">
+                <i className="bi bi-clipboard-check"></i>
+              </div>
+
+              <div>
+                <h2>Final Test</h2>
+                <p>Create the multiple-choice test learners must complete.</p>
+              </div>
+            </div>
+
+            {!test ? (
+              <button
+                type="button"
+                className="course-builder-btn course-builder-btn-primary"
+                onClick={() => {
+                  setError("");
+                  setShowTestForm(true);
+                }}
+                disabled={isPublished}
+              >
+                <i className="bi bi-plus-lg"></i>
+                Create Test
+              </button>
+            ) : (
+              <div className="course-builder-test-created">
+                <div className="course-builder-test-created-header">
+                  <div>
+                    <i className="bi bi-check-circle-fill"></i>
+                    <strong>{test.title}</strong>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="course-builder-btn course-builder-btn-danger"
+                    onClick={() =>
+                      openDeleteModal({
+                        type: "test",
+                        id: test.id,
+                        title: test.title,
+                      })
+                    }
+                    disabled={isPublished}
+                  >
+                    <i className="bi bi-trash"></i>
+                    Delete
+                  </button>
+                </div>
+
+                <div className="course-builder-test-details">
+                  <span>
+                    Pass: <strong>{test.pass_percentage}%</strong>
+                  </span>
+
+                  <span>
+                    Time: <strong>{test.duration_minutes} min</strong>
+                  </span>
+
+                  <span>
+                    Questions: <strong>{test.questions_per_attempt}</strong>
+                  </span>
+
+                  <span>
+                    Attempts: <strong>{test.max_attempts}</strong>
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  className="course-builder-btn course-builder-btn-primary"
+                  onClick={() => {
+                    setError("");
+                    setShowQuestionForm(true);
+                  }}
+                  disabled={
+                    isPublished ||
+                    questions.length >= Number(test.questions_per_attempt)
+                  }
+                >
+                  <i className="bi bi-plus-lg"></i>
+
+                  {questions.length >= Number(test.questions_per_attempt)
+                    ? "Question Limit Reached"
+                    : "Add Question"}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {showTestForm && (
+            <form
+              className="course-builder-add-form course-builder-test-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleCreateTest();
+              }}
+            >
+              <div className="course-builder-field">
+                <label htmlFor="testTitle">Test title</label>
+
+                <input
+                  id="testTitle"
+                  type="text"
+                  className="course-builder-input"
+                  value={testTitle}
+                  onChange={(e) => setTestTitle(e.target.value)}
+                  placeholder="e.g. Final Veterinary Medicine Test"
+                  autoFocus
+                  disabled={isPublished}
+                />
+              </div>
+
+              <div className="course-builder-form-row">
+                <div className="course-builder-field">
+                  <label htmlFor="testPassPercentage">Pass percentage</label>
+
+                  <input
+                    id="testPassPercentage"
+                    type="number"
+                    className="course-builder-input"
+                    value={testPassPercentage}
+                    onChange={(e) => setTestPassPercentage(e.target.value)}
+                    min="1"
+                    max="100"
+                    disabled={isPublished}
+                  />
+                </div>
+
+                <div className="course-builder-field">
+                  <label htmlFor="testDurationMinutes">
+                    Test duration (minutes)
+                  </label>
+
+                  <input
+                    id="testDurationMinutes"
+                    type="number"
+                    className="course-builder-input"
+                    value={testDurationMinutes}
+                    onChange={(e) => setTestDurationMinutes(e.target.value)}
+                    min="1"
+                    disabled={isPublished}
+                  />
+                </div>
+              </div>
+
+              <div className="course-builder-form-row">
+                <div className="course-builder-field">
+                  <label htmlFor="testQuestionsPerAttempt">
+                    Questions per attempt
+                  </label>
+
+                  <input
+                    id="testQuestionsPerAttempt"
+                    type="number"
+                    className="course-builder-input"
+                    value={testQuestionsPerAttempt}
+                    onChange={(e) => setTestQuestionsPerAttempt(e.target.value)}
+                    min="1"
+                    disabled={isPublished}
+                  />
+                </div>
+
+                <div className="course-builder-field">
+                  <label htmlFor="testMaxAttempts">Maximum attempts</label>
+
+                  <input
+                    id="testMaxAttempts"
+                    type="number"
+                    className="course-builder-input"
+                    value={testMaxAttempts}
+                    onChange={(e) => setTestMaxAttempts(e.target.value)}
+                    min="1"
+                    disabled={isPublished}
+                  />
+                </div>
+              </div>
+
+              <div className="course-builder-form-actions">
+                <button
+                  type="submit"
+                  className="course-builder-btn course-builder-btn-primary"
+                  disabled={savingTest || isPublished}
+                >
+                  {savingTest ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm"></span>
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-check-lg"></i>
+                      Create Test
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  className="course-builder-btn course-builder-btn-secondary"
+                  onClick={() => {
+                    setShowTestForm(false);
+                    setError("");
+                  }}
+                  disabled={savingTest}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+
+          {showQuestionForm && (
+            <form
+              className="course-builder-add-form course-builder-question-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleCreateQuestion();
+              }}
+            >
+              <div className="course-builder-form-group">
+                <label htmlFor="question-text">Question</label>
+
+                <textarea
+                  id="question-text"
+                  value={questionText}
+                  onChange={(e) => setQuestionText(e.target.value)}
+                  placeholder="Enter the question"
+                  rows="3"
+                  required
+                  disabled={isPublished}
+                />
+              </div>
+
+              <div className="course-builder-form-group">
+                <label>Answer Options</label>
+
+                {questionOptions.map((option, index) => (
+                  <div key={index} className="course-builder-question-option">
+                    <input
+                      type="radio"
+                      name="correct-option"
+                      checked={option.is_correct === true}
+                      onChange={() => {
+                        setQuestionOptions((prev) =>
+                          prev.map((item, optionIndex) => ({
+                            ...item,
+                            is_correct: optionIndex === index,
+                          })),
+                        );
+                      }}
+                      disabled={isPublished}
+                    />
+
+                    <input
+                      type="text"
+                      value={option.text}
+                      onChange={(e) => {
+                        const value = e.target.value;
+
+                        setQuestionOptions((prev) =>
+                          prev.map((item, optionIndex) =>
+                            optionIndex === index
+                              ? { ...item, text: value }
+                              : item,
+                          ),
+                        );
+                      }}
+                      placeholder={`Option ${index + 1}`}
+                      required
+                      disabled={isPublished}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="course-builder-form-actions">
+                <button
+                  type="submit"
+                  className="course-builder-btn course-builder-btn-primary"
+                  disabled={isPublished}
+                >
+                  <i className="bi bi-check-lg"></i>
+                  Add Question
+                </button>
+
+                <button
+                  type="button"
+                  className="course-builder-btn course-builder-btn-secondary"
+                  onClick={() => {
+                    setShowQuestionForm(false);
+                    setQuestionText("");
+                    setQuestionOptions([
+                      { text: "", is_correct: false },
+                      { text: "", is_correct: false },
+                    ]);
+                    setError("");
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+
+          {questions.length > 0 && (
+            <div className="course-builder-questions">
+              <div className="course-builder-questions-header">
+                <h3>Questions</h3>
+
+                <span>
+                  {questions.length} question
+                  {questions.length !== 1 ? "s" : ""}
+                </span>
+              </div>
+
+              {questions.map((question, index) => (
+                <div key={question.id} className="course-builder-question-card">
+                  <div className="course-builder-question-header">
+                    <strong>Question {index + 1}</strong>
+
+                    <button
+                      type="button"
+                      className="course-builder-btn course-builder-btn-danger"
+                      onClick={() =>
+                        openDeleteModal({
+                          type: "question",
+                          id: question.id,
+                          title: question.question_text,
+                        })
+                      }
+                      disabled={isPublished}
+                    >
+                      <i className="bi bi-trash"></i>
+                      Delete
+                    </button>
+                  </div>
+
+                  <p className="course-builder-question-text">
+                    {question.question_text}
+                  </p>
+
+                  <div className="course-builder-question-options">
+                    {(question.options || []).map((option, optionIndex) => (
+                      <div
+                        key={option.id || optionIndex}
+                        className="course-builder-question-option-display"
+                      >
+                        <span className="course-builder-option-letter">
+                          {String.fromCharCode(65 + optionIndex)}
+                        </span>
+
+                        <span>{option.option_text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* =========================
+            PUBLISH COURSE
+        ========================== */}
+
+        <div className="course-builder-publish-section">
+          {error && (
+            <div className="course-builder-error course-builder-publish-error">
+              <i className="bi bi-exclamation-circle-fill me-2"></i>
+              {error}
+            </div>
+          )}
+          {course.status === "PUBLISHED" ? (
+            <button
+              type="button"
+              className="course-builder-btn course-builder-btn-secondary course-builder-publish-btn"
+              onClick={handleUnpublishCourse}
+              disabled={publishingCourse}
+            >
+              {publishingCourse ? (
+                <>
+                  <span className="spinner-border spinner-border-sm"></span>
+                  Unpublishing...
+                </>
+              ) : (
+                <>
+                  <i className="bi bi-cloud-arrow-down"></i>
+                  Unpublish Course
+                </>
+              )}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="course-builder-btn course-builder-btn-primary course-builder-publish-btn"
+              onClick={handlePublishCourse}
+              disabled={publishingCourse}
+            >
+              {publishingCourse ? (
+                <>
+                  <span className="spinner-border spinner-border-sm"></span>
+                  Publishing...
+                </>
+              ) : (
+                <>
+                  <i className="bi bi-cloud-arrow-up"></i>
+                  Publish Course
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* =====================================================
@@ -1236,7 +2008,14 @@ const CourseBuilder = () => {
             <div className="course-builder-delete-content">
               <h2 id="delete-modal-title">
                 Delete{" "}
-                {deleteModal.type === "chapter" ? "Chapter" : "Subchapter"}?
+                {deleteModal.type === "chapter"
+                  ? "Chapter"
+                  : deleteModal.type === "subchapter"
+                    ? "Subchapter"
+                    : deleteModal.type === "question"
+                      ? "Question"
+                      : "Test"}
+                ?
               </h2>
 
               <p>
@@ -1255,6 +2034,22 @@ const CourseBuilder = () => {
                 <p className="course-builder-delete-warning">
                   This subchapter and its content will be permanently deleted.
                   This action cannot be undone.
+                </p>
+              )}
+
+              {deleteModal.type === "test" && (
+                <p className="course-builder-delete-warning">
+                  All questions, options, attempts, and related test data will
+                  also be permanently deleted. This action cannot be undone. The
+                  course will no longer be available to learners until a new
+                  valid test is created.
+                </p>
+              )}
+
+              {deleteModal.type === "question" && (
+                <p className="course-builder-delete-warning">
+                  This question and all of its answer options will be
+                  permanently deleted. This action cannot be undone.
                 </p>
               )}
             </div>

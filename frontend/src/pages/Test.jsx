@@ -7,7 +7,7 @@ import {
   saveAnswer,
   submitTest,
   getTestAttempts,
-} from "../../services/testService";
+} from "../services/testService";
 
 function TestPage() {
   const { testId } = useParams();

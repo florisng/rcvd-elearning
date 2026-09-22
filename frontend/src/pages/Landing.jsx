@@ -1,10 +1,7 @@
 import { Link } from "react-router-dom";
 import "./css/Landing.css";
-import { useTranslation } from "react-i18next";
 
 function Landing() {
-  const { t } = useTranslation();
-
   return (
     <div className="landing-page">
       {/* =====================================================
@@ -12,23 +9,28 @@ function Landing() {
       ===================================================== */}
       <section className="landing-hero">
         <div className="landing-hero-content">
-          <div className="landing-badge">{t("landing.badge")}</div>
+          <div className="landing-badge">RCVD E-Learning Platform</div>
 
           <h1>
-            {t("landing.heroTitle")}
-            <span>{t("landing.heroHighlight")}</span>
-            {t("landing.heroLocation")}
+            Learn. Grow.
+            <span> Get Certified.</span>
+            <br />
+            Anywhere in Rwanda.
           </h1>
 
-          <p>{t("landing.heroDescription")}</p>
+          <p>
+            Access quality veterinary education, learn from qualified
+            instructors, complete your courses, take assessments, and earn
+            professional certificates through the RCVD E-Learning Platform.
+          </p>
 
           <div className="landing-hero-buttons">
             <Link to="/courses" className="btn btn-primary">
-              {t("landing.exploreCourses")}
+              Explore Courses
             </Link>
 
             <Link to="/register" className="btn btn-outline-primary">
-              {t("landing.getStarted")}
+              Get Started
             </Link>
           </div>
         </div>
@@ -41,13 +43,13 @@ function Landing() {
           <div className="hero-image-placeholder">
             <img
               src="/images/rwanda-veterinary.jfif"
-              alt={t("landing.heroImageAlt")}
+              alt="Veterinary professionals in Rwanda"
               className="hero-veterinary-image"
             />
 
             <div className="hero-image-caption">
-              <strong>{t("landing.imageTitle")}</strong>
-              <span>{t("landing.imageCaption")}</span>
+              <strong>Veterinary Education</strong>
+              <span>Learn and grow with RCVD E-Learning</span>
             </div>
           </div>
         </div>
@@ -59,11 +61,15 @@ function Landing() {
 
       <section className="landing-features">
         <div className="landing-section-heading">
-          <span>{t("landing.whyBadge")}</span>
+          <span>WHY RCVD E-LEARNING</span>
 
-          <h2>{t("landing.whyTitle")}</h2>
+          <h2>Learn, Test and Get Certified</h2>
 
-          <p>{t("landing.whyDescription")}</p>
+          <p>
+            A convenient online learning platform designed to support veterinary
+            professionals in continuing their education and professional
+            development.
+          </p>
         </div>
 
         <div className="features-grid">
@@ -74,9 +80,12 @@ function Landing() {
               <i className="bi bi-book-half"></i>
             </div>
 
-            <h3>{t("landing.featureCoursesTitle")}</h3>
+            <h3>Quality Courses</h3>
 
-            <p>{t("landing.featureCoursesDescription")}</p>
+            <p>
+              Access relevant veterinary courses and learn at your own pace from
+              anywhere.
+            </p>
           </div>
 
           {/* Feature 2 */}
@@ -86,9 +95,12 @@ function Landing() {
               <i className="bi bi-person-video3"></i>
             </div>
 
-            <h3>{t("landing.featureInstructorsTitle")}</h3>
+            <h3>Qualified Instructors</h3>
 
-            <p>{t("landing.featureInstructorsDescription")}</p>
+            <p>
+              Learn from experienced professionals and instructors with relevant
+              knowledge and expertise.
+            </p>
           </div>
 
           {/* Feature 3 */}
@@ -98,9 +110,12 @@ function Landing() {
               <i className="bi bi-award"></i>
             </div>
 
-            <h3>{t("landing.featureCertificationTitle")}</h3>
+            <h3>Professional Certification</h3>
 
-            <p>{t("landing.featureCertificationDescription")}</p>
+            <p>
+              Complete your learning and assessment requirements and receive
+              your professional certificate through the platform.
+            </p>
           </div>
         </div>
       </section>
@@ -111,13 +126,16 @@ function Landing() {
 
       <section className="landing-cta">
         <div>
-          <h1 className="white">{t("landing.ctaTitle")}</h1>
+          <h1 className="white">Start Your Learning Journey</h1>
 
-          <p>{t("landing.ctaDescription")}</p>
+          <p>
+            Explore available courses and take the next step in your
+            professional development.
+          </p>
         </div>
 
         <Link to="/register" className="btn">
-          {t("landing.getStarted")}
+          Get Started
         </Link>
       </section>
     </div>

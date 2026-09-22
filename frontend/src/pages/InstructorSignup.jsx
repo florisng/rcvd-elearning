@@ -18,7 +18,7 @@ const InstructorSignup = () => {
   });
 
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -32,7 +32,6 @@ const InstructorSignup = () => {
     e.preventDefault();
 
     setError("");
-    setSuccess("");
 
     if (formData.password !== formData.confirm_password) {
       setError("Passwords do not match.");
@@ -64,8 +63,10 @@ const InstructorSignup = () => {
         throw new Error(data.error || "Registration failed.");
       }
 
-      setSuccess(data.message);
+      // Show successful registration modal
+      setShowSuccessModal(true);
 
+      // Clear the form
       setFormData({
         first_name: "",
         last_name: "",
@@ -76,10 +77,6 @@ const InstructorSignup = () => {
         password: "",
         confirm_password: "",
       });
-
-      setTimeout(() => {
-        navigate("/login");
-      }, 2500);
     } catch (err) {
       console.error("Instructor registration error:", err);
       setError(err.message || "Registration failed.");
@@ -114,18 +111,6 @@ const InstructorSignup = () => {
           <div className="auth-alert auth-alert-error">
             <i className="bi bi-exclamation-circle-fill"></i>
             <span>{error}</span>
-          </div>
-        )}
-
-        {success && (
-          <div className="auth-alert auth-alert-success">
-            <i className="bi bi-check-circle-fill"></i>
-
-            <div>
-              <strong>Registration successful</strong>
-              <div>{success}</div>
-              <small>Redirecting you to the login page...</small>
-            </div>
           </div>
         )}
 
@@ -314,6 +299,54 @@ const InstructorSignup = () => {
           Professional veterinary education by RCVD
         </div>
       </div>
+
+      {/* Registration Success Modal */}
+      {showSuccessModal && (
+        <div
+          className="modal fade show"
+          style={{
+            display: "block",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+          }}
+          tabIndex="-1"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  <i className="bi bi-check-circle-fill text-success me-2"></i>
+                  Registration successful
+                </h5>
+              </div>
+
+              <div className="modal-body">
+                <p>
+                  Instructor account created successfully. Your account is
+                  awaiting administrator approval.
+                </p>
+
+                <p className="mb-0">
+                  Your account is now waiting for approval by an RCVD
+                  administrator. You will be able to log in once your account
+                  has been approved.
+                </p>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => navigate("/")}
+                >
+                  Okay
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

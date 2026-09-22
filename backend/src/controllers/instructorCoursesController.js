@@ -37,8 +37,8 @@ export const getInstructorCourses = async (req, res) => {
         title,
         description,
         price,
-        duration,
-        target_professional_title
+        target_professional_title,
+        status
       FROM courses
       WHERE instructor_id = $1
       ORDER BY created_at DESC`,
@@ -75,8 +75,8 @@ export const getInstructorCourse = async (req, res) => {
         title,
         description,
         price,
-        duration,
-        target_professional_title
+        target_professional_title,
+        status
        FROM courses
        WHERE id = $1
          AND instructor_id = $2`,
@@ -93,8 +93,8 @@ export const getInstructorCourse = async (req, res) => {
 
     const chaptersResult = await pool.query(
       `SELECT
-        id,
-        title
+          id,
+          title
        FROM chapters
        WHERE course_id = $1
        ORDER BY id`,
@@ -150,8 +150,7 @@ export const createCourse = async (req, res) => {
       });
     }
 
-    const { title, description, target_professional_title, price, duration } =
-      req.body;
+    const { title, description, target_professional_title, price } = req.body;
 
     // Validate course title
     if (!title || !title.trim()) {
@@ -184,17 +183,16 @@ export const createCourse = async (req, res) => {
         description,
         target_professional_title,
         price,
-        duration,
-        instructor_id
+        instructor_id,
+        status
       )
-      VALUES ($1, $2, $3, $4, $5, $6)
+      VALUES ($1, $2, $3, $4, $5, 'DRAFT')
       RETURNING *`,
       [
         title.trim(),
         description?.trim() || null,
         target_professional_title,
         price || 0,
-        duration || null,
         instructorId,
       ],
     );
@@ -232,8 +230,7 @@ export const updateCourse = async (req, res) => {
 
     const { courseId } = req.params;
 
-    const { title, description, target_professional_title, price, duration } =
-      req.body;
+    const { title, description, target_professional_title, price } = req.body;
 
     if (!title || !title.trim()) {
       return res.status(400).json({
@@ -247,17 +244,16 @@ export const updateCourse = async (req, res) => {
          title = $1,
          description = $2,
          target_professional_title = $3,
-         price = $4,
-         duration = $5
-       WHERE id = $6
-         AND instructor_id = $7
+         price = $4
+       WHERE id = $5
+         AND instructor_id = $6
+         AND status <> 'PUBLISHED'
        RETURNING *`,
       [
         title.trim(),
         description?.trim() || null,
         target_professional_title,
         price || 0,
-        duration || null,
         courseId,
         instructorId,
       ],
@@ -305,6 +301,7 @@ export const deleteCourse = async (req, res) => {
       `DELETE FROM courses
        WHERE id = $1
          AND instructor_id = $2
+         AND status <> 'PUBLISHED'
        RETURNING id`,
       [courseId, instructorId],
     );

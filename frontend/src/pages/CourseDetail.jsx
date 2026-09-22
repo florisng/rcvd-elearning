@@ -8,11 +8,10 @@ const CourseDetail = () => {
   const navigate = useNavigate();
 
   const [course, setCourse] = useState(null);
-  const [progress, setProgress] = useState(null);
-  const [completedSubchapters, setCompletedSubchapters] = useState([]);
+  const [chapterProgress, setChapterProgress] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [completing, setCompleting] = useState(null);
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -23,7 +22,10 @@ const CourseDetail = () => {
           Authorization: `Bearer ${token}`,
         };
 
-        // Get enrolled course
+        // =========================================
+        // GET ENROLLED COURSE
+        // =========================================
+
         const courseRes = await fetch(`${API_URL}/api/my-courses/${id}`, {
           headers,
         });
@@ -34,28 +36,30 @@ const CourseDetail = () => {
           throw new Error(courseData.error || "Failed to load course.");
         }
 
-        // Get learner progress
-        const progressRes = await fetch(
-          `${API_URL}/api/my-courses/${id}/progress`,
-          { headers },
+        setCourse(courseData.course);
+        console.log("COURSE DATA:", courseData.course);
+
+        // =========================================
+        // GET CHAPTER-BASED LEARNING PROGRESS
+        // =========================================
+
+        const chapterProgressRes = await fetch(
+          `${API_URL}/api/courses/${id}/chapter-progress`,
+          {
+            headers,
+          },
         );
 
-        const progressData = await progressRes.json();
+        const chapterProgressData = await chapterProgressRes.json();
 
-        if (!progressRes.ok) {
+        if (!chapterProgressRes.ok) {
           throw new Error(
-            progressData.error || "Failed to load course progress.",
+            chapterProgressData.error || "Failed to load chapter progress.",
           );
         }
 
-        setCourse(courseData.course);
-        setProgress(progressData.progress);
-
-        setCompletedSubchapters(
-          progressData.completed_subchapters?.map(
-            (item) => item.subchapter_id,
-          ) || [],
-        );
+        setChapterProgress(chapterProgressData);
+        console.log("CHAPTER PROGRESS DATA:", chapterProgressData);
       } catch (err) {
         console.error("Error loading course:", err);
         setError(err.message);
@@ -67,61 +71,19 @@ const CourseDetail = () => {
     fetchCourse();
   }, [id]);
 
-  const markAsCompleted = async (subchapterId) => {
-    try {
-      setCompleting(subchapterId);
+  // =========================================
+  // GET PROGRESS FOR A SPECIFIC CHAPTER
+  // =========================================
 
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(
-        `${API_URL}/api/subchapters/${subchapterId}/complete`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(
-          data.error || "Failed to mark subchapter as completed.",
-        );
-      }
-
-      setCompletedSubchapters((prev) => {
-        if (prev.includes(subchapterId)) {
-          return prev;
-        }
-
-        return [...prev, subchapterId];
-      });
-
-      // Refresh progress
-      const progressRes = await fetch(
-        `${API_URL}/api/my-courses/${id}/progress`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      const progressData = await progressRes.json();
-
-      if (progressRes.ok) {
-        setProgress(progressData.progress);
-      }
-    } catch (err) {
-      console.error("Error completing subchapter:", err);
-      alert(err.message);
-    } finally {
-      setCompleting(null);
-    }
+  const getChapterProgress = (chapterId) => {
+    return chapterProgress?.chapters?.find(
+      (item) => String(item.chapter_id) === String(chapterId),
+    );
   };
+
+  // =========================================
+  // LOADING
+  // =========================================
 
   if (loading) {
     return (
@@ -134,6 +96,10 @@ const CourseDetail = () => {
       </div>
     );
   }
+
+  // =========================================
+  // ERROR
+  // =========================================
 
   if (error) {
     return (
@@ -163,13 +129,25 @@ const CourseDetail = () => {
     return null;
   }
 
-  const isCompleted = progress?.percentage === 100;
+  // =========================================
+  // COURSE PROGRESS
+  // =========================================
 
-  const totalSubchapters =
-    (progress?.completed_subchapters || 0) +
-    (progress?.remaining_subchapters || 0);
+  const isCompleted = chapterProgress?.all_completed === true;
 
-  // Format course creation date
+  const totalChapters = chapterProgress?.total_chapters || 0;
+
+  const completedChapters = chapterProgress?.completed_chapters || 0;
+
+  const chapterPercentage =
+    totalChapters > 0
+      ? Math.round((completedChapters / totalChapters) * 100)
+      : 0;
+
+  // =========================================
+  // COURSE CREATION DATE
+  // =========================================
+
   const createdDate = course.created_at
     ? new Date(course.created_at).toLocaleDateString("en-GB", {
         day: "2-digit",
@@ -208,6 +186,8 @@ const CourseDetail = () => {
 
             <p className="course-description">{course.description}</p>
 
+            {/* Instructor */}
+
             <div className="course-instructor-info">
               <div className="instructor-avatar">
                 <i className="bi bi-person-fill"></i>
@@ -222,7 +202,8 @@ const CourseDetail = () => {
               </div>
             </div>
 
-            {/* Course Created Date */}
+            {/* Created Date */}
+
             <div className="course-instructor-info">
               <div className="instructor-avatar">
                 <i className="bi bi-calendar3"></i>
@@ -245,72 +226,72 @@ const CourseDetail = () => {
             COURSE PROGRESS
         ========================================= */}
 
-        {progress && (
-          <section className="course-progress-card">
-            <div className="progress-card-top">
-              <div>
-                <span className="progress-label">COURSE PROGRESS</span>
+        <section className="course-progress-card">
+          <div className="progress-card-top">
+            <div>
+              <span className="progress-label">COURSE PROGRESS</span>
 
-                <h3>
-                  {isCompleted
-                    ? "Course completed!"
-                    : "Keep going, you're doing great!"}
-                </h3>
-              </div>
-
-              <div
-                className={`progress-percentage ${
-                  isCompleted ? "complete" : ""
-                }`}
-              >
-                {progress.percentage}%
-              </div>
+              <h3>
+                {isCompleted
+                  ? "Course completed!"
+                  : "Keep going, you're doing great!"}
+              </h3>
             </div>
 
-            <div className="course-progress-track">
-              <div
-                className={`course-progress-fill ${
-                  isCompleted ? "complete" : ""
-                }`}
-                style={{
-                  width: `${progress.percentage}%`,
-                }}
-              />
+            <div
+              className={`progress-percentage ${isCompleted ? "complete" : ""}`}
+            >
+              {chapterPercentage}%
             </div>
+          </div>
 
-            <div className="progress-card-bottom">
-              <span>
-                <i className="bi bi-check-circle-fill me-1"></i>
-                {progress.completed_subchapters} completed
-              </span>
+          {/* Progress bar */}
 
-              <span>
-                <i className="bi bi-circle me-1"></i>
-                {progress.remaining_subchapters} remaining
-              </span>
+          <div className="course-progress-track">
+            <div
+              className={`course-progress-fill ${
+                isCompleted ? "complete" : ""
+              }`}
+              style={{
+                width: `${chapterPercentage}%`,
+              }}
+            />
+          </div>
 
-              {totalSubchapters > 0 && (
-                <span className="total-lessons">
-                  {totalSubchapters} lessons
-                </span>
-              )}
-            </div>
+          {/* Progress summary */}
 
-            {isCompleted && (
-              <div className="course-completed-message">
-                <div className="completed-icon">
-                  <i className="bi bi-award-fill"></i>
-                </div>
+          <div className="progress-card-bottom">
+            <span>
+              <i className="bi bi-check-circle-fill me-1"></i>
+              {completedChapters} completed
+            </span>
 
-                <div>
-                  <strong>Congratulations!</strong>
+            <span>
+              <i className="bi bi-circle me-1"></i>
+              {totalChapters - completedChapters} remaining
+            </span>
 
-                  <p>You have completed all the lessons in this course.</p>
-                </div>
-              </div>
+            {totalChapters > 0 && (
+              <span className="total-lessons">{totalChapters} chapters</span>
             )}
-          </section>
-        )}
+          </div>
+
+          {/* Completed message */}
+
+          {isCompleted && (
+            <div className="course-completed-message">
+              <div className="completed-icon">
+                <i className="bi bi-award-fill"></i>
+              </div>
+
+              <div>
+                <strong>Congratulations!</strong>
+
+                <p>You have completed all the lessons in this course.</p>
+              </div>
+            </div>
+          )}
+        </section>
 
         {/* =========================================
             COURSE CONTENT HEADER
@@ -334,37 +315,121 @@ const CourseDetail = () => {
         ========================================= */}
 
         <div className="chapters-container">
-          {course.chapters?.map((chapter, index) => (
-            <section className="chapter-card" key={chapter.id}>
-              {/* Chapter Header */}
+          {course.chapters?.map((chapter, index) => {
+            const chapterStatus = getChapterProgress(chapter.id);
 
-              <div className="chapter-header">
-                <div className="chapter-number">
-                  {String(index + 1).padStart(2, "0")}
+            const completed = chapterStatus?.completed === true;
+
+            const learningTime = chapterStatus?.learning_time_seconds || 0;
+
+            const requiredTime = chapterStatus?.required_time_seconds || 0;
+
+            const chapterProgressPercentage =
+              requiredTime > 0
+                ? Math.min(100, Math.round((learningTime / requiredTime) * 100))
+                : completed
+                  ? 100
+                  : 0;
+
+            return (
+              <section
+                className={`chapter-card ${
+                  completed ? "chapter-completed" : ""
+                }`}
+                key={chapter.id}
+              >
+                {/* =================================
+                      CHAPTER HEADER
+                  ================================= */}
+
+                <div className="chapter-header">
+                  <div className="chapter-number">
+                    {String(index + 1).padStart(2, "0")}
+                  </div>
+
+                  <div
+                    className="chapter-title-wrapper"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() =>
+                      navigate(`/chapters/${chapter.id}/learn?courseId=${id}`)
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+
+                        navigate(
+                          `/chapters/${chapter.id}/learn?courseId=${id}`,
+                        );
+                      }
+                    }}
+                  >
+                    <span>CHAPTER {index + 1}</span>
+
+                    <h3>{chapter.title}</h3>
+
+                    {/* Chapter Status */}
+
+                    {completed ? (
+                      <span className="completed-badge">
+                        <i className="bi bi-check-circle-fill me-1"></i>
+                        Completed
+                      </span>
+                    ) : learningTime > 0 ? (
+                      <small className="text-muted">
+                        <i className="bi bi-clock me-1"></i>
+                        In progress
+                      </small>
+                    ) : (
+                      <small className="text-muted">
+                        <i className="bi bi-play-circle me-1"></i>
+                        Start learning
+                      </small>
+                    )}
+                  </div>
+
+                  <div className="chapter-icon">
+                    <i className="bi bi-journal-text"></i>
+                  </div>
                 </div>
 
-                <div className="chapter-title-wrapper">
-                  <span>CHAPTER {index + 1}</span>
+                {/* =================================
+                      CHAPTER LEARNING PROGRESS
+                  ================================= */}
 
-                  <h3>{chapter.title}</h3>
-                </div>
+                {!completed && learningTime > 0 && (
+                  <div className="px-4 pb-3">
+                    <div className="d-flex justify-content-between align-items-center mb-1">
+                      <small className="text-muted">Learning progress</small>
 
-                <div className="chapter-icon">
-                  <i className="bi bi-journal-text"></i>
-                </div>
-              </div>
+                      <small className="text-muted">
+                        {chapterProgressPercentage}%
+                      </small>
+                    </div>
 
-              {/* Subchapters */}
+                    <div
+                      className="progress"
+                      style={{
+                        height: "6px",
+                      }}
+                    >
+                      <div
+                        className="progress-bar"
+                        role="progressbar"
+                        style={{
+                          width: `${chapterProgressPercentage}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
 
-              <div className="subchapters">
-                {chapter.subchapters?.map((subchapter, subIndex) => {
-                  const completed = completedSubchapters.includes(
-                    subchapter.id,
-                  );
+                {/* =================================
+                      SUBCHAPTERS
+                  ================================= */}
 
-                  const isSaving = completing === subchapter.id;
-
-                  return (
+                <div className="subchapters">
+                  {chapter.subchapters?.map((subchapter, subIndex) => (
                     <article
                       key={subchapter.id}
                       className={`lesson-item ${
@@ -396,38 +461,13 @@ const CourseDetail = () => {
                         </div>
 
                         <p>{subchapter.content}</p>
-
-                        {/* Mark Completed */}
-
-                        {!completed && (
-                          <button
-                            className="complete-lesson-btn"
-                            disabled={isSaving}
-                            onClick={() => markAsCompleted(subchapter.id)}
-                          >
-                            {isSaving ? (
-                              <>
-                                <span
-                                  className="spinner-border spinner-border-sm me-2"
-                                  role="status"
-                                />
-                                Saving...
-                              </>
-                            ) : (
-                              <>
-                                <i className="bi bi-check2-circle me-2"></i>
-                                Mark as completed
-                              </>
-                            )}
-                          </button>
-                        )}
                       </div>
                     </article>
-                  );
-                })}
-              </div>
-            </section>
-          ))}
+                  ))}
+                </div>
+              </section>
+            );
+          })}
         </div>
 
         {/* =========================================
@@ -456,13 +496,20 @@ const CourseDetail = () => {
                   Complete all course lessons to unlock the test.
                 </div>
               )}
+
+              {isCompleted && (
+                <div className="text-success mt-2">
+                  <i className="bi bi-unlock-fill me-2"></i>
+                  All chapters completed. The test is now available.
+                </div>
+              )}
             </div>
 
             <div className="test-action">
               <button
                 className="btn btn-primary px-4"
                 disabled={!isCompleted}
-                onClick={() => navigate(`/tests/${id}`)}
+                onClick={() => navigate(`/tests/${course.test_id}`)}
               >
                 <i className="bi bi-play-circle me-2"></i>
                 Start Test

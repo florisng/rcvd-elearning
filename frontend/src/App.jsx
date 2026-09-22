@@ -6,7 +6,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import PrivateRoute from "./components/PrivateRoute";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
-import About from "./pages/About";
+import ChapterLearning from "./pages/ChapterLearning";
 import Help from "./pages/Help";
 import Instructors from "./pages/Instructors";
 import InstructorDetail from "./pages/InstructorDetail";
@@ -17,11 +17,14 @@ import InstructorDashboard from "./pages/InstructorDashboard";
 import LearnerDashboard from "./pages/LearnerDashboard";
 import InstructorCourse from "./pages/InstructorCourse";
 import CreateCourse from "./pages/CreateCourse";
-import TestPage from "./pages/Test/TestPage";
-import TestResult from "./pages/Test/TestResult";
+import TestPage from "./pages/Test";
+import TestResult from "./pages/TestResult";
 import CourseBuilder from "./pages/CourseBuilder";
 import AdminDashboard from "./pages/AdminDashboard";
 import Landing from "./pages/Landing";
+import MyLearning from "./pages/MyLearning";
+import LearnerProfile from "./pages/LearnerProfile";
+
 import "./App.css";
 
 function App() {
@@ -40,7 +43,6 @@ function App() {
 
             {/* Public pages */}
             <Route path="/courses" element={<Courses />} />
-            <Route path="/about" element={<About />} />
             <Route path="/help" element={<Help />} />
             <Route path="/instructors" element={<Instructors />} />
             <Route path="/instructor/:id" element={<InstructorDetail />} />
@@ -49,6 +51,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<InstructorSignup />} />
             <Route path="/learner/register" element={<LearnerSignup />} />
+            <Route path="/profile" element={<LearnerProfile />} />
 
             {/* Course Detail / Learner Course */}
             <Route
@@ -56,6 +59,16 @@ function App() {
               element={
                 <PrivateRoute role="LEARNER">
                   <CourseDetail />
+                </PrivateRoute>
+              }
+            />
+
+            {/* Chapter Learning - Learners Only */}
+            <Route
+              path="/chapters/:id/learn"
+              element={
+                <PrivateRoute role="LEARNER">
+                  <ChapterLearning />
                 </PrivateRoute>
               }
             />
@@ -108,13 +121,44 @@ function App() {
               }
             />
 
-            {/* Tests */}
-            <Route path="/tests/:testId" element={<TestPage />} />
+            {/* Tests - Learners Only */}
+            <Route
+              path="/tests/:testId"
+              element={
+                <PrivateRoute role="LEARNER">
+                  <TestPage />
+                </PrivateRoute>
+              }
+            />
 
-            <Route path="/tests/result/:attemptId" element={<TestResult />} />
+            <Route
+              path="/tests/result/:attemptId"
+              element={
+                <PrivateRoute role="LEARNER">
+                  <TestResult />
+                </PrivateRoute>
+              }
+            />
 
             {/* Admin Dashboard */}
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <PrivateRoute role="RCVD_ADMIN">
+                  <AdminDashboard />
+                </PrivateRoute>
+              }
+            />
+
+            {/* My Learning - Learners Only */}
+            <Route
+              path="/my-learning"
+              element={
+                <PrivateRoute role="LEARNER">
+                  <MyLearning />
+                </PrivateRoute>
+              }
+            />
           </Routes>
         </main>
 

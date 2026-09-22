@@ -4,7 +4,7 @@ import pool from "../config/db.js";
 export const getInstructors = async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, firstname, lastname, email, phone, bio FROM instructors ORDER BY id ASC"
+      "SELECT id, firstname, lastname, email, phone, bio FROM instructors ORDER BY id ASC",
     );
     res.json(result.rows);
   } catch (err) {
@@ -22,7 +22,7 @@ export const getInstructorById = async (req, res) => {
       `SELECT id, firstname, lastname, email, phone, bio, password
        FROM instructors
        WHERE id = $1`,
-      [numericId]
+      [numericId],
     );
 
     if (instructorResult.rows.length === 0) {
@@ -32,11 +32,11 @@ export const getInstructorById = async (req, res) => {
     const instructor = instructorResult.rows[0];
 
     const coursesResult = await pool.query(
-      `SELECT id, title, description, price, duration
+      `SELECT id, title, description, price
        FROM courses
        WHERE instructor_id = $1
        ORDER BY id ASC`,
-      [numericId]
+      [numericId],
     );
 
     instructor.courses = coursesResult.rows;
@@ -53,8 +53,8 @@ export const getInstructorCourses = async (req, res) => {
   const { id } = req.params; // Use same param as route: /instructor/:id/courses
   try {
     const result = await pool.query(
-      "SELECT id, title, description, price, duration FROM courses WHERE instructor_id = $1 ORDER BY id ASC",
-      [id]
+      "SELECT id, title, description, price FROM courses WHERE instructor_id = $1 ORDER BY id ASC",
+      [id],
     );
     res.json(result.rows);
   } catch (err) {

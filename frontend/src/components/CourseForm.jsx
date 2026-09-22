@@ -6,7 +6,6 @@ const CourseForm = ({ instructorId, onCourseCreated }) => {
     title: "",
     description: "",
     price: "",
-    duration: "",
     target_professional_title: "",
   });
 
@@ -59,10 +58,6 @@ const CourseForm = ({ instructorId, onCourseCreated }) => {
           placeholder="Price (RWF)"
           type="number"
           onChange={(e) => setForm({ ...form, price: e.target.value })}
-        />
-        <input
-          placeholder="Duration (seconds)"
-          onChange={(e) => setForm({ ...form, duration: e.target.value })}
         />
         <button type="submit">Create Course</button>
       </form>

@@ -7,6 +7,10 @@ import {
   getMyCourse,
   completeSubchapter,
   getCourseProgress,
+  recordChapterLearningTime,
+  getChapterLearningProgress,
+  getCourseChapterProgress,
+  completeChapter,
 } from "../controllers/enrollmentController.js";
 
 const router = express.Router();
@@ -32,6 +36,34 @@ router.get(
   authMiddleware,
   requireRole("LEARNER"),
   getMyCourse,
+);
+
+router.post(
+  "/chapters/:chapterId/learning-time",
+  authMiddleware,
+  requireRole("LEARNER"),
+  recordChapterLearningTime,
+);
+
+router.post(
+  "/chapters/:chapterId/complete",
+  authMiddleware,
+  requireRole("LEARNER"),
+  completeChapter,
+);
+
+router.get(
+  "/courses/:courseId/chapter-progress",
+  authMiddleware,
+  requireRole("LEARNER"),
+  getCourseChapterProgress,
+);
+
+router.get(
+  "/chapters/:chapterId/learning-progress",
+  authMiddleware,
+  requireRole("LEARNER"),
+  getChapterLearningProgress,
 );
 
 router.post(

@@ -28,9 +28,7 @@ export const createTest = async (req, res) => {
 
   try {
     const instructorResult = await pool.query(
-      `SELECT id
-       FROM instructors
-       WHERE user_id = $1`,
+      `SELECT id FROM instructors WHERE user_id = $1`,
       [req.user.id],
     );
 
@@ -43,10 +41,7 @@ export const createTest = async (req, res) => {
     const instructorId = instructorResult.rows[0].id;
 
     const courseResult = await pool.query(
-      `SELECT id
-       FROM courses
-       WHERE id = $1
-         AND instructor_id = $2`,
+      `SELECT id FROM courses WHERE id = $1 AND instructor_id = $2 AND status <> 'PUBLISHED'`,
       [courseId, instructorId],
     );
 
@@ -91,9 +86,7 @@ export const createTest = async (req, res) => {
     }
 
     const existingTest = await pool.query(
-      `SELECT id
-       FROM tests
-       WHERE course_id = $1`,
+      `SELECT id FROM tests WHERE course_id = $1`,
       [courseId],
     );
 
@@ -104,16 +97,15 @@ export const createTest = async (req, res) => {
     }
 
     const result = await pool.query(
-      `INSERT INTO tests (
-        course_id,
-        title,
-        pass_percentage,
-        duration_minutes,
-        questions_per_attempt,
-        max_attempts
-      )
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *`,
+      `INSERT INTO tests (course_id, title, pass_percentage, duration_minutes, questions_per_attempt, max_attempts)
+        SELECT $1, $2, $3, $4, $5, $6
+        WHERE EXISTS (
+          SELECT 1
+          FROM courses
+          WHERE courses.id = $1
+          AND courses.status <> 'PUBLISHED'
+        )
+        RETURNING *`,
       [
         courseId,
         title.trim(),
@@ -124,12 +116,83 @@ export const createTest = async (req, res) => {
       ],
     );
 
+    if (result.rows.length === 0) {
+      return res.status(400).json({
+        error: "Published courses cannot be modified.",
+      });
+    }
+
     res.status(201).json({
       message: "Test created successfully.",
       test: result.rows[0],
     });
   } catch (err) {
     console.error("Error creating test:", err);
+
+    res.status(500).json({
+      error: "Server error.",
+    });
+  }
+};
+
+/**
+ * Get a test for an instructor's course
+ */
+export const getTest = async (req, res) => {
+  const courseId = parseInt(req.params.courseId, 10);
+
+  if (!Number.isInteger(courseId)) {
+    return res.status(400).json({
+      error: "Invalid course ID.",
+    });
+  }
+
+  try {
+    const instructorResult = await pool.query(
+      `SELECT id
+       FROM instructors
+       WHERE user_id = $1`,
+      [req.user.id],
+    );
+
+    if (instructorResult.rows.length === 0) {
+      return res.status(404).json({
+        error: "Instructor profile not found.",
+      });
+    }
+
+    const instructorId = instructorResult.rows[0].id;
+
+    const result = await pool.query(
+      `SELECT
+         id,
+         course_id,
+         title,
+         pass_percentage,
+         duration_minutes,
+         questions_per_attempt,
+         max_attempts,
+         created_at
+       FROM tests
+       WHERE course_id = $1
+         AND EXISTS (
+           SELECT 1
+           FROM courses
+           WHERE courses.id = tests.course_id
+             AND courses.instructor_id = $2
+         )`,
+      [courseId, instructorId],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: "Test not found.",
+      });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error fetching test:", err);
 
     res.status(500).json({
       error: "Server error.",
@@ -181,9 +244,7 @@ export const createQuestion = async (req, res) => {
 
   try {
     const instructorResult = await pool.query(
-      `SELECT id
-       FROM instructors
-       WHERE user_id = $1`,
+      `SELECT id FROM instructors WHERE user_id = $1`,
       [req.user.id],
     );
 
@@ -196,12 +257,7 @@ export const createQuestion = async (req, res) => {
     const instructorId = instructorResult.rows[0].id;
 
     const testResult = await pool.query(
-      `SELECT tests.id
-       FROM tests
-       JOIN courses
-         ON courses.id = tests.course_id
-       WHERE tests.id = $1
-         AND courses.instructor_id = $2`,
+      `SELECT tests.id, tests.questions_per_attempt, COUNT(test_questions.id) AS question_count FROM tests JOIN courses ON courses.id = tests.course_id LEFT JOIN test_questions ON test_questions.test_id = tests.id WHERE tests.id = $1 AND courses.instructor_id = $2 AND courses.status <> 'PUBLISHED' GROUP BY tests.id, tests.questions_per_attempt`,
       [testId, instructorId],
     );
 
@@ -211,16 +267,20 @@ export const createQuestion = async (req, res) => {
       });
     }
 
+    const test = testResult.rows[0];
+
+    if (Number(test.question_count) >= Number(test.questions_per_attempt)) {
+      return res.status(400).json({
+        error:
+          "The maximum number of questions for this test has been reached.",
+      });
+    }
+
     await pool.query("BEGIN");
 
     try {
       const questionResult = await pool.query(
-        `INSERT INTO test_questions (
-          test_id,
-          question_text
-        )
-        VALUES ($1, $2)
-        RETURNING *`,
+        `INSERT INTO test_questions (test_id, question_text) VALUES ($1, $2) RETURNING *`,
         [testId, question_text.trim()],
       );
 
@@ -230,13 +290,7 @@ export const createQuestion = async (req, res) => {
 
       for (const option of options) {
         const optionResult = await pool.query(
-          `INSERT INTO question_options (
-            question_id,
-            option_text,
-            is_correct
-          )
-          VALUES ($1, $2, $3)
-          RETURNING id, question_id, option_text`,
+          `INSERT INTO question_options (question_id, option_text, is_correct) VALUES ($1, $2, $3) RETURNING id, question_id, option_text`,
           [question.id, option.text.trim(), option.is_correct === true],
         );
 
@@ -423,7 +477,8 @@ export const updateQuestion = async (req, res) => {
        JOIN courses c
          ON c.id = t.course_id
        WHERE tq.id = $1
-         AND c.instructor_id = $2`,
+         AND c.instructor_id = $2
+         AND c.status <> 'PUBLISHED'`,
       [questionId, instructorId],
     );
 
@@ -524,6 +579,7 @@ export const deleteQuestion = async (req, res) => {
          AND tq.test_id = t.id
          AND t.course_id = c.id
          AND c.instructor_id = $2
+         AND c.status <> 'PUBLISHED'
        RETURNING tq.id`,
       [questionId, instructorId],
     );
@@ -597,7 +653,7 @@ export const startTest = async (req, res) => {
 
     const enrollment = enrollmentResult.rows[0];
 
-    if (enrollment.status !== "ACTIVE") {
+    if (enrollment.status !== "ACTIVE" && enrollment.status !== "COMPLETED") {
       return res.status(403).json({
         error: "Your enrollment is not active.",
       });
@@ -618,6 +674,7 @@ export const startTest = async (req, res) => {
     );
 
     const progress = progressResult.rows[0];
+    console.log("TEST PROGRESS CHECK:", progress);
 
     const totalSubchapters = Number(progress.total_subchapters);
     const completedSubchapters = Number(progress.completed_subchapters);
@@ -791,19 +848,21 @@ export const submitTest = async (req, res) => {
     // 1. Get the attempt
     const attemptResult = await pool.query(
       `SELECT
-         ta.id,
-         ta.test_id,
-         ta.user_id,
-         ta.status,
-         ta.started_at,
-         ta.expires_at,
-         t.pass_percentage,
-         t.questions_per_attempt
-       FROM test_attempts ta
-       JOIN tests t
-         ON t.id = ta.test_id
-       WHERE ta.id = $1
-         AND ta.user_id = $2`,
+          ta.id,
+          ta.test_id,
+          ta.user_id,
+          ta.attempt_number,
+          ta.status,
+          ta.started_at,
+          ta.expires_at,
+          t.course_id,
+          t.pass_percentage,
+          t.questions_per_attempt
+        FROM test_attempts ta
+        JOIN tests t
+          ON t.id = ta.test_id
+        WHERE ta.id = $1
+          AND ta.user_id = $2`,
       [attemptId, req.user.id],
     );
 
@@ -929,6 +988,35 @@ export const submitTest = async (req, res) => {
     );
 
     const completedAttempt = completionResult.rows[0];
+
+    if (attempt.attempt_number === 3 && !passed) {
+      await pool.query(
+        `UPDATE chapter_progress
+     SET
+       learning_time_seconds = 0,
+       completed_at = NULL
+     WHERE user_id = $1
+       AND chapter_id IN (
+         SELECT id
+         FROM chapters
+         WHERE course_id = $2
+       )`,
+        [attempt.user_id, attempt.course_id],
+      );
+
+      await pool.query(
+        `DELETE FROM subchapter_progress
+            WHERE user_id = $1
+              AND subchapter_id IN (
+                SELECT s.id
+                FROM subchapters s
+                JOIN chapters c
+                  ON c.id = s.chapter_id
+                WHERE c.course_id = $2
+       )`,
+        [attempt.user_id, attempt.course_id],
+      );
+    }
 
     // 9. Return result
     return res.json({
@@ -1400,5 +1488,100 @@ export const getTestResult = async (req, res) => {
     res.status(500).json({
       error: "Server error.",
     });
+  }
+};
+
+/**
+ * Delete an instructor's test
+ */
+export const deleteTest = async (req, res) => {
+  const testId = parseInt(req.params.testId, 10);
+
+  if (!Number.isInteger(testId)) {
+    return res.status(400).json({
+      error: "Invalid test ID.",
+    });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    const instructorResult = await client.query(
+      `SELECT id FROM instructors WHERE user_id = $1`,
+      [req.user.id],
+    );
+
+    if (instructorResult.rows.length === 0) {
+      return res.status(404).json({
+        error: "Instructor profile not found.",
+      });
+    }
+
+    const instructorId = instructorResult.rows[0].id;
+
+    const testResult = await client.query(
+      `SELECT t.id FROM tests t JOIN courses c ON c.id = t.course_id WHERE t.id = $1 AND c.instructor_id = $2 AND c.status <> 'PUBLISHED'`,
+      [testId, instructorId],
+    );
+
+    if (testResult.rows.length === 0) {
+      return res.status(404).json({
+        error: "Test not found.",
+      });
+    }
+
+    await client.query("BEGIN");
+
+    await client.query(`DELETE FROM test_attempts WHERE test_id = $1`, [
+      testId,
+    ]);
+
+    // Delete question options.
+    await client.query(
+      `DELETE FROM question_options WHERE question_id IN (SELECT id FROM test_questions WHERE test_id = $1)`,
+      [testId],
+    );
+
+    // Delete questions.
+    await client.query(`DELETE FROM test_questions WHERE test_id = $1`, [
+      testId,
+    ]);
+
+    // Finally delete the test.
+    const deleteResult = await client.query(
+      `DELETE FROM tests
+        WHERE id = $1
+        AND EXISTS (
+          SELECT 1
+          FROM courses
+          WHERE courses.id = tests.course_id
+          AND courses.status <> 'PUBLISHED'
+        )`,
+      [testId],
+    );
+
+    if (deleteResult.rowCount === 0) {
+      await client.query("ROLLBACK");
+
+      return res.status(400).json({
+        error: "Published courses cannot be modified.",
+      });
+    }
+
+    await client.query("COMMIT");
+
+    res.json({
+      message: "Test and all related data deleted successfully.",
+    });
+  } catch (err) {
+    await client.query("ROLLBACK");
+
+    console.error("Error deleting test:", err);
+
+    res.status(500).json({
+      error: "Server error.",
+    });
+  } finally {
+    client.release();
   }
 };

@@ -31,7 +31,7 @@ const InstructorDashboard = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        setCourses(data);
+        setCourses(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch((err) => {
@@ -39,7 +39,7 @@ const InstructorDashboard = () => {
         setError("Failed to load courses.");
         setLoading(false);
       });
-  }, [user]);
+  }, []);
 
   /**
    * Open Delete Confirmation Modal
@@ -94,12 +94,10 @@ const InstructorDashboard = () => {
         throw new Error(data.error || "Failed to delete course.");
       }
 
-      // Remove the deleted course immediately from the dashboard
       setCourses((prevCourses) =>
         prevCourses.filter((course) => course.id !== courseId),
       );
 
-      // Close modal after successful deletion
       setShowDeleteModal(false);
       setCourseToDelete(null);
     } catch (err) {
@@ -111,88 +109,189 @@ const InstructorDashboard = () => {
   };
 
   if (loading) {
-    return <p className="loading-text">Loading dashboard...</p>;
+    return (
+      <div className="instructor-dashboard-loading">
+        <div className="spinner-border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <p>Loading your dashboard...</p>
+      </div>
+    );
   }
 
   return (
     <div className="instructor-dashboard">
-      <h1>Instructor Dashboard</h1>
+      {/* =========================
+          DASHBOARD HEADER
+      ========================== */}
+      <div className="instructor-dashboard-header">
+        <div>
+          <span className="dashboard-eyebrow">INSTRUCTOR PORTAL</span>
 
-      <p className="welcome-text">
-        Welcome back, <strong>{user.firstname}</strong>
-      </p>
+          <h1>Instructor Dashboard</h1>
 
-      {error && (
-        <div className="alert alert-danger" role="alert">
-          <i className="bi bi-exclamation-circle-fill me-2"></i>
-          {error}
+          <p className="welcome-text">
+            Welcome back, <strong>{user?.firstname}</strong>. Manage your
+            courses, learning content, and assessments from here.
+          </p>
         </div>
-      )}
-
-      <div className="dashboard-section-header">
-        <h2>Your Courses</h2>
 
         <button
-          className="btn btn-primary"
+          className="create-course-btn"
           onClick={() => navigate("/instructor/courses/create")}
         >
-          <i className="bi bi-plus-lg me-2"></i>
+          <i className="bi bi-plus-lg"></i>
           Create Course
         </button>
       </div>
 
-      {courses.length === 0 ? (
-        <p>You have not created any courses yet.</p>
-      ) : (
-        <div className="instructor-courses">
-          {courses.map((course) => (
-            <div key={course.id} className="instructor-course-card">
-              <h3>{course.title}</h3>
-
-              <p>{course.description}</p>
-
-              <p>
-                <b>Price:</b> {Number(course.price).toLocaleString()} RWF
-              </p>
-
-              <p>
-                <b>Duration:</b> {Math.floor(course.duration / 3600)}h{" "}
-                {Math.floor((course.duration % 3600) / 60)}m
-              </p>
-
-              <div className="d-flex gap-2">
-                <button
-                  className="btn btn-primary btn-sm"
-                  onClick={() => {
-                    navigate(`/instructor/courses/${course.id}/builder`);
-                  }}
-                >
-                  <i className="bi bi-pencil-square me-1"></i>
-                  Manage Course
-                </button>
-
-                <button
-                  className="btn btn-danger btn-sm"
-                  onClick={() => openDeleteModal(course)}
-                  disabled={deletingCourseId === course.id}
-                >
-                  {deletingCourseId === course.id ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-1"></span>
-                      Deleting...
-                    </>
-                  ) : (
-                    <>
-                      <i className="bi bi-trash me-1"></i>
-                      Delete
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          ))}
+      {/* =========================
+          ERROR
+      ========================== */}
+      {error && (
+        <div className="instructor-error" role="alert">
+          <i className="bi bi-exclamation-circle-fill"></i>
+          <span>{error}</span>
         </div>
       )}
+
+      {/* =========================
+          SUMMARY
+      ========================== */}
+      <div className="dashboard-summary">
+        <div className="summary-card">
+          <div className="summary-icon">
+            <i className="bi bi-journal-bookmark-fill"></i>
+          </div>
+
+          <div>
+            <span>Total Courses</span>
+            <strong>{courses.length}</strong>
+          </div>
+        </div>
+
+        <div className="summary-card">
+          <div className="summary-icon">
+            <i className="bi bi-pencil-square"></i>
+          </div>
+
+          <div>
+            <span>Course Management</span>
+            <strong>Active</strong>
+          </div>
+        </div>
+
+        <div className="summary-card">
+          <div className="summary-icon">
+            <i className="bi bi-clipboard-check"></i>
+          </div>
+
+          <div>
+            <span>Assessments</span>
+            <strong>Available</strong>
+          </div>
+        </div>
+      </div>
+
+      {/* =========================
+          COURSES SECTION
+      ========================== */}
+      <div className="courses-section">
+        <div className="courses-section-header">
+          <div>
+            <h2>Your Courses</h2>
+            <p>Manage and prepare your courses for learners.</p>
+          </div>
+
+          {courses.length > 0 && (
+            <span className="course-count">
+              {courses.length} {courses.length === 1 ? "course" : "courses"}
+            </span>
+          )}
+        </div>
+
+        {courses.length === 0 ? (
+          <div className="empty-courses">
+            <div className="empty-courses-icon">
+              <i className="bi bi-journal-plus"></i>
+            </div>
+
+            <h3>No courses yet</h3>
+
+            <p>
+              You have not created any courses yet. Start by creating your first
+              course.
+            </p>
+
+            <button
+              className="create-course-btn"
+              onClick={() => navigate("/instructor/courses/create")}
+            >
+              <i className="bi bi-plus-lg"></i>
+              Create Your First Course
+            </button>
+          </div>
+        ) : (
+          <div className="instructor-courses">
+            {courses.map((course) => (
+              <div key={course.id} className="instructor-course-card">
+                <div className="course-card-top">
+                  <div className="course-icon">
+                    <i className="bi bi-book-half"></i>
+                  </div>
+
+                  <span className="course-status">Course</span>
+                </div>
+
+                <div className="course-card-content">
+                  <h3>{course.title}</h3>
+
+                  <p className="course-description">
+                    {course.description || "No description provided."}
+                  </p>
+
+                  <div className="course-meta">
+                    <div>
+                      <i className="bi bi-cash-stack"></i>
+                      <span>
+                        {Number(course.price || 0).toLocaleString()} RWF
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="course-card-actions">
+                  <button
+                    className="manage-course-btn"
+                    onClick={() =>
+                      navigate(`/instructor/courses/${course.id}/builder`)
+                    }
+                  >
+                    <i className="bi bi-pencil-square"></i>
+                    Manage Course
+                  </button>
+
+                  <button
+                    className="delete-course-btn"
+                    onClick={() => openDeleteModal(course)}
+                    disabled={deletingCourseId === course.id}
+                    title="Delete course"
+                  >
+                    {deletingCourseId === course.id ? (
+                      <span
+                        className="spinner-border spinner-border-sm"
+                        role="status"
+                      ></span>
+                    ) : (
+                      <i className="bi bi-trash"></i>
+                    )}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* =========================
           DELETE CONFIRMATION MODAL

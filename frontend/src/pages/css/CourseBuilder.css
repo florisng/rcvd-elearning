@@ -381,7 +381,6 @@
   color: #18436d;
   font-size: 0.75rem;
   font-weight: 800;
-  text-transform: uppercase;
   letter-spacing: 0.6px;
 }
 
@@ -391,6 +390,19 @@
   font-size: 1rem;
   font-weight: 750;
   line-height: 1.4;
+}
+
+.course-builder-chapter-duration {
+  margin: 5px 0 0;
+  color: #718385;
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.course-builder-chapter-duration i {
+  margin-right: 4px;
+  color: #18436d;
 }
 
 .course-builder-chapter-actions {
@@ -471,6 +483,197 @@
 }
 
 /* =========================================================
+   TEST / ASSESSMENT
+========================================================= */
+
+.course-builder-test-section {
+  margin-top: 24px;
+}
+
+.course-builder-test-created {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 1px solid #d9e2e7;
+  border-radius: 8px;
+  background: #f8fafb;
+  color: #18436d;
+}
+
+.course-builder-test-created > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.course-builder-test-created-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.course-builder-test-created-header > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.course-builder-test-created-header > div:first-child i {
+  color: #198754;
+}
+
+.course-builder-test-created-header > div i {
+  color: #198754;
+}
+
+.course-builder-test-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  color: #5f6f73;
+  font-size: 0.9rem;
+}
+
+.course-builder-test-details strong {
+  color: #18436d;
+}
+
+.course-builder-test-form {
+  margin-top: 16px;
+}
+
+.course-builder-question-form .course-builder-form-group {
+  margin-bottom: 20px;
+}
+
+.course-builder-question-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #18436d;
+}
+
+.course-builder-question-form textarea,
+.course-builder-question-form input[type="text"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 15px;
+}
+
+.course-builder-question-form textarea {
+  resize: vertical;
+}
+
+.course-builder-question-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.course-builder-question-option input[type="radio"] {
+  width: auto;
+}
+
+.course-builder-question-option input[type="text"] {
+  flex: 1;
+}
+
+/* =========================================================
+   QUESTIONS LIST
+========================================================= */
+
+.course-builder-questions {
+  margin-top: 30px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 25px;
+}
+
+.course-builder-questions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.course-builder-questions-header h3 {
+  margin: 0;
+  color: #18436d;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.course-builder-questions-header span {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.course-builder-question-card {
+  background: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.course-builder-question-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.course-builder-question-header strong {
+  color: #18436d;
+  font-size: 16px;
+}
+
+.course-builder-question-text {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #212529;
+  line-height: 1.6;
+}
+
+.course-builder-question-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.course-builder-question-option-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 7px;
+  font-size: 14px;
+  color: #343a40;
+}
+
+.course-builder-option-letter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 50%;
+  background: #18436d;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* =========================================================
    ALERT / ERROR
 ========================================================= */
 
@@ -491,6 +694,43 @@
   margin-top: 2px;
 }
 
+.course-builder-publish-error {
+  margin-bottom: 20px;
+}
+
+/* =========================================================
+   COURSE STATUS
+========================================================= */
+
+.course-builder-status {
+  font-weight: 600;
+  border-radius: 20px;
+  padding: 7px 14px;
+}
+
+.course-builder-status-draft {
+  background: #f1f3f5;
+  color: #6c757d;
+}
+
+.course-builder-status-published {
+  background: #e8f5e9;
+  color: #198754;
+}
+
+/* =========================================================
+   PUBLISH COURSE
+========================================================= */
+
+.course-builder-publish-section {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.course-builder-publish-btn {
+  min-width: 220px;
+}
+
 /* =========================================================
    DELETE CONFIRMATION MODAL
 ========================================================= */
@@ -499,71 +739,53 @@
   position: fixed;
   inset: 0;
   z-index: 9999;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   padding: 20px;
-
   background: rgba(15, 35, 36, 0.58);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-
   animation: courseBuilderModalFadeIn 0.18s ease-out;
 }
 
 .course-builder-delete-modal {
   width: 100%;
   max-width: 430px;
-
   padding: 30px;
-
   background: #ffffff;
   border: 1px solid #e1e9e7;
   border-radius: 18px;
-
   box-shadow:
     0 25px 70px rgba(0, 0, 0, 0.18),
     0 8px 25px rgba(14, 78, 83, 0.08);
-
   text-align: center;
-
   animation: courseBuilderModalSlideUp 0.2s ease-out;
 }
 
 .course-builder-delete-icon {
   width: 58px;
   height: 58px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   margin: 0 auto 18px;
-
   border-radius: 50%;
-
   background: #fff1f1;
   color: #dc3545;
-
   font-size: 1.35rem;
 }
 
 .course-builder-delete-content h2 {
   margin: 0 0 9px;
-
   color: #24383a;
-
   font-size: 1.2rem;
   font-weight: 800;
 }
 
 .course-builder-delete-content p {
   margin: 0;
-
   color: #718385;
-
   font-size: 0.87rem;
   line-height: 1.6;
 }
@@ -576,13 +798,10 @@
 .course-builder-delete-warning {
   margin-top: 12px !important;
   padding: 11px 13px;
-
   border: 1px solid #f4dddd;
   border-radius: 9px;
-
   background: #fff7f7;
   color: #a33a3a !important;
-
   font-size: 0.8rem !important;
 }
 
@@ -590,7 +809,6 @@
   display: flex;
   justify-content: center;
   gap: 10px;
-
   margin-top: 25px;
 }
 
@@ -688,6 +906,10 @@
   }
 
   .course-builder-form-actions .course-builder-btn {
+    width: 100%;
+  }
+
+  .course-builder-publish-btn {
     width: 100%;
   }
 }

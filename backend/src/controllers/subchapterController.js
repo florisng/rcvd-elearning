@@ -36,13 +36,9 @@ export const createSubchapter = async (req, res) => {
       });
     }
 
-    // Verify chapter belongs to a course owned by this instructor
+    // Verify chapter belongs to an unpublished course owned by this instructor
     const chapterResult = await pool.query(
-      `SELECT chapters.id
-       FROM chapters
-       JOIN courses ON courses.id = chapters.course_id
-       WHERE chapters.id = $1
-         AND courses.instructor_id = $2`,
+      `SELECT chapters.id FROM chapters JOIN courses ON courses.id = chapters.course_id WHERE chapters.id = $1 AND courses.instructor_id = $2 AND courses.status <> 'PUBLISHED'`,
       [chapterId, instructorId],
     );
 
@@ -53,9 +49,7 @@ export const createSubchapter = async (req, res) => {
     }
 
     const result = await pool.query(
-      `INSERT INTO subchapters (title, content, chapter_id)
-       VALUES ($1, $2, $3)
-       RETURNING *`,
+      `INSERT INTO subchapters (title, content, chapter_id) VALUES ($1, $2, $3) RETURNING *`,
       [title.trim(), content || null, chapterId],
     );
 
@@ -134,18 +128,7 @@ export const updateSubchapter = async (req, res) => {
     }
 
     const result = await pool.query(
-      `UPDATE subchapters
-       SET title = $1,
-           content = $2
-       WHERE subchapters.id = $3
-         AND EXISTS (
-           SELECT 1
-           FROM chapters
-           JOIN courses ON courses.id = chapters.course_id
-           WHERE chapters.id = subchapters.chapter_id
-             AND courses.instructor_id = $4
-         )
-       RETURNING subchapters.*`,
+      `UPDATE subchapters SET title = $1, content = $2 WHERE subchapters.id = $3 AND EXISTS (SELECT 1 FROM chapters JOIN courses ON courses.id = chapters.course_id WHERE chapters.id = subchapters.chapter_id AND courses.instructor_id = $4 AND courses.status <> 'PUBLISHED') RETURNING subchapters.*`,
       [title.trim(), content || null, subchapterId, instructorId],
     );
 
@@ -187,16 +170,7 @@ export const deleteSubchapter = async (req, res) => {
     }
 
     const result = await pool.query(
-      `DELETE FROM subchapters
-       WHERE subchapters.id = $1
-         AND EXISTS (
-           SELECT 1
-           FROM chapters
-           JOIN courses ON courses.id = chapters.course_id
-           WHERE chapters.id = subchapters.chapter_id
-             AND courses.instructor_id = $2
-         )
-       RETURNING subchapters.*`,
+      `DELETE FROM subchapters WHERE subchapters.id = $1 AND EXISTS (SELECT 1 FROM chapters JOIN courses ON courses.id = chapters.course_id WHERE chapters.id = subchapters.chapter_id AND courses.instructor_id = $2 AND courses.status <> 'PUBLISHED') RETURNING subchapters.*`,
       [subchapterId, instructorId],
     );
 

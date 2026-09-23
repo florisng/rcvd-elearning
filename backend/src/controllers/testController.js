@@ -10,7 +10,6 @@ export const createTest = async (req, res) => {
     title,
     pass_percentage = 80,
     duration_minutes = 30,
-    questions_per_attempt = 20,
     max_attempts = 3,
   } = req.body;
 
@@ -70,15 +69,6 @@ export const createTest = async (req, res) => {
       });
     }
 
-    if (
-      !Number.isInteger(Number(questions_per_attempt)) ||
-      Number(questions_per_attempt) < 1
-    ) {
-      return res.status(400).json({
-        error: "Questions per attempt must be at least 1.",
-      });
-    }
-
     if (!Number.isInteger(Number(max_attempts)) || Number(max_attempts) < 1) {
       return res.status(400).json({
         error: "Maximum attempts must be at least 1.",
@@ -97,21 +87,26 @@ export const createTest = async (req, res) => {
     }
 
     const result = await pool.query(
-      `INSERT INTO tests (course_id, title, pass_percentage, duration_minutes, questions_per_attempt, max_attempts)
-        SELECT $1, $2, $3, $4, $5, $6
-        WHERE EXISTS (
-          SELECT 1
-          FROM courses
-          WHERE courses.id = $1
-          AND courses.status <> 'PUBLISHED'
-        )
-        RETURNING *`,
+      `INSERT INTO tests (
+         course_id,
+         title,
+         pass_percentage,
+         duration_minutes,
+         max_attempts
+       )
+       SELECT $1, $2, $3, $4, $5
+       WHERE EXISTS (
+         SELECT 1
+         FROM courses
+         WHERE courses.id = $1
+           AND courses.status <> 'PUBLISHED'
+       )
+       RETURNING *`,
       [
         courseId,
         title.trim(),
         Number(pass_percentage),
         Number(duration_minutes),
-        Number(questions_per_attempt),
         Number(max_attempts),
       ],
     );
@@ -170,7 +165,6 @@ export const getTest = async (req, res) => {
          title,
          pass_percentage,
          duration_minutes,
-         questions_per_attempt,
          max_attempts,
          created_at
        FROM tests
@@ -201,7 +195,7 @@ export const getTest = async (req, res) => {
 };
 
 /**
- * Create a question with multiple-choice options
+ * Create a question with exactly four multiple-choice options: A, B, C, D
  */
 export const createQuestion = async (req, res) => {
   const testId = parseInt(req.params.testId, 10);
@@ -220,9 +214,9 @@ export const createQuestion = async (req, res) => {
     });
   }
 
-  if (!Array.isArray(options) || options.length < 2) {
+  if (!Array.isArray(options) || options.length !== 4) {
     return res.status(400).json({
-      error: "At least two options are required.",
+      error: "Exactly four answer options (A, B, C, D) are required.",
     });
   }
 
@@ -257,7 +251,13 @@ export const createQuestion = async (req, res) => {
     const instructorId = instructorResult.rows[0].id;
 
     const testResult = await pool.query(
-      `SELECT tests.id, tests.questions_per_attempt, COUNT(test_questions.id) AS question_count FROM tests JOIN courses ON courses.id = tests.course_id LEFT JOIN test_questions ON test_questions.test_id = tests.id WHERE tests.id = $1 AND courses.instructor_id = $2 AND courses.status <> 'PUBLISHED' GROUP BY tests.id, tests.questions_per_attempt`,
+      `SELECT tests.id
+       FROM tests
+       JOIN courses
+         ON courses.id = tests.course_id
+       WHERE tests.id = $1
+         AND courses.instructor_id = $2
+         AND courses.status <> 'PUBLISHED'`,
       [testId, instructorId],
     );
 
@@ -267,30 +267,28 @@ export const createQuestion = async (req, res) => {
       });
     }
 
-    const test = testResult.rows[0];
-
-    if (Number(test.question_count) >= Number(test.questions_per_attempt)) {
-      return res.status(400).json({
-        error:
-          "The maximum number of questions for this test has been reached.",
-      });
-    }
-
     await pool.query("BEGIN");
 
     try {
       const questionResult = await pool.query(
-        `INSERT INTO test_questions (test_id, question_text) VALUES ($1, $2) RETURNING *`,
+        `INSERT INTO test_questions (test_id, question_text)
+         VALUES ($1, $2)
+         RETURNING *`,
         [testId, question_text.trim()],
       );
 
       const question = questionResult.rows[0];
-
       const createdOptions = [];
 
       for (const option of options) {
         const optionResult = await pool.query(
-          `INSERT INTO question_options (question_id, option_text, is_correct) VALUES ($1, $2, $3) RETURNING id, question_id, option_text`,
+          `INSERT INTO question_options (
+             question_id,
+             option_text,
+             is_correct
+           )
+           VALUES ($1, $2, $3)
+           RETURNING id, question_id, option_text`,
           [question.id, option.text.trim(), option.is_correct === true],
         );
 
@@ -415,132 +413,70 @@ export const getQuestions = async (req, res) => {
  * Update a test question
  */
 export const updateQuestion = async (req, res) => {
-  const questionId = parseInt(req.params.questionId, 10);
-
+  const { questionId } = req.params;
   const { question_text, options } = req.body;
 
-  if (!Number.isInteger(questionId)) {
-    return res.status(400).json({
-      error: "Invalid question ID.",
-    });
-  }
+  try {
+    if (!question_text?.trim()) {
+      return res.status(400).json({ message: "Question text is required" });
+    }
 
-  if (!question_text?.trim()) {
-    return res.status(400).json({
-      error: "Question text is required.",
-    });
-  }
-
-  if (!Array.isArray(options) || options.length < 2) {
-    return res.status(400).json({
-      error: "At least two options are required.",
-    });
-  }
-
-  const correctOptions = options.filter((option) => option.is_correct === true);
-
-  if (correctOptions.length !== 1) {
-    return res.status(400).json({
-      error: "Exactly one option must be marked as correct.",
-    });
-  }
-
-  for (const option of options) {
-    if (!option.text?.trim()) {
+    if (!Array.isArray(options) || options.length !== 4) {
       return res.status(400).json({
-        error: "Every option must have text.",
+        message: "A question must have exactly 4 options",
       });
     }
-  }
 
-  try {
-    const instructorResult = await pool.query(
-      `SELECT id
-       FROM instructors
-       WHERE user_id = $1`,
-      [req.user.id],
+    const hasEmptyOption = options.some((option) => !option.text?.trim());
+
+    if (hasEmptyOption) {
+      return res.status(400).json({
+        message: "All options must have text",
+      });
+    }
+
+    const correctOptions = options.filter(
+      (option) => option.is_correct === true,
     );
 
-    if (instructorResult.rows.length === 0) {
-      return res.status(404).json({
-        error: "Instructor profile not found.",
+    if (correctOptions.length !== 1) {
+      return res.status(400).json({
+        message: "A question must have exactly one correct answer",
       });
     }
 
-    const instructorId = instructorResult.rows[0].id;
-
     const questionResult = await pool.query(
-      `SELECT tq.id
-       FROM test_questions tq
-       JOIN tests t
-         ON t.id = tq.test_id
-       JOIN courses c
-         ON c.id = t.course_id
-       WHERE tq.id = $1
-         AND c.instructor_id = $2
-         AND c.status <> 'PUBLISHED'`,
-      [questionId, instructorId],
+      `SELECT id FROM test_questions WHERE id = $1`,
+      [questionId],
     );
 
     if (questionResult.rows.length === 0) {
-      return res.status(404).json({
-        error: "Question not found or you are not authorized to modify it.",
-      });
+      return res.status(404).json({ message: "Question not found" });
     }
 
-    await pool.query("BEGIN");
+    await pool.query(
+      `UPDATE test_questions SET question_text = $1 WHERE id = $2`,
+      [question_text.trim(), questionId],
+    );
 
-    try {
+    await pool.query(`DELETE FROM question_options WHERE question_id = $1`, [
+      questionId,
+    ]);
+
+    for (const option of options) {
       await pool.query(
-        `UPDATE test_questions
-         SET question_text = $1
-         WHERE id = $2`,
-        [question_text.trim(), questionId],
+        `INSERT INTO question_options (question_id, option_text, is_correct)
+         VALUES ($1, $2, $3)`,
+        [questionId, option.text.trim(), option.is_correct === true],
       );
-
-      await pool.query(
-        `DELETE FROM question_options
-         WHERE question_id = $1`,
-        [questionId],
-      );
-
-      const updatedOptions = [];
-
-      for (const option of options) {
-        const optionResult = await pool.query(
-          `INSERT INTO question_options (
-            question_id,
-            option_text,
-            is_correct
-          )
-          VALUES ($1, $2, $3)
-          RETURNING id, question_id, option_text`,
-          [questionId, option.text.trim(), option.is_correct === true],
-        );
-
-        updatedOptions.push(optionResult.rows[0]);
-      }
-
-      await pool.query("COMMIT");
-
-      res.json({
-        message: "Question updated successfully.",
-        question: {
-          id: questionId,
-          question_text: question_text.trim(),
-          options: updatedOptions,
-        },
-      });
-    } catch (err) {
-      await pool.query("ROLLBACK");
-      throw err;
     }
-  } catch (err) {
-    console.error("Error updating question:", err);
 
-    res.status(500).json({
-      error: "Server error.",
+    res.json({
+      message: "Question updated successfully",
     });
+  } catch (error) {
+    console.error("Update question error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -622,7 +558,6 @@ export const startTest = async (req, res) => {
          title,
          pass_percentage,
          duration_minutes,
-         questions_per_attempt,
          max_attempts
        FROM tests
        WHERE id = $1`,
@@ -674,7 +609,6 @@ export const startTest = async (req, res) => {
     );
 
     const progress = progressResult.rows[0];
-    console.log("TEST PROGRESS CHECK:", progress);
 
     const totalSubchapters = Number(progress.total_subchapters);
     const completedSubchapters = Number(progress.completed_subchapters);
@@ -685,18 +619,52 @@ export const startTest = async (req, res) => {
       });
     }
 
-    const attemptsResult = await pool.query(
-      `SELECT
-         COUNT(*)::integer AS attempt_count
+    const passedResult = await pool.query(
+      `SELECT 1
        FROM test_attempts
        WHERE test_id = $1
-         AND user_id = $2`,
+         AND user_id = $2
+         AND passed = true
+       LIMIT 1`,
       [testId, req.user.id],
     );
 
-    const attemptCount = Number(attemptsResult.rows[0].attempt_count);
+    if (passedResult.rows.length > 0) {
+      return res.status(403).json({
+        error: "You have already passed this test.",
+      });
+    }
 
-    if (attemptCount >= test.max_attempts) {
+    const inProgressResult = await pool.query(
+      `SELECT id
+       FROM test_attempts
+       WHERE test_id = $1
+         AND user_id = $2
+         AND status = 'IN_PROGRESS'
+       ORDER BY id DESC
+       LIMIT 1`,
+      [testId, req.user.id],
+    );
+
+    if (inProgressResult.rows.length > 0) {
+      return res.status(403).json({
+        error: "You already have an unfinished test attempt.",
+      });
+    }
+
+    const attemptCountResult = await pool.query(
+      `SELECT COUNT(*)::integer AS attempt_count
+       FROM test_attempts
+       WHERE test_id = $1
+         AND user_id = $2
+         AND status = 'COMPLETED'
+         AND passed = false`,
+      [testId, req.user.id],
+    );
+
+    const attemptCount = Number(attemptCountResult.rows[0].attempt_count || 0);
+
+    if (attemptCount >= Number(test.max_attempts)) {
       return res.status(403).json({
         error: "You have reached the maximum number of attempts.",
       });
@@ -711,9 +679,9 @@ export const startTest = async (req, res) => {
 
     const questionCount = Number(questionCountResult.rows[0].count);
 
-    if (questionCount < test.questions_per_attempt) {
+    if (questionCount === 0) {
       return res.status(400).json({
-        error: `This test does not have enough questions. Required: ${test.questions_per_attempt}, available: ${questionCount}.`,
+        error: "This test does not have any questions yet.",
       });
     }
 
@@ -721,29 +689,22 @@ export const startTest = async (req, res) => {
 
     const attemptResult = await pool.query(
       `INSERT INTO test_attempts (
-        test_id,
-        user_id,
-        attempt_number,
-        started_at,
-        expires_at,
-        status
-      )
-      VALUES (
-        $1,
-        $2,
-        $3,
-        NOW(),
-        NOW() + ($4 * INTERVAL '1 minute'),
-        'IN_PROGRESS'
-      )
-      RETURNING
-        id,
-        test_id,
-        user_id,
-        attempt_number,
-        started_at,
-        expires_at,
-        status`,
+         test_id,
+         user_id,
+         attempt_number,
+         started_at,
+         expires_at,
+         status
+       )
+       VALUES (
+         $1,
+         $2,
+         $3,
+         NOW(),
+         NOW() + ($4 * INTERVAL '1 minute'),
+         'IN_PROGRESS'
+       )
+       RETURNING id, test_id, user_id, attempt_number, started_at, expires_at, status`,
       [testId, req.user.id, attemptNumber, Number(test.duration_minutes)],
     );
 
@@ -753,19 +714,18 @@ export const startTest = async (req, res) => {
       `SELECT id
        FROM test_questions
        WHERE test_id = $1
-       ORDER BY RANDOM()
-       LIMIT $2`,
-      [testId, test.questions_per_attempt],
+       ORDER BY RANDOM()`,
+      [testId],
     );
 
     for (let i = 0; i < questionsResult.rows.length; i++) {
       await pool.query(
         `INSERT INTO attempt_questions (
-          attempt_id,
-          question_id,
-          question_order
-        )
-        VALUES ($1, $2, $3)`,
+           attempt_id,
+           question_id,
+           question_order
+         )
+         VALUES ($1, $2, $3)`,
         [attempt.id, questionsResult.rows[i].id, i + 1],
       );
     }
@@ -816,9 +776,9 @@ export const startTest = async (req, res) => {
       },
       test: {
         id: test.id,
+        course_id: test.course_id,
         title: test.title,
         duration_minutes: test.duration_minutes,
-        questions_per_attempt: test.questions_per_attempt,
         pass_percentage: test.pass_percentage,
       },
       questions: Array.from(questionsMap.values()),
@@ -844,25 +804,26 @@ export const submitTest = async (req, res) => {
     });
   }
 
+  const client = await pool.connect();
+
   try {
-    // 1. Get the attempt
-    const attemptResult = await pool.query(
+    const attemptResult = await client.query(
       `SELECT
-          ta.id,
-          ta.test_id,
-          ta.user_id,
-          ta.attempt_number,
-          ta.status,
-          ta.started_at,
-          ta.expires_at,
-          t.course_id,
-          t.pass_percentage,
-          t.questions_per_attempt
-        FROM test_attempts ta
-        JOIN tests t
-          ON t.id = ta.test_id
-        WHERE ta.id = $1
-          AND ta.user_id = $2`,
+         ta.id,
+         ta.test_id,
+         ta.user_id,
+         ta.attempt_number,
+         ta.status,
+         ta.started_at,
+         ta.expires_at,
+         t.course_id,
+         t.pass_percentage,
+         t.max_attempts
+       FROM test_attempts ta
+       JOIN tests t
+         ON t.id = ta.test_id
+       WHERE ta.id = $1
+         AND ta.user_id = $2`,
       [attemptId, req.user.id],
     );
 
@@ -874,15 +835,13 @@ export const submitTest = async (req, res) => {
 
     const attempt = attemptResult.rows[0];
 
-    // 2. Make sure the attempt is still in progress
     if (attempt.status !== "IN_PROGRESS") {
       return res.status(400).json({
         error: "This test attempt has already been submitted.",
       });
     }
 
-    // 3. Check expiration
-    const expirationResult = await pool.query(
+    const expirationResult = await client.query(
       `SELECT NOW() > expires_at AS expired
        FROM test_attempts
        WHERE id = $1`,
@@ -890,11 +849,10 @@ export const submitTest = async (req, res) => {
     );
 
     if (expirationResult.rows[0].expired) {
-      await pool.query(
+      await client.query(
         `UPDATE test_attempts
-         SET
-           status = 'EXPIRED',
-           actual_duration = expires_at - started_at
+         SET status = 'EXPIRED',
+             actual_duration = expires_at - started_at
          WHERE id = $1`,
         [attemptId],
       );
@@ -904,13 +862,11 @@ export const submitTest = async (req, res) => {
       });
     }
 
-    // 4. Get the questions assigned to this attempt
-    const questionsResult = await pool.query(
-      `SELECT
-         aq.question_id
-       FROM attempt_questions aq
-       WHERE aq.attempt_id = $1
-       ORDER BY aq.question_order ASC`,
+    const questionsResult = await client.query(
+      `SELECT question_id
+       FROM attempt_questions
+       WHERE attempt_id = $1
+       ORDER BY question_order ASC`,
       [attemptId],
     );
 
@@ -924,8 +880,7 @@ export const submitTest = async (req, res) => {
 
     const totalQuestions = questions.length;
 
-    // 5. Get answers already saved by saveAnswer()
-    const answersResult = await pool.query(
+    const answersResult = await client.query(
       `SELECT
          aa.question_id,
          aa.option_id,
@@ -940,7 +895,6 @@ export const submitTest = async (req, res) => {
 
     const answers = answersResult.rows;
 
-    // 6. Calculate score
     const answeredQuestions = answers.length;
 
     const correctAnswers = answers.filter(
@@ -949,17 +903,15 @@ export const submitTest = async (req, res) => {
 
     const incorrectAnswers = answeredQuestions - correctAnswers;
 
-    // Unanswered questions are included in the total
-    // but are not counted as correct.
+    const unansweredQuestions = totalQuestions - answeredQuestions;
+
     const percentage =
       totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
 
     const passed = percentage >= Number(attempt.pass_percentage);
 
-    // 7. Calculate actual duration
-    const actualDurationResult = await pool.query(
-      `SELECT
-         NOW() - started_at AS duration
+    const actualDurationResult = await client.query(
+      `SELECT NOW() - started_at AS duration
        FROM test_attempts
        WHERE id = $1`,
       [attemptId],
@@ -967,15 +919,15 @@ export const submitTest = async (req, res) => {
 
     const actualDuration = actualDurationResult.rows[0].duration;
 
-    // 8. Complete the attempt
-    const completionResult = await pool.query(
+    await client.query("BEGIN");
+
+    const completionResult = await client.query(
       `UPDATE test_attempts
-       SET
-         status = 'COMPLETED',
-         submitted_at = NOW(),
-         score = $2,
-         passed = $3,
-         actual_duration = $4
+       SET status = 'COMPLETED',
+           submitted_at = NOW(),
+           score = $2,
+           passed = $3,
+           actual_duration = $4
        WHERE id = $1
        RETURNING
          id,
@@ -987,62 +939,111 @@ export const submitTest = async (req, res) => {
       [attemptId, Math.round(percentage), passed, actualDuration],
     );
 
-    const completedAttempt = completionResult.rows[0];
+    if (completionResult.rows.length === 0) {
+      await client.query("ROLLBACK");
 
-    if (attempt.attempt_number === 3 && !passed) {
-      await pool.query(
-        `UPDATE chapter_progress
-     SET
-       learning_time_seconds = 0,
-       completed_at = NULL
-     WHERE user_id = $1
-       AND chapter_id IN (
-         SELECT id
-         FROM chapters
-         WHERE course_id = $2
-       )`,
-        [attempt.user_id, attempt.course_id],
-      );
-
-      await pool.query(
-        `DELETE FROM subchapter_progress
-            WHERE user_id = $1
-              AND subchapter_id IN (
-                SELECT s.id
-                FROM subchapters s
-                JOIN chapters c
-                  ON c.id = s.chapter_id
-                WHERE c.course_id = $2
-       )`,
-        [attempt.user_id, attempt.course_id],
-      );
+      return res.status(400).json({
+        error: "Unable to complete the test attempt.",
+      });
     }
 
-    // 9. Return result
+    const completedAttempt = completionResult.rows[0];
+
+    const result = {
+      attempt_id: attemptId,
+      test_id: attempt.test_id,
+      course_id: attempt.course_id,
+      attempt_number: attempt.attempt_number,
+      total_questions: totalQuestions,
+      answered_questions: answeredQuestions,
+      correct_answers: correctAnswers,
+      incorrect_answers: incorrectAnswers,
+      unanswered_questions: unansweredQuestions,
+      percentage: Number(percentage.toFixed(2)),
+      pass_percentage: Number(attempt.pass_percentage),
+      passed,
+      status: completedAttempt.status,
+      submitted_at: completedAttempt.submitted_at,
+      score: completedAttempt.score,
+      actual_duration: completedAttempt.actual_duration,
+      started_at: attempt.started_at,
+    };
+
+    const isFinalFailedAttempt =
+      attempt.attempt_number === Number(attempt.max_attempts) && !passed;
+
+    if (isFinalFailedAttempt) {
+      console.log("FINAL ATTEMPT RESET TRIGGERED", {
+        attempt_number: attempt.attempt_number,
+        max_attempts: attempt.max_attempts,
+        test_id: attempt.test_id,
+        course_id: attempt.course_id,
+        user_id: attempt.user_id,
+      });
+
+      await client.query(
+        `UPDATE chapter_progress
+         SET learning_time_seconds = 0,
+             completed_at = NULL
+         WHERE user_id = $1
+           AND chapter_id IN (
+             SELECT id
+             FROM chapters
+             WHERE course_id = $2
+           )`,
+        [attempt.user_id, attempt.course_id],
+      );
+
+      await client.query(
+        `DELETE FROM subchapter_progress
+         WHERE user_id = $1
+           AND subchapter_id IN (
+             SELECT s.id
+             FROM subchapters s
+             JOIN chapters c
+               ON c.id = s.chapter_id
+             WHERE c.course_id = $2
+           )`,
+        [attempt.user_id, attempt.course_id],
+      );
+
+      await client.query(
+        `DELETE FROM test_attempts
+         WHERE test_id = $1
+           AND user_id = $2`,
+        [attempt.test_id, attempt.user_id],
+      );
+
+      console.log("FINAL ATTEMPT RESET COMPLETED", {
+        test_id: attempt.test_id,
+        course_id: attempt.course_id,
+        user_id: attempt.user_id,
+      });
+    }
+
+    await client.query("COMMIT");
+
     return res.json({
-      message: "Test submitted successfully.",
-      result: {
-        attempt_id: attemptId,
-        total_questions: totalQuestions,
-        answered_questions: answeredQuestions,
-        correct_answers: correctAnswers,
-        incorrect_answers: incorrectAnswers,
-        unanswered_questions: totalQuestions - answeredQuestions,
-        percentage: Number(percentage.toFixed(2)),
-        pass_percentage: Number(attempt.pass_percentage),
-        passed,
-        status: completedAttempt.status,
-        submitted_at: completedAttempt.submitted_at,
-        score: completedAttempt.score,
-        actual_duration: completedAttempt.actual_duration,
-      },
+      message: isFinalFailedAttempt
+        ? "Test submitted. You have failed all allowed attempts. Your course progress has been reset."
+        : "Test submitted successfully.",
+      reset: isFinalFailedAttempt,
+      result,
     });
   } catch (err) {
+    try {
+      await client.query("ROLLBACK");
+    } catch (rollbackError) {
+      console.error("Rollback error:", rollbackError);
+    }
+
     console.error("Error submitting test:", err);
 
     return res.status(500).json({
       error: "Server error.",
     });
+  } finally {
+    client.release();
   }
 };
 
@@ -1060,7 +1061,11 @@ export const getTestAttempts = async (req, res) => {
 
   try {
     const testResult = await pool.query(
-      `SELECT id, title, max_attempts
+      `SELECT
+         id,
+         title,
+         course_id,
+         max_attempts
        FROM tests
        WHERE id = $1`,
       [testId],
@@ -1085,7 +1090,7 @@ export const getTestAttempts = async (req, res) => {
        FROM test_attempts
        WHERE test_id = $1
          AND user_id = $2
-       ORDER BY attempt_number ASC`,
+       ORDER BY id ASC`,
       [testId, req.user.id],
     );
 
@@ -1124,10 +1129,10 @@ export const resumeTest = async (req, res) => {
          ta.status,
          ta.started_at,
          ta.expires_at,
+         t.course_id,
          t.title,
          t.pass_percentage,
-         t.duration_minutes,
-         t.questions_per_attempt
+         t.duration_minutes
        FROM test_attempts ta
        JOIN tests t
          ON t.id = ta.test_id
@@ -1160,9 +1165,8 @@ export const resumeTest = async (req, res) => {
     if (expirationResult.rows[0].expired) {
       await pool.query(
         `UPDATE test_attempts
-         SET
-           status = 'EXPIRED',
-           actual_duration = expires_at - started_at
+         SET status = 'EXPIRED',
+             actual_duration = expires_at - started_at
          WHERE id = $1`,
         [attemptId],
       );
@@ -1208,9 +1212,7 @@ export const resumeTest = async (req, res) => {
     }
 
     const answersResult = await pool.query(
-      `SELECT
-         question_id,
-         option_id
+      `SELECT question_id, option_id
        FROM attempt_answers
        WHERE attempt_id = $1`,
       [attemptId],
@@ -1228,9 +1230,9 @@ export const resumeTest = async (req, res) => {
       },
       test: {
         id: attempt.test_id,
+        course_id: attempt.course_id,
         title: attempt.title,
         duration_minutes: attempt.duration_minutes,
-        questions_per_attempt: attempt.questions_per_attempt,
         pass_percentage: attempt.pass_percentage,
       },
       questions: Array.from(questionsMap.values()),
@@ -1269,7 +1271,6 @@ export const saveAnswer = async (req, res) => {
   }
 
   try {
-    // 1. Get the learner's attempt
     const attemptResult = await pool.query(
       `SELECT
          id,
@@ -1290,14 +1291,12 @@ export const saveAnswer = async (req, res) => {
 
     const attempt = attemptResult.rows[0];
 
-    // 2. Attempt must still be in progress
     if (attempt.status !== "IN_PROGRESS") {
       return res.status(400).json({
         error: "This test attempt is no longer in progress.",
       });
     }
 
-    // 3. Check expiration
     const expirationResult = await pool.query(
       `SELECT NOW() > expires_at AS expired
        FROM test_attempts
@@ -1308,9 +1307,8 @@ export const saveAnswer = async (req, res) => {
     if (expirationResult.rows[0].expired) {
       await pool.query(
         `UPDATE test_attempts
-         SET
-           status = 'EXPIRED',
-           actual_duration = expires_at - started_at
+         SET status = 'EXPIRED',
+             actual_duration = expires_at - started_at
          WHERE id = $1`,
         [attemptId],
       );
@@ -1320,7 +1318,6 @@ export const saveAnswer = async (req, res) => {
       });
     }
 
-    // 4. Make sure the question belongs to this attempt
     const questionResult = await pool.query(
       `SELECT question_id
        FROM attempt_questions
@@ -1335,7 +1332,6 @@ export const saveAnswer = async (req, res) => {
       });
     }
 
-    // 5. Make sure the option belongs to the question
     const optionResult = await pool.query(
       `SELECT id
        FROM question_options
@@ -1350,7 +1346,6 @@ export const saveAnswer = async (req, res) => {
       });
     }
 
-    // 6. Save or update the answer
     const answerResult = await pool.query(
       `INSERT INTO attempt_answers (
          attempt_id,
@@ -1359,12 +1354,8 @@ export const saveAnswer = async (req, res) => {
        )
        VALUES ($1, $2, $3)
        ON CONFLICT (attempt_id, question_id)
-       DO UPDATE SET
-         option_id = EXCLUDED.option_id
-       RETURNING
-         attempt_id,
-         question_id,
-         option_id`,
+       DO UPDATE SET option_id = EXCLUDED.option_id
+       RETURNING attempt_id, question_id, option_id`,
       [attemptId, Number(question_id), Number(option_id)],
     );
 
@@ -1406,6 +1397,7 @@ export const getTestResult = async (req, res) => {
          ta.submitted_at,
          ta.actual_duration,
          t.title AS test_title,
+         t.course_id,
          t.pass_percentage
        FROM test_attempts ta
        JOIN tests t
@@ -1466,6 +1458,7 @@ export const getTestResult = async (req, res) => {
         attempt_id: attempt.attempt_id,
         test_id: attempt.test_id,
         test_title: attempt.test_title,
+        course_id: attempt.course_id,
         attempt_number: attempt.attempt_number,
         total_questions: totalQuestions,
         answered_questions: answeredQuestions,
@@ -1507,7 +1500,9 @@ export const deleteTest = async (req, res) => {
 
   try {
     const instructorResult = await client.query(
-      `SELECT id FROM instructors WHERE user_id = $1`,
+      `SELECT id
+       FROM instructors
+       WHERE user_id = $1`,
       [req.user.id],
     );
 
@@ -1520,7 +1515,13 @@ export const deleteTest = async (req, res) => {
     const instructorId = instructorResult.rows[0].id;
 
     const testResult = await client.query(
-      `SELECT t.id FROM tests t JOIN courses c ON c.id = t.course_id WHERE t.id = $1 AND c.instructor_id = $2 AND c.status <> 'PUBLISHED'`,
+      `SELECT t.id
+       FROM tests t
+       JOIN courses c
+         ON c.id = t.course_id
+       WHERE t.id = $1
+         AND c.instructor_id = $2
+         AND c.status <> 'PUBLISHED'`,
       [testId, instructorId],
     );
 
@@ -1532,31 +1533,37 @@ export const deleteTest = async (req, res) => {
 
     await client.query("BEGIN");
 
-    await client.query(`DELETE FROM test_attempts WHERE test_id = $1`, [
-      testId,
-    ]);
-
-    // Delete question options.
     await client.query(
-      `DELETE FROM question_options WHERE question_id IN (SELECT id FROM test_questions WHERE test_id = $1)`,
+      `DELETE FROM test_attempts
+       WHERE test_id = $1`,
       [testId],
     );
 
-    // Delete questions.
-    await client.query(`DELETE FROM test_questions WHERE test_id = $1`, [
-      testId,
-    ]);
+    await client.query(
+      `DELETE FROM question_options
+       WHERE question_id IN (
+         SELECT id
+         FROM test_questions
+         WHERE test_id = $1
+       )`,
+      [testId],
+    );
 
-    // Finally delete the test.
+    await client.query(
+      `DELETE FROM test_questions
+       WHERE test_id = $1`,
+      [testId],
+    );
+
     const deleteResult = await client.query(
       `DELETE FROM tests
-        WHERE id = $1
-        AND EXISTS (
-          SELECT 1
-          FROM courses
-          WHERE courses.id = tests.course_id
-          AND courses.status <> 'PUBLISHED'
-        )`,
+       WHERE id = $1
+         AND EXISTS (
+           SELECT 1
+           FROM courses
+           WHERE courses.id = tests.course_id
+             AND courses.status <> 'PUBLISHED'
+         )`,
       [testId],
     );
 
@@ -1574,7 +1581,11 @@ export const deleteTest = async (req, res) => {
       message: "Test and all related data deleted successfully.",
     });
   } catch (err) {
-    await client.query("ROLLBACK");
+    try {
+      await client.query("ROLLBACK");
+    } catch (rollbackError) {
+      console.error("Rollback error:", rollbackError);
+    }
 
     console.error("Error deleting test:", err);
 

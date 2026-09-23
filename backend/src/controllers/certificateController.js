@@ -12,41 +12,38 @@ import pool from "../config/db.js";
 export const requestCertificate = async (req, res) => {
   const courseId = parseInt(req.params.courseId, 10);
 
-  const { phone_number } = req.body || {};
-
   if (!Number.isInteger(courseId)) {
     return res.status(400).json({
       error: "Invalid course ID.",
     });
   }
 
-  if (!phone_number?.trim()) {
-    return res.status(400).json({
-      error: "Mobile Money phone number is required.",
-    });
-  }
-
   try {
-    // 1. Get the course and price
     const courseResult = await pool.query(
       `SELECT
-         id,
-         title,
-         price
-       FROM courses
-       WHERE id = $1`,
+         c.id,
+         c.title,
+         c.price,
+         i.id AS instructor_id,
+         i.firstname AS instructor_firstname,
+         i.lastname AS instructor_lastname,
+         i.phone AS instructor_phone
+       FROM courses c
+       JOIN instructors i
+         ON i.id = c.instructor_id
+       WHERE c.id = $1`,
       [courseId],
     );
 
     if (courseResult.rows.length === 0) {
       return res.status(404).json({
-        error: "Course not found.",
+        error: "Course or instructor not found.",
       });
     }
 
     const course = courseResult.rows[0];
 
-    // 2. Make sure learner is enrolled
+    // Check learner enrollment
     const enrollmentResult = await pool.query(
       `SELECT id, status
        FROM enrollments
@@ -61,9 +58,7 @@ export const requestCertificate = async (req, res) => {
       });
     }
 
-    const enrollment = enrollmentResult.rows[0];
-
-    // 3. Find the course test
+    // Find the course test
     const testResult = await pool.query(
       `SELECT
          id,
@@ -82,7 +77,7 @@ export const requestCertificate = async (req, res) => {
 
     const test = testResult.rows[0];
 
-    // 4. Make sure the learner has passed the test
+    // Check that learner passed the test
     const passedAttemptResult = await pool.query(
       `SELECT
          id,
@@ -105,7 +100,7 @@ export const requestCertificate = async (req, res) => {
       });
     }
 
-    // 5. Check whether certificate already exists
+    // Check whether certificate already exists
     const certificateResult = await pool.query(
       `SELECT
          id,
@@ -124,15 +119,19 @@ export const requestCertificate = async (req, res) => {
       });
     }
 
-    // 6. Check for an existing pending request
+    // Check whether a pending request already exists
     const pendingRequestResult = await pool.query(
       `SELECT
          id,
+         user_id,
+         course_id,
          amount,
          phone_number,
          payment_status,
          certificate_status,
-         requested_at
+         requested_at,
+         paid_at,
+         issued_at
        FROM certificate_requests
        WHERE user_id = $1
          AND course_id = $2
@@ -143,14 +142,24 @@ export const requestCertificate = async (req, res) => {
     );
 
     if (pendingRequestResult.rows.length > 0) {
-      return res.status(409).json({
-        error:
-          "You already have a pending certificate request for this course.",
+      return res.status(200).json({
+        message: "Your certificate request is already under review.",
         request: pendingRequestResult.rows[0],
+        course: {
+          id: course.id,
+          title: course.title,
+          price: course.price,
+        },
+        instructor: {
+          id: course.instructor_id,
+          firstname: course.instructor_firstname,
+          lastname: course.instructor_lastname,
+          phone: course.instructor_phone,
+        },
       });
     }
 
-    // 7. Create certificate request
+    // Create certificate request
     const requestResult = await pool.query(
       `INSERT INTO certificate_requests (
          user_id,
@@ -160,7 +169,7 @@ export const requestCertificate = async (req, res) => {
          payment_status,
          certificate_status
        )
-       VALUES ($1, $2, $3, $4, 'PENDING', 'PENDING')
+       VALUES ($1, $2, $3, $4, 'OUTSIDE_SYSTEM', 'PENDING')
        RETURNING
          id,
          user_id,
@@ -169,19 +178,27 @@ export const requestCertificate = async (req, res) => {
          phone_number,
          payment_status,
          certificate_status,
-         requested_at`,
-      [req.user.id, courseId, course.price, phone_number.trim()],
+         requested_at,
+         paid_at,
+         issued_at`,
+      [req.user.id, courseId, course.price, course.instructor_phone],
     );
 
     const certificateRequest = requestResult.rows[0];
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Certificate request created successfully.",
       request: certificateRequest,
       course: {
         id: course.id,
         title: course.title,
         price: course.price,
+      },
+      instructor: {
+        id: course.instructor_id,
+        firstname: course.instructor_firstname,
+        lastname: course.instructor_lastname,
+        phone: course.instructor_phone,
       },
       test: {
         id: test.id,
@@ -192,14 +209,14 @@ export const requestCertificate = async (req, res) => {
   } catch (err) {
     console.error("Error requesting certificate:", err);
 
-    res.status(500).json({
+    return res.status(500).json({
       error: "Server error.",
     });
   }
 };
 
 /**
- * Get the learner's certificate request for a course.
+ * Get the learner's certificate request for a specific course.
  */
 export const getCertificateRequest = async (req, res) => {
   const courseId = parseInt(req.params.courseId, 10);
@@ -241,13 +258,13 @@ export const getCertificateRequest = async (req, res) => {
       });
     }
 
-    res.json({
+    return res.json({
       request: result.rows[0],
     });
   } catch (err) {
     console.error("Error fetching certificate request:", err);
 
-    res.status(500).json({
+    return res.status(500).json({
       error: "Server error.",
     });
   }
@@ -297,19 +314,33 @@ export const getCertificate = async (req, res) => {
       });
     }
 
-    res.json({
+    return res.json({
       certificate: result.rows[0],
     });
   } catch (err) {
     console.error("Error fetching certificate:", err);
 
-    res.status(500).json({
+    return res.status(500).json({
       error: "Server error.",
     });
   }
 };
 
+/**
+ * Get the learner's certificate request for a specific course.
+ *
+ * This is the function used by:
+ * GET /api/certificates/request/:courseId
+ */
 export const getMyCertificateRequest = async (req, res) => {
+  const courseId = parseInt(req.params.courseId, 10);
+
+  if (!Number.isInteger(courseId)) {
+    return res.status(400).json({
+      error: "Invalid course ID.",
+    });
+  }
+
   try {
     const result = await pool.query(
       `SELECT
@@ -323,30 +354,40 @@ export const getMyCertificateRequest = async (req, res) => {
          cr.requested_at,
          cr.paid_at,
          cr.issued_at,
-         c.title AS course_title
+         c.title AS course_title,
+         c.price AS course_price
        FROM certificate_requests cr
        JOIN courses c
          ON c.id = cr.course_id
        WHERE cr.user_id = $1
-       ORDER BY cr.requested_at DESC`,
-      [req.user.id],
+         AND cr.course_id = $2
+       ORDER BY cr.requested_at DESC
+       LIMIT 1`,
+      [req.user.id, courseId],
     );
 
-    res.json({
-      requests: result.rows,
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: "No certificate request found.",
+      });
+    }
+
+    return res.json({
+      request: result.rows[0],
     });
   } catch (err) {
-    console.error("Error fetching certificate requests:", err);
+    console.error("Error fetching certificate request:", err);
 
-    res.status(500).json({
+    return res.status(500).json({
       error: "Server error.",
     });
   }
 };
 
 /**
- * Verify Mobile Money payment and issue certificate
- * Local/testing version
+ * Verify Mobile Money payment and issue certificate.
+ *
+ * Local/testing version.
  */
 export const verifyCertificatePayment = async (req, res) => {
   const requestId = parseInt(req.params.requestId, 10);
@@ -358,7 +399,6 @@ export const verifyCertificatePayment = async (req, res) => {
   }
 
   try {
-    // 1. Get the certificate request belonging to the logged-in learner
     const requestResult = await pool.query(
       `SELECT
          cr.id,
@@ -385,7 +425,7 @@ export const verifyCertificatePayment = async (req, res) => {
 
     const request = requestResult.rows[0];
 
-    // 2. If certificate has already been issued
+    // Certificate already issued
     if (request.certificate_status === "ISSUED") {
       const certificateResult = await pool.query(
         `SELECT
@@ -408,7 +448,7 @@ export const verifyCertificatePayment = async (req, res) => {
       });
     }
 
-    // 3. If payment has already been confirmed
+    // Payment already confirmed
     if (request.payment_status === "PAID") {
       return res.json({
         message: "Payment has already been confirmed.",
@@ -419,11 +459,10 @@ export const verifyCertificatePayment = async (req, res) => {
     /*
      * LOCAL TESTING ONLY
      *
-     * In production, this is where we will verify
-     * the transaction with MTN MoMo/Airtel Money.
+     * In production, this is where the transaction
+     * will be verified with MTN MoMo/Airtel Money.
      */
 
-    // 4. Confirm payment
     await pool.query(
       `UPDATE certificate_requests
        SET
@@ -433,16 +472,15 @@ export const verifyCertificatePayment = async (req, res) => {
       [requestId],
     );
 
-    // 5. Generate a unique certificate number
-    const certificateNumber = `RCVD-${new Date().getFullYear()}-${request.id}`;
+    // Generate certificate number
+    const certificateNumber = `RCVD-${new Date().getFullYear()}-${String(
+      request.id,
+    ).padStart(6, "0")}`;
 
-    // 6. Generate QR-code data
-    //
-    // For now we store the verification URL as text.
-    // Later the frontend can turn this into an actual QR image.
+    // Store verification URL
     const qrCode = `/api/certificates/verify/${certificateNumber}`;
 
-    // 7. Create the certificate
+    // Create certificate
     const certificateResult = await pool.query(
       `INSERT INTO certificates (
          certificate_number,
@@ -464,7 +502,7 @@ export const verifyCertificatePayment = async (req, res) => {
 
     const certificate = certificateResult.rows[0];
 
-    // 8. Mark certificate request as issued
+    // Mark request as issued
     await pool.query(
       `UPDATE certificate_requests
        SET
@@ -474,8 +512,7 @@ export const verifyCertificatePayment = async (req, res) => {
       [requestId],
     );
 
-    // 9. Return payment + certificate information
-    res.json({
+    return res.json({
       message: "Payment confirmed and certificate issued successfully.",
       payment: {
         request_id: request.id,
@@ -490,7 +527,7 @@ export const verifyCertificatePayment = async (req, res) => {
   } catch (err) {
     console.error("Error verifying payment and issuing certificate:", err);
 
-    res.status(500).json({
+    return res.status(500).json({
       error: "Server error.",
     });
   }

@@ -7,17 +7,26 @@ import {
   saveAnswer,
   submitTest,
   getTestAttempts,
+  getTestResult,
 } from "../services/testService";
+
+import { requestCertificate } from "../services/certificateService";
 
 function TestPage() {
   const { testId } = useParams();
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+
   const [test, setTest] = useState(null);
   const [attempts, setAttempts] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [attempt, setAttempt] = useState(null);
   const [answers, setAnswers] = useState({});
+  const [result, setResult] = useState(null);
+
+  const [courseId, setCourseId] = useState(null);
+  const [certificateRequest, setCertificateRequest] = useState(null);
+  const [certificateLoading, setCertificateLoading] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
@@ -31,7 +40,6 @@ function TestPage() {
       const milliseconds = Number(duration.milliseconds || 0);
 
       const totalSeconds = Math.floor(seconds + milliseconds / 1000);
-
       const minutes = Math.floor(totalSeconds / 60);
       const remainingSeconds = totalSeconds % 60;
 
@@ -47,15 +55,76 @@ function TestPage() {
 
   const formatDate = (date) => {
     if (!date) return "—";
-
     return new Date(date).toLocaleString();
+  };
+
+  const loadCertificateRequest = async (id) => {
+    if (!id) {
+      setCertificateRequest(null);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:4000/api/certificates/request/${id}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (response.status === 404) {
+        setCertificateRequest(null);
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to load certificate request.");
+      }
+
+      setCertificateRequest(data.request || null);
+    } catch (err) {
+      console.error("Error loading certificate request:", err);
+      setCertificateRequest(null);
+    }
   };
 
   const loadAttempts = async () => {
     const data = await getTestAttempts(testId, token);
 
-    setTest(data.test);
-    setAttempts(data.attempts || []);
+    const loadedTest = data.test || null;
+    const loadedAttempts = data.attempts || [];
+
+    setTest(loadedTest);
+    setAttempts(loadedAttempts);
+
+    const detectedCourseId = Number(loadedTest?.course_id);
+
+    if (Number.isInteger(detectedCourseId) && detectedCourseId > 0) {
+      setCourseId(detectedCourseId);
+      await loadCertificateRequest(detectedCourseId);
+    } else {
+      setCourseId(null);
+      setCertificateRequest(null);
+    }
+
+    const passedAttempt = loadedAttempts.find((item) => item.passed === true);
+
+    if (passedAttempt) {
+      try {
+        const resultData = await getTestResult(passedAttempt.id, token);
+
+        setResult(resultData.result || null);
+      } catch (err) {
+        console.error("Error loading test result:", err);
+      }
+    } else {
+      setResult(null);
+    }
   };
 
   const startTest = async () => {
@@ -68,7 +137,12 @@ function TestPage() {
       setAttempt(data.attempt);
       setQuestions(data.questions || []);
 
-      // Load any answers that may already exist
+      const detectedCourseId = Number(data.test?.course_id);
+
+      if (Number.isInteger(detectedCourseId) && detectedCourseId > 0) {
+        setCourseId(detectedCourseId);
+      }
+
       const existingAnswers = {};
 
       (data.answers || []).forEach((answer) => {
@@ -87,13 +161,162 @@ function TestPage() {
     }
   };
 
+  const resumeExistingTest = async (attemptId) => {
+    setError("");
+    setStarting(true);
+
+    try {
+      const data = await resumeTest(attemptId, token);
+
+      setAttempt(data.attempt);
+      setQuestions(data.questions || []);
+
+      const detectedCourseId = Number(data.test?.course_id);
+
+      if (Number.isInteger(detectedCourseId) && detectedCourseId > 0) {
+        setCourseId(detectedCourseId);
+      }
+
+      const existingAnswers = {};
+
+      (data.answers || []).forEach((answer) => {
+        existingAnswers[answer.question_id] = answer.option_id;
+      });
+
+      setAnswers(existingAnswers);
+    } catch (err) {
+      console.error("Error resuming test:", err);
+
+      setError(
+        err.response?.data?.error || err.message || "Failed to resume test.",
+      );
+    } finally {
+      setStarting(false);
+    }
+  };
+
+  const handleSubmitTest = async () => {
+    const unansweredQuestions = questions.filter(
+      (question) => !answers[question.question_id],
+    );
+
+    if (unansweredQuestions.length > 0) {
+      const confirmSubmit = window.confirm(
+        `You have ${unansweredQuestions.length} unanswered question(s). Do you want to submit anyway?`,
+      );
+
+      if (!confirmSubmit) {
+        return;
+      }
+    }
+
+    setStarting(true);
+    setError("");
+
+    try {
+      const submissionData = await submitTest(attempt.id, answers, token);
+      const submittedResult = submissionData?.result;
+
+      if (!submittedResult) {
+        throw new Error("Test result was not returned by the server.");
+      }
+
+      setResult(submittedResult);
+
+      const resultCourseId = Number(
+        submittedResult.course_id || test?.course_id || courseId || 0,
+      );
+
+      if (Number.isInteger(resultCourseId) && resultCourseId > 0) {
+        setCourseId(resultCourseId);
+      }
+
+      if (
+        submittedResult.passed &&
+        Number.isInteger(resultCourseId) &&
+        resultCourseId > 0
+      ) {
+        await loadCertificateRequest(resultCourseId);
+      }
+
+      const attemptsData = await getTestAttempts(testId, token);
+
+      setTest(attemptsData.test || test);
+      setAttempts(attemptsData.attempts || []);
+
+      setAttempt(null);
+      setQuestions([]);
+      setAnswers({});
+    } catch (err) {
+      console.error("Error submitting test:", err);
+
+      setError(
+        err.response?.data?.error || err.message || "Failed to submit test.",
+      );
+    } finally {
+      setStarting(false);
+    }
+  };
+
+  const handleRequestCertificate = async () => {
+    setCertificateLoading(true);
+    setError("");
+
+    try {
+      let id = Number(test?.course_id || courseId || 0);
+
+      /*
+       * If the course ID is not currently available in state,
+       * refresh the test information from the backend.
+       */
+      if (!Number.isInteger(id) || id <= 0) {
+        const data = await getTestAttempts(testId, token);
+
+        const refreshedTest = data.test || null;
+        const refreshedCourseId = Number(refreshedTest?.course_id);
+
+        if (
+          refreshedTest &&
+          Number.isInteger(refreshedCourseId) &&
+          refreshedCourseId > 0
+        ) {
+          setTest(refreshedTest);
+          setAttempts(data.attempts || []);
+          setCourseId(refreshedCourseId);
+
+          id = refreshedCourseId;
+        }
+      }
+
+      if (!Number.isInteger(id) || id <= 0) {
+        throw new Error("The course linked to this test could not be found.");
+      }
+
+      const certificateData = await requestCertificate(id, token);
+
+      setCertificateRequest(certificateData.request || null);
+      setCourseId(id);
+    } catch (err) {
+      console.error("Error requesting certificate:", err);
+
+      setError(
+        err.response?.data?.error ||
+          err.message ||
+          "Failed to request certificate.",
+      );
+    } finally {
+      setCertificateLoading(false);
+    }
+  };
+
   useEffect(() => {
     const loadTest = async () => {
       try {
         await loadAttempts();
       } catch (err) {
         console.error("Error loading test:", err);
-        setError(err.message);
+
+        setError(err.message || "Failed to load test.");
       } finally {
         setLoading(false);
       }
@@ -118,7 +341,6 @@ function TestPage() {
     );
   }
 
-  // If an attempt has started, show the test
   if (attempt) {
     return (
       <div className="container py-5">
@@ -127,6 +349,8 @@ function TestPage() {
         <div className="mb-4">
           Attempt {attempt.attempt_number} · {questions.length} questions
         </div>
+
+        {error && <div className="alert alert-danger">{error}</div>}
 
         {questions.map((question, index) => (
           <div className="card mb-4" key={question.question_id}>
@@ -190,40 +414,7 @@ function TestPage() {
 
           <button
             className="btn btn-success px-4"
-            onClick={async () => {
-              const unansweredQuestions = questions.filter(
-                (question) => !answers[question.question_id],
-              );
-
-              if (unansweredQuestions.length > 0) {
-                const confirmSubmit = window.confirm(
-                  `You have ${unansweredQuestions.length} unanswered question(s). Do you want to submit anyway?`,
-                );
-
-                if (!confirmSubmit) {
-                  return;
-                }
-              }
-
-              setStarting(true);
-              setError("");
-
-              try {
-                await submitTest(attempt.id, answers, token);
-
-                navigate(`/tests/result/${attempt.id}`);
-              } catch (err) {
-                console.error("Error submitting test:", err);
-
-                setError(
-                  err.response?.data?.error ||
-                    err.message ||
-                    "Failed to submit test.",
-                );
-              } finally {
-                setStarting(false);
-              }
-            }}
+            onClick={handleSubmitTest}
             disabled={starting}
           >
             {starting ? "Submitting..." : "Submit Test"}
@@ -233,24 +424,11 @@ function TestPage() {
     );
   }
 
-  const completedAttempts = attempts.filter(
-    (item) => item.status === "COMPLETED",
-  );
-
   const inProgressAttempt = attempts.find(
     (item) => item.status === "IN_PROGRESS",
   );
 
   const hasPassed = attempts.some((item) => item.passed === true);
-
-  const attemptsUsed = attempts.filter(
-    (item) => item.status === "COMPLETED",
-  ).length;
-
-  const canStart =
-    !hasPassed &&
-    !inProgressAttempt &&
-    attemptsUsed < Number(test.max_attempts);
 
   return (
     <div className="container py-5">
@@ -261,17 +439,66 @@ function TestPage() {
               <h2 className="mb-2">{test.title}</h2>
 
               <p className="text-muted mb-0">
-                Maximum attempts: {test.max_attempts}
+                Maximum attempts per cycle: {test.max_attempts}
               </p>
             </div>
           </div>
 
           {error && <div className="alert alert-danger">{error}</div>}
 
-          {hasPassed && (
-            <div className="alert alert-success">
-              <strong>Congratulations!</strong> You have already passed this
-              test.
+          {result && (
+            <div className="card shadow-sm border-0 mb-4">
+              <div className="card-body text-center">
+                <h3 className={result.passed ? "text-success" : "text-danger"}>
+                  {result.passed ? "Test Passed!" : "Test Failed"}
+                </h3>
+
+                <p className="mb-2">
+                  Score: <strong>{result.score}%</strong>
+                </p>
+
+                <p className="mb-2">
+                  Correct answers:{" "}
+                  <strong>
+                    {result.correct_answers} / {result.total_questions}
+                  </strong>
+                </p>
+
+                <p className="mb-3">
+                  Required to pass: <strong>{result.pass_percentage}%</strong>
+                </p>
+
+                {result.passed && (
+                  <>
+                    {!certificateRequest ? (
+                      <button
+                        className="btn btn-primary px-4"
+                        disabled={certificateLoading}
+                        onClick={handleRequestCertificate}
+                      >
+                        {certificateLoading
+                          ? "Requesting..."
+                          : "Request Certificate"}
+                      </button>
+                    ) : (
+                      <div className="alert alert-info mb-0">
+                        Your certificate request is being reviewed.
+                        <br />
+                        <strong>Status:</strong>{" "}
+                        {certificateRequest.certificate_status}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {!result.passed && result.reset && (
+                  <div className="alert alert-warning mt-3 mb-0">
+                    You have failed all allowed attempts. Your course progress
+                    has been reset. You can start the course again from the
+                    beginning.
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -284,38 +511,7 @@ function TestPage() {
               <div className="mt-3">
                 <button
                   className="btn btn-warning"
-                  onClick={async () => {
-                    setError("");
-                    setStarting(true);
-
-                    try {
-                      const data = await resumeTest(
-                        inProgressAttempt.id,
-                        token,
-                      );
-
-                      setAttempt(data.attempt);
-                      setQuestions(data.questions || []);
-
-                      const existingAnswers = {};
-
-                      (data.answers || []).forEach((answer) => {
-                        existingAnswers[answer.question_id] = answer.option_id;
-                      });
-
-                      setAnswers(existingAnswers);
-                    } catch (err) {
-                      console.error("Error resuming test:", err);
-
-                      setError(
-                        err.response?.data?.error ||
-                          err.message ||
-                          "Failed to resume test.",
-                      );
-                    } finally {
-                      setStarting(false);
-                    }
-                  }}
+                  onClick={() => resumeExistingTest(inProgressAttempt.id)}
                   disabled={starting}
                 >
                   {starting ? "Resuming..." : "Resume Test"}
@@ -380,8 +576,8 @@ function TestPage() {
             </div>
           </div>
 
-          <div className="text-center mt-4">
-            {canStart && (
+          {!hasPassed && !inProgressAttempt && (
+            <div className="text-center mt-4">
               <button
                 className="btn btn-primary px-4"
                 onClick={startTest}
@@ -389,14 +585,8 @@ function TestPage() {
               >
                 {starting ? "Starting Test..." : "Start Test"}
               </button>
-            )}
-
-            {attemptsUsed >= Number(test.max_attempts) && !hasPassed && (
-              <div className="alert alert-danger mt-3">
-                You have reached the maximum number of attempts.
-              </div>
-            )}
-          </div>
+            </div>
+          )}
 
           <div className="text-center mt-3">
             <button

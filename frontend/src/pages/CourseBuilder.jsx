@@ -19,6 +19,13 @@ const calculateChapterReadingTime = (subchapters = []) => {
   return Math.ceil(totalWords / 100);
 };
 
+const createEmptyQuestionOptions = () => [
+  { text: "", is_correct: false },
+  { text: "", is_correct: false },
+  { text: "", is_correct: false },
+  { text: "", is_correct: false },
+];
+
 const CourseBuilder = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -44,16 +51,13 @@ const CourseBuilder = () => {
   const [showQuestionForm, setShowQuestionForm] = useState(false);
   const [questionText, setQuestionText] = useState("");
 
-  const [questionOptions, setQuestionOptions] = useState([
-    { text: "", is_correct: false },
-    { text: "", is_correct: false },
-  ]);
+  const [questionOptions, setQuestionOptions] = useState(
+    createEmptyQuestionOptions(),
+  );
 
   const [testTitle, setTestTitle] = useState("");
   const [testPassPercentage, setTestPassPercentage] = useState(80);
   const [testDurationMinutes, setTestDurationMinutes] = useState(30);
-  const [testQuestionsPerAttempt, setTestQuestionsPerAttempt] = useState(20);
-  const [testMaxAttempts, setTestMaxAttempts] = useState(3);
   const [savingTest, setSavingTest] = useState(false);
 
   const handleCreateTest = async () => {
@@ -83,8 +87,6 @@ const CourseBuilder = () => {
             title: testTitle.trim(),
             pass_percentage: Number(testPassPercentage),
             duration_minutes: Number(testDurationMinutes),
-            questions_per_attempt: Number(testQuestionsPerAttempt),
-            max_attempts: Number(testMaxAttempts),
           }),
         },
       );
@@ -93,6 +95,7 @@ const CourseBuilder = () => {
 
       if (!response.ok) {
         console.error("Error creating test:", data);
+        setError(data.error || "Failed to create test.");
         return;
       }
 
@@ -103,12 +106,102 @@ const CourseBuilder = () => {
       setTestTitle("");
       setTestPassPercentage(80);
       setTestDurationMinutes(30);
-      setTestQuestionsPerAttempt(20);
-      setTestMaxAttempts(3);
     } catch (err) {
       console.error("Error creating test:", err);
+      setError("Unable to create test. Please try again.");
     } finally {
       setSavingTest(false);
+    }
+  };
+
+  const handleCreateQuestion = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    if (!test) {
+      setError("Please create a test first.");
+      return;
+    }
+
+    if (!questionText.trim()) {
+      setError("Question text is required.");
+      return;
+    }
+
+    if (questionOptions.length !== 4) {
+      setError("Exactly four answer options are required.");
+      return;
+    }
+
+    if (questionOptions.some((option) => !option.text.trim())) {
+      setError("All answer options must have text.");
+      return;
+    }
+
+    const correctOptions = questionOptions.filter(
+      (option) => option.is_correct === true,
+    );
+
+    if (correctOptions.length !== 1) {
+      setError("Please select exactly one correct answer.");
+      return;
+    }
+
+    try {
+      setError("");
+
+      const response = await fetch(
+        `${API_URL}/api/tests/${test.id}/questions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            question_text: questionText.trim(),
+            options: questionOptions.map((option) => ({
+              text: option.text.trim(),
+              is_correct: option.is_correct === true,
+            })),
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || data.message || "Failed to create question.",
+        );
+      }
+
+      setQuestionText("");
+      setQuestionOptions(createEmptyQuestionOptions());
+      setShowQuestionForm(false);
+
+      const questionsResponse = await fetch(
+        `${API_URL}/api/tests/${test.id}/questions`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (questionsResponse.ok) {
+        const questionsData = await questionsResponse.json();
+        setQuestions(questionsData.questions || []);
+      }
+
+      setError("");
+    } catch (error) {
+      console.error("Error creating question:", error);
+      setError(error.message || "Failed to create question.");
     }
   };
 
@@ -205,89 +298,72 @@ const CourseBuilder = () => {
     }
   };
 
-  const handleCreateQuestion = async () => {
-    if (!test?.id) {
-      setError("Please create a test before adding questions.");
-      return;
-    }
-
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    if (!questionText.trim()) {
-      setError("Question text is required.");
-      return;
-    }
-
-    if (!Array.isArray(questionOptions) || questionOptions.length < 2) {
-      setError("At least two answer options are required.");
-      return;
-    }
-
-    const validOptions = questionOptions.every((option) => option.text?.trim());
-
-    if (!validOptions) {
-      setError("Please enter text for every answer option.");
-      return;
-    }
-
-    const correctOptions = questionOptions.filter(
-      (option) => option.is_correct === true,
-    );
-
-    if (correctOptions.length !== 1) {
-      setError("Please select exactly one correct answer.");
-      return;
-    }
+  const createQuestion = async (req, res) => {
+    const { testId } = req.params;
+    const { question_text, options } = req.body;
 
     try {
-      setError("");
-
-      const response = await fetch(
-        `${API_URL}/api/tests/${test.id}/questions`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            question_text: questionText.trim(),
-            options: questionOptions.map((option) => ({
-              text: option.text.trim(),
-              is_correct: option.is_correct === true,
-            })),
-          }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || "Failed to create question.");
-        return;
+      if (!question_text?.trim()) {
+        return res.status(400).json({ message: "Question text is required" });
       }
 
-      setQuestions((prev) => [
-        ...(Array.isArray(prev) ? prev : []),
-        data.question,
-      ]);
+      if (!Array.isArray(options) || options.length !== 4) {
+        return res.status(400).json({
+          message: "A question must have exactly 4 options",
+        });
+      }
 
-      setQuestionText("");
+      const hasEmptyOption = options.some((option) => !option.text?.trim());
 
-      setQuestionOptions([
-        { text: "", is_correct: false },
-        { text: "", is_correct: false },
-      ]);
+      if (hasEmptyOption) {
+        return res.status(400).json({
+          message: "All options must have text",
+        });
+      }
 
-      setShowQuestionForm(false);
-    } catch (err) {
-      console.error("Error creating question:", err);
-      setError("Unable to create question. Please try again.");
+      const correctOptions = options.filter(
+        (option) => option.is_correct === true,
+      );
+
+      if (correctOptions.length !== 1) {
+        return res.status(400).json({
+          message: "A question must have exactly one correct answer",
+        });
+      }
+
+      const testResult = await pool.query(
+        `SELECT id FROM tests WHERE id = $1`,
+        [testId],
+      );
+
+      if (testResult.rows.length === 0) {
+        return res.status(404).json({ message: "Test not found" });
+      }
+
+      const questionResult = await pool.query(
+        `INSERT INTO test_questions (test_id, question_text)
+       VALUES ($1, $2)
+       RETURNING id`,
+        [testId, question_text.trim()],
+      );
+
+      const questionId = questionResult.rows[0].id;
+
+      for (const option of options) {
+        await pool.query(
+          `INSERT INTO question_options (question_id, option_text, is_correct)
+         VALUES ($1, $2, $3)`,
+          [questionId, option.text.trim(), option.is_correct === true],
+        );
+      }
+
+      res.status(201).json({
+        message: "Question created successfully",
+        question_id: questionId,
+      });
+    } catch (error) {
+      console.error("Create question error:", error);
+      res.status(500).json({ message: "Server error" });
     }
   };
 
@@ -375,7 +451,7 @@ const CourseBuilder = () => {
 
           if (questionsResponse.ok) {
             const questionsData = await questionsResponse.json();
-            setQuestions(questionsData.questions);
+            setQuestions(questionsData.questions || []);
           }
         }
       } catch (err) {
@@ -532,7 +608,9 @@ const CourseBuilder = () => {
 
       if (deleteModal.type === "test") {
         setTest(null);
+        setQuestions([]);
         setShowTestForm(false);
+        setShowQuestionForm(false);
       }
 
       if (deleteModal.type === "question") {
@@ -1185,8 +1263,6 @@ const CourseBuilder = () => {
             <div>
               {course.chapters.map((chapter, index) => (
                 <div className="course-builder-chapter" key={chapter.id}>
-                  {/* Chapter Header */}
-
                   <div className="course-builder-chapter-header">
                     <div>
                       <div className="course-builder-chapter-number">
@@ -1234,10 +1310,6 @@ const CourseBuilder = () => {
                       </button>
                     </div>
                   </div>
-
-                  {/* =========================
-                      EDIT CHAPTER FORM
-                  ========================== */}
 
                   {editingChapter?.id === chapter.id && (
                     <form
@@ -1298,10 +1370,6 @@ const CourseBuilder = () => {
                     </form>
                   )}
 
-                  {/* =========================
-                      SUBCHAPTERS
-                  ========================== */}
-
                   <div className="course-builder-subchapters">
                     {chapter.subchapters && chapter.subchapters.length > 0 ? (
                       chapter.subchapters.map((subchapter, subIndex) => (
@@ -1309,8 +1377,6 @@ const CourseBuilder = () => {
                           className="course-builder-subchapter"
                           key={subchapter.id}
                         >
-                          {/* Subchapter Header */}
-
                           <div className="course-builder-subchapter-top">
                             <div>
                               <h4>
@@ -1354,10 +1420,6 @@ const CourseBuilder = () => {
                               </button>
                             </div>
                           </div>
-
-                          {/* =========================
-                              EDIT SUBCHAPTER FORM
-                          ========================== */}
 
                           {editingSubchapter?.id === subchapter.id && (
                             <form
@@ -1441,8 +1503,6 @@ const CourseBuilder = () => {
                             </form>
                           )}
 
-                          {/* Existing Content */}
-
                           {subchapter.content && (
                             <p className="course-builder-subchapter-content">
                               {subchapter.content}
@@ -1455,8 +1515,6 @@ const CourseBuilder = () => {
                         No subchapters have been added yet.
                       </p>
                     )}
-
-                    {/* Add Subchapter Button */}
 
                     {activeSubchapterChapter !== chapter.id && (
                       <button
@@ -1474,10 +1532,6 @@ const CourseBuilder = () => {
                         Add Subchapter
                       </button>
                     )}
-
-                    {/* =========================
-                        ADD SUBCHAPTER FORM
-                    ========================== */}
 
                     {activeSubchapterChapter === chapter.id && (
                       <form
@@ -1625,14 +1679,6 @@ const CourseBuilder = () => {
                   <span>
                     Time: <strong>{test.duration_minutes} min</strong>
                   </span>
-
-                  <span>
-                    Questions: <strong>{test.questions_per_attempt}</strong>
-                  </span>
-
-                  <span>
-                    Attempts: <strong>{test.max_attempts}</strong>
-                  </span>
                 </div>
 
                 <button
@@ -1640,18 +1686,14 @@ const CourseBuilder = () => {
                   className="course-builder-btn course-builder-btn-primary"
                   onClick={() => {
                     setError("");
+                    setQuestionText("");
+                    setQuestionOptions(createEmptyQuestionOptions());
                     setShowQuestionForm(true);
                   }}
-                  disabled={
-                    isPublished ||
-                    questions.length >= Number(test.questions_per_attempt)
-                  }
+                  disabled={isPublished}
                 >
                   <i className="bi bi-plus-lg"></i>
-
-                  {questions.length >= Number(test.questions_per_attempt)
-                    ? "Question Limit Reached"
-                    : "Add Question"}
+                  Add Question
                 </button>
               </div>
             )}
@@ -1707,38 +1749,6 @@ const CourseBuilder = () => {
                     className="course-builder-input"
                     value={testDurationMinutes}
                     onChange={(e) => setTestDurationMinutes(e.target.value)}
-                    min="1"
-                    disabled={isPublished}
-                  />
-                </div>
-              </div>
-
-              <div className="course-builder-form-row">
-                <div className="course-builder-field">
-                  <label htmlFor="testQuestionsPerAttempt">
-                    Questions per attempt
-                  </label>
-
-                  <input
-                    id="testQuestionsPerAttempt"
-                    type="number"
-                    className="course-builder-input"
-                    value={testQuestionsPerAttempt}
-                    onChange={(e) => setTestQuestionsPerAttempt(e.target.value)}
-                    min="1"
-                    disabled={isPublished}
-                  />
-                </div>
-
-                <div className="course-builder-field">
-                  <label htmlFor="testMaxAttempts">Maximum attempts</label>
-
-                  <input
-                    id="testMaxAttempts"
-                    type="number"
-                    className="course-builder-input"
-                    value={testMaxAttempts}
-                    onChange={(e) => setTestMaxAttempts(e.target.value)}
                     min="1"
                     disabled={isPublished}
                   />
@@ -1806,6 +1816,10 @@ const CourseBuilder = () => {
 
                 {questionOptions.map((option, index) => (
                   <div key={index} className="course-builder-question-option">
+                    <span className="course-builder-option-letter">
+                      {String.fromCharCode(65 + index)}
+                    </span>
+
                     <input
                       type="radio"
                       name="correct-option"
@@ -1835,7 +1849,7 @@ const CourseBuilder = () => {
                           ),
                         );
                       }}
-                      placeholder={`Option ${index + 1}`}
+                      placeholder={`Option ${String.fromCharCode(65 + index)}`}
                       required
                       disabled={isPublished}
                     />
@@ -1859,10 +1873,7 @@ const CourseBuilder = () => {
                   onClick={() => {
                     setShowQuestionForm(false);
                     setQuestionText("");
-                    setQuestionOptions([
-                      { text: "", is_correct: false },
-                      { text: "", is_correct: false },
-                    ]);
+                    setQuestionOptions(createEmptyQuestionOptions());
                     setError("");
                   }}
                 >
@@ -1940,6 +1951,7 @@ const CourseBuilder = () => {
               {error}
             </div>
           )}
+
           {course.status === "PUBLISHED" ? (
             <button
               type="button"

@@ -3,26 +3,85 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { getTestResult } from "../services/testService";
 
+import {
+  getMyCertificateRequest,
+  requestCertificate,
+} from "../services/certificateService";
+
 function TestResult() {
   const { attemptId } = useParams();
   const navigate = useNavigate();
-
   const token = localStorage.getItem("token");
 
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [certificateRequest, setCertificateRequest] = useState(null);
+  const [certificateLoading, setCertificateLoading] = useState(false);
+
+  const formatDuration = (duration) => {
+    if (!duration) return "—";
+
+    if (typeof duration === "object") {
+      const hours = Number(duration.hours || 0);
+      const minutes = Number(duration.minutes || 0);
+      const seconds = Number(duration.seconds || 0);
+
+      if (hours > 0) {
+        return `${hours}h ${minutes}m ${seconds}s`;
+      }
+
+      if (minutes > 0) {
+        return `${minutes}m ${seconds}s`;
+      }
+
+      return `${seconds}s`;
+    }
+
+    return String(duration);
+  };
+
+  const formatDate = (date) => {
+    if (!date) return "—";
+
+    return new Date(date).toLocaleString();
+  };
+
+  const loadCertificateRequest = async (courseId) => {
+    if (!courseId) return;
+
+    try {
+      const data = await getMyCertificateRequest(courseId, token);
+      setCertificateRequest(data.request || null);
+    } catch (err) {
+      console.error("Error loading certificate request:", err);
+    }
+  };
+
   useEffect(() => {
     const loadResult = async () => {
       try {
         const data = await getTestResult(attemptId, token);
 
+        if (!data.result) {
+          setError("Test result not found.");
+          return;
+        }
+
         setResult(data.result);
+
+        if (data.result.passed && data.result.course_id) {
+          await loadCertificateRequest(data.result.course_id);
+        }
       } catch (err) {
         console.error("Error loading test result:", err);
 
-        setError(err.message || "Failed to load test result.");
+        setError(
+          err.response?.data?.error ||
+            err.message ||
+            "Failed to load test result.",
+        );
       } finally {
         setLoading(false);
       }
@@ -30,6 +89,34 @@ function TestResult() {
 
     loadResult();
   }, [attemptId, token]);
+
+  const handleRequestCertificate = async () => {
+    const courseId = result?.course_id;
+
+    if (!courseId) {
+      setError("Course ID could not be determined.");
+      return;
+    }
+
+    setCertificateLoading(true);
+    setError("");
+
+    try {
+      const data = await requestCertificate(courseId, token);
+
+      setCertificateRequest(data.request || null);
+    } catch (err) {
+      console.error("Error requesting certificate:", err);
+
+      setError(
+        err.response?.data?.error ||
+          err.message ||
+          "Failed to request certificate.",
+      );
+    } finally {
+      setCertificateLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -40,7 +127,7 @@ function TestResult() {
     );
   }
 
-  if (error) {
+  if (error && !result) {
     return (
       <div className="container py-5">
         <div className="alert alert-danger">{error}</div>
@@ -84,49 +171,12 @@ function TestResult() {
     actual_duration,
   } = result;
 
-  const formatDuration = (duration) => {
-    if (!duration) return "—";
-
-    // PostgreSQL interval returned as an object
-    if (typeof duration === "object") {
-      const hours = Number(duration.hours || 0);
-      const minutes = Number(duration.minutes || 0);
-      const seconds = Number(duration.seconds || 0);
-
-      if (hours > 0) {
-        return `${hours}h ${minutes}m ${seconds}s`;
-      }
-
-      return `${minutes}m ${seconds}s`;
-    }
-
-    // PostgreSQL interval returned as a string
-    const match = String(duration).match(/(?:(\d+):)?(\d+):(\d+)(?:\.(\d+))?/);
-
-    if (!match) return String(duration);
-
-    const hours = Number(match[1] || 0);
-    const minutes = Number(match[2] || 0);
-    const seconds = Number(match[3] || 0);
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m ${seconds}s`;
-    }
-
-    return `${minutes}m ${seconds}s`;
-  };
-
-  const formatDate = (date) => {
-    if (!date) return "—";
-
-    return new Date(date).toLocaleString();
-  };
-
   return (
     <div className="container py-5">
       <div className="row justify-content-center">
         <div className="col-lg-8">
-          {/* Result Header */}
+          {error && <div className="alert alert-danger">{error}</div>}
+
           <div className="card shadow-sm border-0 mb-4">
             <div className="card-body text-center py-5">
               <div
@@ -145,7 +195,6 @@ function TestResult() {
             </div>
           </div>
 
-          {/* Score Summary */}
           <div className="card shadow-sm border-0 mb-4">
             <div className="card-body">
               <h4 className="mb-4">Result Summary</h4>
@@ -168,13 +217,14 @@ function TestResult() {
                 <div className="col-md-4">
                   <div className="bg-light rounded p-3 text-center">
                     <div className="text-muted small">Score</div>
-                    <div className="fs-4 fw-bold">{score}</div>
+                    <div className="fs-4 fw-bold">{score}%</div>
                   </div>
                 </div>
 
                 <div className="col-md-6">
                   <div className="bg-success bg-opacity-10 rounded p-3 text-center">
                     <div className="text-success small">Correct Answers</div>
+
                     <div className="fs-4 fw-bold text-success">
                       {correct_answers}
                     </div>
@@ -184,6 +234,7 @@ function TestResult() {
                 <div className="col-md-6">
                   <div className="bg-danger bg-opacity-10 rounded p-3 text-center">
                     <div className="text-danger small">Incorrect Answers</div>
+
                     <div className="fs-4 fw-bold text-danger">
                       {incorrect_answers}
                     </div>
@@ -193,7 +244,6 @@ function TestResult() {
             </div>
           </div>
 
-          {/* Attempt Information */}
           <div className="card shadow-sm border-0 mb-4">
             <div className="card-body">
               <h4 className="mb-4">Attempt Information</h4>
@@ -218,6 +268,7 @@ function TestResult() {
 
                 <div className="col-md-6">
                   <div className="text-muted small">Status</div>
+
                   <div>
                     <span
                       className={`badge ${passed ? "bg-success" : "bg-danger"}`}
@@ -230,8 +281,25 @@ function TestResult() {
             </div>
           </div>
 
-          {/* Actions */}
           <div className="text-center">
+            {passed && !certificateRequest && (
+              <button
+                className="btn btn-success px-4 me-2"
+                disabled={certificateLoading}
+                onClick={handleRequestCertificate}
+              >
+                {certificateLoading ? "Requesting..." : "Request Certificate"}
+              </button>
+            )}
+
+            {passed && certificateRequest && (
+              <div className="alert alert-info mb-3">
+                Certificate request submitted successfully.
+                <br />
+                <strong>Status:</strong> {certificateRequest.certificate_status}
+              </div>
+            )}
+
             <button
               className="btn btn-primary px-4 me-2"
               onClick={() => navigate("/learner/dashboard")}

@@ -1,4 +1,13 @@
 import pool from "../config/db.js";
+import getCourseRequiredTime from "../utils/courseTime.js";
+import generateCertificate from "../utils/generateCertificate.js";
+import path from "path";
+import { fileURLToPath } from "url";
+import nodemailer from "nodemailer";
+import fs from "fs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Request a certificate after passing the course test.
@@ -230,26 +239,29 @@ export const getCertificateRequest = async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT
-         cr.id,
-         cr.user_id,
-         cr.course_id,
-         cr.amount,
-         cr.phone_number,
-         cr.payment_status,
-         cr.certificate_status,
-         cr.requested_at,
-         cr.paid_at,
-         cr.issued_at,
-         c.title AS course_title,
-         c.price AS course_price
-       FROM certificate_requests cr
-       JOIN courses c
-         ON c.id = cr.course_id
-       WHERE cr.user_id = $1
-         AND cr.course_id = $2
-       ORDER BY cr.requested_at DESC
-       LIMIT 1`,
-      [req.user.id, courseId],
+          cr.id,
+          cr.user_id,
+          cr.course_id,
+          cr.amount,
+          cr.certificate_status,
+          c.title AS course_title,
+          c.instructor_id,
+          i.user_id AS instructor_user_id,
+          i.firstname AS instructor_firstname,
+          i.lastname AS instructor_lastname,
+          u.first_name AS learner_first_name,
+          u.last_name AS learner_last_name,
+          u.email AS learner_email,
+          u.professional_title AS learner_professional_title
+        FROM certificate_requests cr
+        JOIN courses c
+          ON c.id = cr.course_id
+        JOIN instructors i
+          ON i.id = c.instructor_id
+        JOIN users u
+          ON u.id = cr.user_id
+        WHERE cr.id = $1`,
+      [requestId],
     );
 
     if (result.rows.length === 0) {
@@ -529,6 +541,349 @@ export const verifyCertificatePayment = async (req, res) => {
 
     return res.status(500).json({
       error: "Server error.",
+    });
+  }
+};
+
+export const approveCertificateRequest = async (req, res) => {
+  const requestId = parseInt(req.params.requestId, 10);
+
+  if (!Number.isInteger(requestId)) {
+    return res.status(400).json({
+      error: "Invalid certificate request ID.",
+    });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT
+          cr.id,
+          cr.user_id,
+          cr.course_id,
+          cr.amount,
+          cr.certificate_status,
+          c.title AS course_title,
+          c.instructor_id,
+          i.user_id AS instructor_user_id,
+          i.firstname AS instructor_firstname,
+          i.lastname AS instructor_lastname,
+          u.first_name AS learner_first_name,
+          u.last_name AS learner_last_name,
+          u.email AS learner_email,
+          u.professional_title AS learner_professional_title
+        FROM certificate_requests cr
+        JOIN courses c
+          ON c.id = cr.course_id
+        JOIN instructors i
+          ON i.id = c.instructor_id
+        JOIN users u
+          ON u.id = cr.user_id
+        WHERE cr.id = $1`,
+      [requestId],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: "Certificate request not found.",
+      });
+    }
+
+    const request = result.rows[0];
+
+    // Check that the logged-in instructor owns this certificate request
+    if (request.instructor_user_id !== req.user.id) {
+      return res.status(403).json({
+        error: "You are not authorized to approve this certificate request.",
+      });
+    }
+
+    // Check that the certificate request is still pending
+    if (request.certificate_status !== "PENDING") {
+      return res.status(400).json({
+        error: "This certificate request is not pending.",
+        status: request.certificate_status,
+      });
+    }
+
+    const requiredTimeSeconds = await getCourseRequiredTime(request.course_id);
+    const durationHours = Math.round((requiredTimeSeconds / 3600) * 100) / 100;
+    const credits = durationHours;
+    const certificateNumber = `RCVD-${new Date().getFullYear()}-${String(request.id).padStart(6, "0")}`;
+
+    const outputPath = path.join(
+      __dirname,
+      "../../assets/certificates",
+      `${certificateNumber}.pdf`,
+    );
+
+    await generateCertificate({
+      certificateNumber,
+      learnerName: `${request.learner_first_name} ${request.learner_last_name}`,
+      professionalTitle: request.learner_professional_title,
+      courseTitle: request.course_title,
+      instructorName: `${request.instructor_firstname} ${request.instructor_lastname}`,
+      issuedDate: new Date().toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }),
+      credits,
+      durationHours,
+      outputPath,
+    });
+
+    const certificateResult = await pool.query(
+      `INSERT INTO certificates (
+          certificate_number,
+          user_id,
+          course_id,
+          issued_at,
+          qr_code,
+          pdf_path
+        )
+        VALUES ($1, $2, $3, NOW(), $4, $5)
+        RETURNING *`,
+      [
+        certificateNumber,
+        request.user_id,
+        request.course_id,
+        `/verify/${certificateNumber}`,
+        outputPath,
+      ],
+    );
+
+    await pool.query(
+      `UPDATE certificate_requests
+          SET certificate_status = 'ISSUED',
+              issued_at = NOW(),
+              instructor_payment_status = 'PAID',
+              rcvd_payment_status = 'PENDING'
+          WHERE id = $1`,
+      [request.id],
+    );
+
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      from: `"RCVD E-Learning" <${process.env.EMAIL_USER}>`,
+      to: request.learner_email,
+      subject: `Your RCVD Certificate - ${request.course_title}`,
+      text: `Dear ${request.learner_first_name} ${request.learner_last_name},
+
+          Congratulations!
+
+          Your certificate for the course "${request.course_title}" has been approved and issued.
+
+          Please find your certificate attached to this email.
+
+          Certificate Number: ${certificateNumber}
+          CPD Credits: ${credits}
+          Duration: ${durationHours} Hours
+
+          Regards,
+          RCVD E-Learning`,
+
+      attachments: [
+        {
+          filename: `${certificateNumber}.pdf`,
+          content: fs.readFileSync(outputPath),
+          contentType: "application/pdf",
+        },
+      ],
+    });
+
+    return res.json({
+      message: "Certificate approved and issued successfully.",
+      certificate: {
+        id: certificateResult.rows[0].id,
+        certificate_number: certificateNumber,
+        learner_name: `${request.learner_first_name} ${request.learner_last_name}`,
+        course_title: request.course_title,
+        duration_hours: durationHours,
+        credits,
+        amount: request.amount,
+        instructor_payment_status: "PAID",
+        rcvd_payment_status: "PENDING",
+        status: "ISSUED",
+        pdf_path: outputPath,
+      },
+    });
+  } catch (err) {
+    console.error("Error checking certificate request:", err);
+
+    return res.status(500).json({
+      error: "Server error.",
+    });
+  }
+};
+
+export const getInstructorCertificateRequests = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+         cr.id,
+         cr.user_id AS learner_id,
+         cr.course_id,
+         cr.amount,
+         cr.certificate_status,
+         cr.instructor_payment_status,
+         cr.rcvd_payment_status,
+         ROUND(cr.amount * 0.90, 2) AS instructor_amount,
+         ROUND(cr.amount * 0.10, 2) AS rcvd_amount,
+         cr.requested_at,
+         cr.issued_at,
+         c.title AS course_title,
+         u.first_name AS learner_first_name,
+         u.last_name AS learner_last_name,
+         u.email AS learner_email
+       FROM certificate_requests cr
+       JOIN courses c
+         ON c.id = cr.course_id
+       JOIN instructors i
+         ON i.id = c.instructor_id
+       JOIN users u
+         ON u.id = cr.user_id
+       WHERE i.user_id = $1
+       ORDER BY cr.requested_at DESC`,
+      [req.user.id],
+    );
+
+    res.json({
+      requests: result.rows,
+    });
+  } catch (err) {
+    console.error("Error fetching instructor certificate requests:", err);
+
+    res.status(500).json({
+      error: "Server error.",
+    });
+  }
+};
+
+export const getMyCertificates = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+         cert.id,
+         cert.certificate_number,
+         cert.course_id,
+         cert.issued_at,
+         cert.qr_code,
+         cert.pdf_path,
+         c.title AS course_title
+       FROM certificates cert
+       JOIN courses c
+         ON c.id = cert.course_id
+       WHERE cert.user_id = $1
+       ORDER BY cert.issued_at DESC`,
+      [req.user.id],
+    );
+
+    res.json({
+      certificates: result.rows,
+    });
+  } catch (err) {
+    console.error("Error fetching learner certificates:", err);
+
+    res.status(500).json({
+      error: "Server error.",
+    });
+  }
+};
+
+export const viewMyCertificate = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT pdf_path, certificate_number
+       FROM certificates
+       WHERE id = $1 AND user_id = $2`,
+      [req.params.certificateId, req.user.id],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: "Certificate not found.",
+      });
+    }
+
+    const certificate = result.rows[0];
+
+    if (!certificate.pdf_path) {
+      return res.status(404).json({
+        error: "Certificate PDF not available.",
+      });
+    }
+
+    res.sendFile(path.resolve(certificate.pdf_path));
+  } catch (err) {
+    console.error("Error viewing certificate:", err);
+
+    res.status(500).json({
+      error: "Server error.",
+    });
+  }
+};
+
+export const verifyCertificate = async (req, res) => {
+  const { certificateNumber } = req.params;
+
+  try {
+    const result = await pool.query(
+      `SELECT
+         c.certificate_number,
+         c.issued_at,
+         c.pdf_path,
+         u.first_name AS learner_first_name,
+         u.last_name AS learner_last_name,
+         u.professional_title,
+         co.title AS course_title,
+         i.firstname AS instructor_first_name,
+         i.lastname AS instructor_last_name
+       FROM certificates c
+       JOIN users u
+         ON u.id = c.user_id
+       JOIN courses co
+         ON co.id = c.course_id
+       JOIN instructors i
+         ON i.id = co.instructor_id
+       WHERE c.certificate_number = $1`,
+      [certificateNumber],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        valid: false,
+        message: "Certificate not found.",
+      });
+    }
+
+    const certificate = result.rows[0];
+
+    return res.json({
+      valid: true,
+      certificate: {
+        certificate_number: certificate.certificate_number,
+        learner_name: `${certificate.learner_first_name} ${certificate.learner_last_name}`,
+        professional_title: certificate.professional_title,
+        course_title: certificate.course_title,
+        instructor_name: `${certificate.instructor_first_name} ${certificate.instructor_last_name}`,
+        issued_at: certificate.issued_at,
+      },
+    });
+  } catch (err) {
+    console.error("Error verifying certificate:", err);
+
+    return res.status(500).json({
+      valid: false,
+      message: "Server error.",
     });
   }
 };

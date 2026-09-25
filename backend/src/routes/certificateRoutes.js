@@ -4,7 +4,14 @@ import {
   requestCertificate,
   getMyCertificateRequest,
   verifyCertificatePayment,
+  approveCertificateRequest,
+  getInstructorCertificateRequests,
+  getMyCertificates,
+  viewMyCertificate,
+  verifyCertificate,
 } from "../controllers/certificateController.js";
+
+import requireRole from "../middleware/roleMiddleware.js";
 
 import authMiddleware from "../middleware/authMiddleware.js";
 
@@ -22,6 +29,14 @@ router.post("/request/:courseId", authMiddleware, requestCertificate);
  */
 router.get("/request/:courseId", authMiddleware, getMyCertificateRequest);
 
+router.get("/my-certificates", authMiddleware, getMyCertificates);
+
+router.get(
+  "/my-certificates/:certificateId/view",
+  authMiddleware,
+  viewMyCertificate,
+);
+
 /*
  * Verify Mobile Money payment
  * POST /api/certificates/payment/verify/:requestId
@@ -31,5 +46,25 @@ router.post(
   authMiddleware,
   verifyCertificatePayment,
 );
+
+router.patch(
+  "/request/:requestId/approve",
+  authMiddleware,
+  requireRole("INSTRUCTOR"),
+  approveCertificateRequest,
+);
+
+router.get(
+  "/instructor/requests",
+  authMiddleware,
+  requireRole("INSTRUCTOR"),
+  getInstructorCertificateRequests,
+);
+
+/*
+ * Public certificate verification
+ * GET /api/certificates/verify/:certificateNumber
+ */
+router.get("/verify/:certificateNumber", verifyCertificate);
 
 export default router;

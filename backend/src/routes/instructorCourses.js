@@ -13,10 +13,15 @@ import authMiddleware from "../middleware/authMiddleware.js";
 import requireRole from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
+console.log("instructorCourses routes loaded");
 
 // Get instructor's courses
 router.get(
   "/instructor/courses",
+  (req, res, next) => {
+    console.error("### INSTRUCTOR COURSES ROUTE HIT ###");
+    next();
+  },
   authMiddleware,
   requireRole("INSTRUCTOR"),
   getInstructorCourses,

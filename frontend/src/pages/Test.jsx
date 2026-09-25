@@ -480,10 +480,21 @@ function TestPage() {
                           ? "Requesting..."
                           : "Request Certificate"}
                       </button>
-                    ) : (
+                    ) : certificateRequest.certificate_status === "PENDING" ? (
                       <div className="alert alert-info mb-0">
                         Your certificate request is being reviewed.
                         <br />
+                        <strong>Status:</strong> PENDING
+                      </div>
+                    ) : certificateRequest.certificate_status === "ISSUED" ? (
+                      <div className="alert alert-success mb-0">
+                        Your certificate has been approved and issued
+                        successfully.
+                        <br />
+                        <strong>Status:</strong> ISSUED
+                      </div>
+                    ) : (
+                      <div className="alert alert-secondary mb-0">
                         <strong>Status:</strong>{" "}
                         {certificateRequest.certificate_status}
                       </div>

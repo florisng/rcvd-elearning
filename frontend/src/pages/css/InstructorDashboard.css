@@ -560,3 +560,35 @@
     padding: 15px 15px 0;
   }
 }
+.certificate-requests-card {
+  position: relative;
+  cursor: pointer;
+  background: #f4f8fb;
+  border: 5px solid #b9cfdf;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.certificate-requests-card:hover {
+  transform: translateY(-4px);
+  background: #eef5fa;
+  box-shadow: 0 10px 24px rgba(24, 67, 109, 0.16);
+}
+
+.certificate-requests-card .summary-icon {
+  background: #e1edf5;
+  color: #18436d;
+}
+
+.certificate-request-dot {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #198754;
+  box-shadow: 0 0 0 3px #e8f5ee;
+}

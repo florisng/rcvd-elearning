@@ -248,7 +248,6 @@ const CourseBuilder = () => {
 
       setError("");
     } catch (err) {
-      console.error("Error publishing course:", err);
       setError("Unable to publish course. Please try again.");
     } finally {
       setPublishingCourse(false);
@@ -418,8 +417,6 @@ const CourseBuilder = () => {
         );
 
         const data = await response.json();
-
-        console.log("COURSE DATA STATUS:", data.status, data);
 
         if (!response.ok) {
           throw new Error(data.error || "Failed to load course.");
@@ -1810,6 +1807,8 @@ const CourseBuilder = () => {
                   disabled={isPublished}
                 />
               </div>
+
+              {error && <div className="course-builder-error">{error}</div>}
 
               <div className="course-builder-form-group">
                 <label>Answer Options</label>

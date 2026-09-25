@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import API_URL from "../api";
 import "./css/LearnerDashboard.css";
 
 const LearnerDashboard = () => {
   const [courses, setCourses] = useState([]);
   const [progress, setProgress] = useState({});
+  const [certificates, setCertificates] = useState([]);
+  const [newCertificate, setNewCertificate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -77,6 +80,32 @@ const LearnerDashboard = () => {
         });
 
         setProgress(progressMap);
+
+        const certificatesRes = await fetch(
+          `${API_URL}/api/certificates/my-certificates`,
+          {
+            headers,
+          },
+        );
+
+        const certificatesData = await certificatesRes.json();
+
+        if (certificatesRes.ok) {
+          const learnerCertificates = certificatesData.certificates || [];
+
+          setCertificates(learnerCertificates);
+
+          const seenCertificateIds = JSON.parse(
+            localStorage.getItem("seenCertificateIds") || "[]",
+          ).map(String);
+
+          const unseenCertificate = learnerCertificates.find(
+            (certificate) =>
+              !seenCertificateIds.includes(String(certificate.id)),
+          );
+
+          setNewCertificate(unseenCertificate || null);
+        }
       } catch (err) {
         console.error("Error loading learner courses:", err);
         setError(err.message);
@@ -135,6 +164,31 @@ const LearnerDashboard = () => {
   const averageProgress =
     courses.length > 0 ? Math.round(totalProgress / courses.length) : 0;
 
+  const viewCertificate = async (certificateId) => {
+    try {
+      const response = await fetch(
+        `${API_URL}/api/certificates/my-certificates/${certificateId}/view`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Unable to open certificate.");
+      }
+
+      const blob = await response.blob();
+      const pdfUrl = window.URL.createObjectURL(blob);
+
+      window.open(pdfUrl, "_blank");
+    } catch (err) {
+      console.error("Error viewing certificate:", err);
+      alert(err.message || "Unable to open certificate.");
+    }
+  };
   return (
     <div className="learner-dashboard">
       <div className="container py-5">
@@ -225,6 +279,78 @@ const LearnerDashboard = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* =========================================
+            CERTIFICATE NOTIFICATION
+        ========================================= */}
+
+        {newCertificate && (
+          <div className="dashboard-certificate-notification mt-4">
+            <div className="dashboard-certificate-notification-icon">
+              <i className="bi bi-award-fill"></i>
+            </div>
+
+            <div className="dashboard-certificate-notification-content">
+              <span>Certificate Approved</span>
+
+              <h3>{newCertificate.course_title}</h3>
+
+              <p>
+                Your certificate has been approved and issued successfully. You
+                can now view it from your certificates.
+                <br />
+                Also please check your email for the certificate PDF.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              className="dashboard-certificate-notification-btn"
+              onClick={() => {
+                const seenCertificateIds = JSON.parse(
+                  localStorage.getItem("seenCertificateIds") || "[]",
+                ).map(String);
+
+                if (!seenCertificateIds.includes(String(newCertificate.id))) {
+                  seenCertificateIds.push(String(newCertificate.id));
+
+                  localStorage.setItem(
+                    "seenCertificateIds",
+                    JSON.stringify(seenCertificateIds),
+                  );
+                }
+
+                viewCertificate(newCertificate.id);
+                setNewCertificate(null);
+              }}
+            >
+              View Certificate
+            </button>
+          </div>
+        )}
+
+        {/* =========================================
+            MY CERTIFICATES
+        ========================================= */}
+
+        <div className="dashboard-certificates-card mt-5">
+          <div className="dashboard-certificates-icon">
+            <i className="bi bi-award-fill"></i>
+          </div>
+
+          <div className="dashboard-certificates-content">
+            <h3>My Certificates</h3>
+
+            <p>View and access your certificates for completed courses.</p>
+          </div>
+
+          <Link
+            to="/learner/certificates"
+            className="dashboard-certificates-btn"
+          >
+            View Certificates
+          </Link>
         </div>
       </div>
     </div>

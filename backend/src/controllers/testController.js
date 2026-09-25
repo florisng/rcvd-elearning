@@ -973,14 +973,6 @@ export const submitTest = async (req, res) => {
       attempt.attempt_number === Number(attempt.max_attempts) && !passed;
 
     if (isFinalFailedAttempt) {
-      console.log("FINAL ATTEMPT RESET TRIGGERED", {
-        attempt_number: attempt.attempt_number,
-        max_attempts: attempt.max_attempts,
-        test_id: attempt.test_id,
-        course_id: attempt.course_id,
-        user_id: attempt.user_id,
-      });
-
       await client.query(
         `UPDATE chapter_progress
          SET learning_time_seconds = 0,
@@ -1013,12 +1005,6 @@ export const submitTest = async (req, res) => {
            AND user_id = $2`,
         [attempt.test_id, attempt.user_id],
       );
-
-      console.log("FINAL ATTEMPT RESET COMPLETED", {
-        test_id: attempt.test_id,
-        course_id: attempt.course_id,
-        user_id: attempt.user_id,
-      });
     }
 
     await client.query("COMMIT");

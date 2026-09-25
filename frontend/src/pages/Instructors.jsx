@@ -9,16 +9,10 @@ const Instructors = () => {
 
   useEffect(() => {
     const fetchInstructors = async () => {
-      console.log("INSTRUCTORS PAGE LOADED");
-
       try {
         const res = await fetch(`${API_URL}/api/instructors`);
 
-        console.log("INSTRUCTORS RESPONSE STATUS:", res.status);
-
         const data = await res.json();
-
-        console.log("INSTRUCTORS DATA:", data);
 
         if (!res.ok) {
           throw new Error(data?.error || "Failed to load instructors.");

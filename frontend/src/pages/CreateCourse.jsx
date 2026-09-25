@@ -76,8 +76,6 @@ const CreateCourse = () => {
         throw new Error(data.error || "Failed to create course.");
       }
 
-      console.log("Create course response:", data);
-
       // The backend returns the created course inside data.course
       const createdCourse = data.course;
 

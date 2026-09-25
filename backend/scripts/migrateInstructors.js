@@ -24,10 +24,6 @@ const migrateInstructors = async () => {
       ORDER BY id
     `);
 
-    console.log(
-      `Found ${instructorsResult.rows.length} instructors to migrate.`,
-    );
-
     for (const instructor of instructorsResult.rows) {
       // Check whether this email already exists
       const existingUser = await client.query(
@@ -39,10 +35,6 @@ const migrateInstructors = async () => {
 
       if (existingUser.rows.length > 0) {
         userId = existingUser.rows[0].id;
-
-        console.log(
-          `User already exists for ${instructor.email} (ID: ${userId})`,
-        );
       } else {
         const passwordHash = await bcrypt.hash(instructor.password, 12);
 
@@ -69,8 +61,6 @@ const migrateInstructors = async () => {
         );
 
         userId = userResult.rows[0].id;
-
-        console.log(`Created user ${userId} for ${instructor.email}`);
       }
 
       // Connect instructor profile to authentication account
@@ -80,13 +70,9 @@ const migrateInstructors = async () => {
          WHERE id = $2`,
         [userId, instructor.id],
       );
-
-      console.log(`Connected instructor ${instructor.id} → user ${userId}`);
     }
 
     await client.query("COMMIT");
-
-    console.log("✅ Instructor migration completed successfully.");
   } catch (err) {
     await client.query("ROLLBACK");
 

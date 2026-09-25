@@ -4,8 +4,20 @@ import pool from "../config/db.js";
 export const getInstructors = async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, firstname, lastname, email, phone, bio FROM instructors ORDER BY id ASC",
+      `SELECT
+        i.id,
+        i.firstname,
+        i.lastname,
+        i.email,
+        i.phone,
+        i.bio
+      FROM instructors i
+      INNER JOIN users u ON u.id = i.user_id
+      WHERE u.role = 'INSTRUCTOR'
+      AND u.approval_status = 'APPROVED'
+      ORDER BY i.id ASC`,
     );
+
     res.json(result.rows);
   } catch (err) {
     console.error("Error fetching instructors:", err);
@@ -19,7 +31,7 @@ export const getInstructorById = async (req, res) => {
     const numericId = parseInt(req.params.id, 10); // Ensure it's a number
 
     const instructorResult = await pool.query(
-      `SELECT id, firstname, lastname, email, phone, bio, password
+      `SELECT id, firstname, lastname, email, phone, bio
        FROM instructors
        WHERE id = $1`,
       [numericId],
@@ -50,11 +62,11 @@ export const getInstructorById = async (req, res) => {
 
 // Get courses of a specific instructor (for dashboard)
 export const getInstructorCourses = async (req, res) => {
-  const { id } = req.params; // Use same param as route: /instructor/:id/courses
+  const instructorId = req.user.id;
   try {
     const result = await pool.query(
       "SELECT id, title, description, price FROM courses WHERE instructor_id = $1 ORDER BY id ASC",
-      [id],
+      [instructorId],
     );
     res.json(result.rows);
   } catch (err) {

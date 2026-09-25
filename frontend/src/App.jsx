@@ -14,6 +14,7 @@ import Login from "./pages/Login";
 import InstructorSignup from "./pages/InstructorSignup";
 import LearnerSignup from "./pages/LearnerSignup";
 import InstructorDashboard from "./pages/InstructorDashboard";
+import InstructorCertificateRequests from "./pages/InstructorCertificateRequests";
 import LearnerDashboard from "./pages/LearnerDashboard";
 import InstructorCourse from "./pages/InstructorCourse";
 import CreateCourse from "./pages/CreateCourse";
@@ -21,9 +22,19 @@ import TestPage from "./pages/Test";
 import TestResult from "./pages/TestResult";
 import CourseBuilder from "./pages/CourseBuilder";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminLearners from "./pages/AdminLearners";
+import AdminCertificatePayments from "./pages/AdminCertificatePayments";
+import AdminCourses from "./pages/AdminCourses";
+import AdminCourseDetails from "./pages/AdminCourseDetails";
+import AdminLearnerDetails from "./pages/AdminLearnerDetails";
+import AdminInstructors from "./pages/AdminInstructors";
+import AdminPendingInstructors from "./pages/AdminPendingInstructors";
+import AdminApprovedInstructors from "./pages/AdminApprovedInstructors";
 import Landing from "./pages/Landing";
 import MyLearning from "./pages/MyLearning";
 import LearnerProfile from "./pages/LearnerProfile";
+import MyCertificates from "./pages/MyCertificates";
+import VerifyCertificate from "./pages/VerifyCertificate";
 
 import "./App.css";
 
@@ -111,12 +122,30 @@ function App() {
               }
             />
 
+            <Route
+              path="/instructor/certificate-requests"
+              element={
+                <PrivateRoute>
+                  <InstructorCertificateRequests />
+                </PrivateRoute>
+              }
+            />
+
             {/* Learner Dashboard */}
             <Route
               path="/learner/dashboard"
               element={
                 <PrivateRoute role="LEARNER">
                   <LearnerDashboard />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/learner/certificates"
+              element={
+                <PrivateRoute>
+                  <MyCertificates />
                 </PrivateRoute>
               }
             />
@@ -150,6 +179,78 @@ function App() {
               }
             />
 
+            <Route
+              path="/admin/instructors"
+              element={
+                <PrivateRoute role="RCVD_ADMIN">
+                  <AdminInstructors />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/admin/learners"
+              element={
+                <PrivateRoute role="RCVD_ADMIN">
+                  <AdminLearners />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/admin/courses"
+              element={
+                <PrivateRoute role="RCVD_ADMIN">
+                  <AdminCourses />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/admin/courses/:id"
+              element={
+                <PrivateRoute role="RCVD_ADMIN">
+                  <AdminCourseDetails />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/admin/learners/:id"
+              element={
+                <PrivateRoute role="RCVD_ADMIN">
+                  <AdminLearnerDetails />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/admin/instructors/pending"
+              element={
+                <PrivateRoute role="RCVD_ADMIN">
+                  <AdminPendingInstructors />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/admin/instructors/approved"
+              element={
+                <PrivateRoute role="RCVD_ADMIN">
+                  <AdminApprovedInstructors />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/admin/certificate-payments"
+              element={
+                <PrivateRoute role="RCVD_ADMIN">
+                  <AdminCertificatePayments />
+                </PrivateRoute>
+              }
+            />
+
             {/* My Learning - Learners Only */}
             <Route
               path="/my-learning"
@@ -158,6 +259,11 @@ function App() {
                   <MyLearning />
                 </PrivateRoute>
               }
+            />
+
+            <Route
+              path="/verify/:certificateNumber"
+              element={<VerifyCertificate />}
             />
           </Routes>
         </main>

@@ -1,0 +1,414 @@
+.instructor-certificate-requests {
+  padding: 35px 0 50px;
+}
+
+/* Page Header */
+
+.certificate-page-header {
+  margin-bottom: 30px;
+}
+
+.certificate-page-header > div {
+  position: relative;
+  padding-left: 68px;
+}
+
+.certificate-page-icon {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #eaf1f7;
+  color: #18436d;
+  font-size: 24px;
+}
+
+.certificate-page-header h2 {
+  margin: 0 0 6px;
+  color: #18436d;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.certificate-page-header p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Error */
+
+.certificate-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 25px;
+  padding: 13px 16px;
+  border: 1px solid #f1b5b5;
+  border-radius: 8px;
+  background: #fff5f5;
+  color: #b02a37;
+  font-size: 14px;
+}
+
+.certificate-error i {
+  font-size: 16px;
+}
+
+/* Summary */
+
+.certificate-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 30px;
+}
+
+.certificate-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-height: 92px;
+  padding: 18px 20px;
+  background: #ffffff;
+  border: 1px solid #e1e7ec;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(24, 67, 109, 0.05);
+}
+
+.certificate-summary-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 10px;
+  font-size: 20px;
+}
+
+.certificate-summary-icon.pending {
+  background: #fff4d6;
+  color: #b58105;
+}
+
+.certificate-summary-icon.issued {
+  background: #e8f5ee;
+  color: #198754;
+}
+
+.certificate-summary-icon.total {
+  background: #eaf1f7;
+  color: #18436d;
+}
+
+.certificate-summary-card span {
+  display: block;
+  margin-bottom: 3px;
+  color: #6c757d;
+  font-size: 13px;
+}
+
+.certificate-summary-card strong {
+  display: block;
+  color: #18436d;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* Loading */
+
+.certificate-loading {
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+}
+
+.certificate-loading-spinner {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 12px;
+  border: 3px solid #dce6ee;
+  border-top-color: #18436d;
+  border-radius: 50%;
+  animation: certificate-spin 0.8s linear infinite;
+}
+
+.certificate-loading p {
+  margin: 0;
+  font-size: 14px;
+}
+
+@keyframes certificate-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty State */
+
+.certificate-empty {
+  padding: 60px 25px;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #e1e7ec;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(24, 67, 109, 0.05);
+}
+
+.certificate-empty-icon {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: #eaf1f7;
+  color: #18436d;
+  font-size: 28px;
+}
+
+.certificate-empty h3 {
+  margin: 0 0 8px;
+  color: #18436d;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.certificate-empty p {
+  max-width: 500px;
+  margin: 0 auto;
+  color: #6c757d;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Table Container */
+
+.certificate-table-container {
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e1e7ec;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(24, 67, 109, 0.06);
+}
+
+.certificate-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 22px;
+  border-bottom: 1px solid #e8edf1;
+}
+
+.certificate-table-header h3 {
+  margin: 0 0 4px;
+  color: #18436d;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.certificate-table-header p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 13px;
+}
+
+/* Table */
+
+.certificate-requests-table {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+}
+
+.certificate-requests-table thead th {
+  padding: 14px 18px;
+  background: #f7f9fb;
+  color: #495057;
+  border-bottom: 1px solid #e1e7ec;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.certificate-requests-table tbody td {
+  padding: 17px 18px;
+  border-bottom: 1px solid #edf0f2;
+  color: #343a40;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.certificate-requests-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Learner */
+
+.certificate-learner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 220px;
+}
+
+.certificate-learner-avatar {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #eaf1f7;
+  color: #18436d;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.certificate-learner-name {
+  margin-bottom: 3px;
+  color: #18436d;
+  font-weight: 600;
+}
+
+.certificate-learner-email {
+  color: #7a838b;
+  font-size: 12px;
+}
+
+/* Course */
+
+.certificate-course {
+  min-width: 180px;
+  color: #343a40;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Amount */
+
+.certificate-amount {
+  color: #18436d;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Dates */
+
+.certificate-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #5f6871;
+  white-space: nowrap;
+}
+
+.certificate-date i {
+  color: #18436d;
+  font-size: 13px;
+}
+
+.certificate-not-issued {
+  color: #adb5bd;
+}
+
+/* Approve */
+
+.certificate-approve-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 105px;
+  padding: 8px 14px;
+  border: 1px solid #18436d;
+  border-radius: 6px;
+  background: #18436d;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.certificate-approve-btn:hover {
+  background: #123452;
+  border-color: #123452;
+}
+
+.certificate-approve-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Issued */
+
+.certificate-issued-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #e8f5ee;
+  color: #198754;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.certificate-issued-label i {
+  font-size: 14px;
+}
+
+/* Mobile */
+
+@media (max-width: 992px) {
+  .certificate-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .instructor-certificate-requests {
+    padding: 25px 0 40px;
+  }
+
+  .certificate-page-header > div {
+    padding-left: 58px;
+  }
+
+  .certificate-page-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+
+  .certificate-page-header h2 {
+    font-size: 23px;
+  }
+
+  .certificate-table-header {
+    padding: 17px;
+  }
+
+  .certificate-requests-table thead th,
+  .certificate-requests-table tbody td {
+    padding: 12px 14px;
+  }
+
+  .certificate-learner {
+    min-width: 200px;
+  }
+}

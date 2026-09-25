@@ -1,10 +1,11 @@
 /* Reset and global */
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  
-  font-family: 'Roboto', 'Open Sans', Arial, sans-serif;
+
+  font-family: "Roboto", "Open Sans", Arial, sans-serif;
   color: #111827;
   line-height: 1.6;
 }
@@ -13,8 +14,11 @@ html, body {
   box-sizing: border-box;
 }
 
-h1, h2, h3, h4 {
-  font-family: 'Poppins', 'Segoe UI', 'Helvetica Neue', sans-serif;
+h1,
+h2,
+h3,
+h4 {
+  font-family: "Poppins", "Segoe UI", "Helvetica Neue", sans-serif;
   font-weight: 600;
   color: rgb(7, 113, 113); /* professional blue */
 }
@@ -54,5 +58,4 @@ h1, h2, h3, h4 {
    Responsive
 ======================= */
 @media (max-width: 768px) {
-  
 }

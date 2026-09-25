@@ -9,6 +9,7 @@ const InstructorDashboard = () => {
   const user = JSON.parse(localStorage.getItem("user"));
 
   const [courses, setCourses] = useState([]);
+  const [certificateRequests, setCertificateRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Delete modal
@@ -38,6 +39,20 @@ const InstructorDashboard = () => {
         console.error("Error fetching instructor courses:", err);
         setError("Failed to load courses.");
         setLoading(false);
+      });
+    fetch(`${API_URL}/api/certificates/instructor/requests`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setCertificateRequests(
+          Array.isArray(data.requests) ? data.requests : [],
+        );
+      })
+      .catch((err) => {
+        console.error("Error fetching certificate requests:", err);
       });
   }, []);
 
@@ -119,6 +134,12 @@ const InstructorDashboard = () => {
     );
   }
 
+  const pendingCertificateRequests = certificateRequests.filter(
+    (request) => request.certificate_status === "PENDING",
+  );
+
+  const hasPendingCertificateRequests = pendingCertificateRequests.length > 0;
+
   return (
     <div className="instructor-dashboard">
       {/* =========================
@@ -189,6 +210,28 @@ const InstructorDashboard = () => {
           <div>
             <span>Assessments</span>
             <strong>Available</strong>
+          </div>
+        </div>
+
+        <div
+          className="summary-card certificate-requests-card"
+          onClick={() => navigate("/instructor/certificate-requests")}
+        >
+          <div className="summary-icon">
+            <i className="bi bi-award-fill"></i>
+
+            {hasPendingCertificateRequests && (
+              <span className="certificate-request-dot"></span>
+            )}
+          </div>
+
+          <div>
+            <span>Certificate Requests</span>
+            <strong>
+              {pendingCertificateRequests.length > 0
+                ? `${pendingCertificateRequests.length} Pending`
+                : "No Pending"}
+            </strong>
           </div>
         </div>
       </div>

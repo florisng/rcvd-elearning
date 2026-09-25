@@ -1,4 +1,5 @@
 import pool from "../config/db.js";
+import getCourseRequiredTime from "../utils/courseTime.js";
 
 /**
  * Calculate required learning time for a chapter
@@ -654,8 +655,6 @@ export const completeChapter = async (req, res) => {
         error: "You are not enrolled in this course.",
       });
     }
-
-    console.log("COMPLETE CHAPTER ENROLLMENT:", enrollmentResult.rows[0]);
 
     if (
       enrollmentResult.rows[0].status !== "ACTIVE" &&

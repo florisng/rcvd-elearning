@@ -341,3 +341,212 @@ export const getAdminStats = async (req, res) => {
     });
   }
 };
+
+export const getAdminCourses = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        c.id,
+        c.title,
+        c.description,
+        c.target_professional_title,
+        c.price,
+        c.status,
+        c.created_at,
+        i.firstname AS instructor_first_name,
+        i.lastname AS instructor_last_name
+      FROM courses c
+      LEFT JOIN instructors i ON i.id = c.instructor_id
+      ORDER BY c.created_at DESC
+    `);
+
+    res.json({
+      courses: result.rows,
+    });
+  } catch (err) {
+    console.error("Error fetching admin courses:", err);
+
+    res.status(500).json({
+      error: "Server error",
+    });
+  }
+};
+
+export const getAdminLearners = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        id,
+        first_name,
+        last_name,
+        email,
+        phone,
+        email_verified,
+        created_at
+      FROM users
+      WHERE role = 'LEARNER'
+      ORDER BY created_at DESC
+    `);
+
+    res.json({
+      learners: result.rows,
+    });
+  } catch (err) {
+    console.error("Error fetching admin learners:", err);
+
+    res.status(500).json({
+      error: "Server error",
+    });
+  }
+};
+
+export const getAdminLearnerById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `SELECT
+        id,
+        first_name,
+        last_name,
+        email,
+        phone,
+        email_verified,
+        created_at
+       FROM users
+       WHERE id = $1
+         AND role = 'LEARNER'`,
+      [id],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: "Learner not found.",
+      });
+    }
+
+    res.json({
+      learner: result.rows[0],
+    });
+  } catch (err) {
+    console.error("Error fetching learner:", err);
+
+    res.status(500).json({
+      error: "Server error",
+    });
+  }
+};
+
+export const getAllInstructors = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        u.id,
+        u.first_name,
+        u.last_name,
+        u.email,
+        u.phone,
+        u.rcvd_registration_number,
+        u.professional_title,
+        u.approval_status,
+        u.email_verified,
+        u.created_at
+      FROM users u
+      WHERE u.role = 'INSTRUCTOR'
+      ORDER BY u.first_name ASC, u.last_name ASC
+    `);
+
+    res.json({
+      instructors: result.rows,
+    });
+  } catch (err) {
+    console.error("Error fetching all instructors:", err);
+
+    res.status(500).json({
+      error: "Server error",
+    });
+  }
+};
+
+export const getAdminCertificatePayments = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+         cr.id,
+         cr.amount,
+         cr.certificate_status,
+         cr.instructor_payment_status,
+         cr.rcvd_payment_status,
+         ROUND(cr.amount * 0.90, 2) AS instructor_amount,
+         ROUND(cr.amount * 0.10, 2) AS rcvd_amount,
+         cr.requested_at,
+         cr.issued_at,
+         c.title AS course_title,
+         u.first_name AS learner_first_name,
+         u.last_name AS learner_last_name,
+         u.email AS learner_email,
+         i.firstname AS instructor_first_name,
+         i.lastname AS instructor_last_name
+       FROM certificate_requests cr
+       JOIN courses c
+         ON c.id = cr.course_id
+       JOIN users u
+         ON u.id = cr.user_id
+       JOIN instructors i
+         ON i.id = c.instructor_id
+       ORDER BY cr.requested_at DESC`,
+    );
+
+    res.json({
+      payments: result.rows,
+      total: result.rows.length,
+    });
+  } catch (err) {
+    console.error("Error fetching admin certificate payments:", err);
+
+    res.status(500).json({
+      error: "Server error",
+    });
+  }
+};
+
+export const toggleRcvdPaymentStatus = async (req, res) => {
+  const requestId = parseInt(req.params.requestId, 10);
+
+  if (!Number.isInteger(requestId)) {
+    return res.status(400).json({
+      error: "Invalid certificate request ID.",
+    });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE certificate_requests
+       SET rcvd_payment_status =
+         CASE
+           WHEN rcvd_payment_status = 'PAID' THEN 'PENDING'
+           ELSE 'PAID'
+         END
+       WHERE id = $1
+       RETURNING id, rcvd_payment_status`,
+      [requestId],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: "Certificate payment record not found.",
+      });
+    }
+
+    res.json({
+      message: "RCVD payment status updated successfully.",
+      payment: result.rows[0],
+    });
+  } catch (err) {
+    console.error("Error updating RCVD payment status:", err);
+
+    res.status(500).json({
+      error: "Server error.",
+    });
+  }
+};

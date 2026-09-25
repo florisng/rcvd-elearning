@@ -37,7 +37,6 @@ const CourseDetail = () => {
         }
 
         setCourse(courseData.course);
-        console.log("COURSE DATA:", courseData.course);
 
         // =========================================
         // GET CHAPTER-BASED LEARNING PROGRESS
@@ -59,7 +58,6 @@ const CourseDetail = () => {
         }
 
         setChapterProgress(chapterProgressData);
-        console.log("CHAPTER PROGRESS DATA:", chapterProgressData);
       } catch (err) {
         console.error("Error loading course:", err);
         setError(err.message);
